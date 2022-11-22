@@ -1,3 +1,5 @@
-export class UserInfo {
-  userId: string;
+export interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
 }
