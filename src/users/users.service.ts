@@ -1,13 +1,19 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 import { ulid } from 'ulid';
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { UserInfo } from '../UserInfo';
 import { UserEntity } from '../entity/user.entity';
 
 @Injectable()
 export class UsersService {
+  private authService: AuthService;
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -33,8 +39,19 @@ export class UsersService {
   }
 
   async verifyEmail(signupVerifyToken: string): Promise<string> {
-    // TODO
-    throw new Error('Method not implemented.');
+    const user = await this.userRepository.findOneBy({
+      signupVerifyToken: signupVerifyToken,
+    });
+
+    if (user === null) {
+      throw new NotFoundException('User does not exist.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async login(email: string, password: string): Promise<string> {
@@ -77,36 +94,4 @@ export class UsersService {
       await this.sendMemberJoinEmail(email, signupVerifyToken);
     });
   }
-
-  // private async saveUserUsingQueryRunner(
-  //   name: string,
-  //   email: string,
-  //   password: string,
-  //   signupVerifyToken: string,
-  // ) {
-  //   const queryRunner = this.connection.createQueryRunner();
-  //
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-  //
-  //   try {
-  //     const user = new UserEntity();
-  //     user.id = ulid();
-  //     user.name = name;
-  //     user.email = email;
-  //     user.password = password;
-  //     user.signupVerifyToken = signupVerifyToken;
-  //
-  //     await queryRunner.manager.save(user);
-  //
-  //     await queryRunner.commitTransaction();
-  //   } catch (e) {
-  //     console.log(
-  //       'An error occurred while processing the transaction. Executing transaction rollback...',
-  //     );
-  //     await queryRunner.rollbackTransaction();
-  //   } finally {
-  //     await queryRunner.release();
-  //   }
-  // }
 }
