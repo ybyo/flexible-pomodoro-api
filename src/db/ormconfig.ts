@@ -1,8 +1,19 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
-dotenv.config();
+import * as path from 'path';
 
-const dataSource = new DataSource({
+dotenv.config({
+  path: path.resolve(
+    'src/config/env',
+    process.env.NODE_ENV === 'prod'
+      ? '.prod.env'
+      : process.env.NODE_ENV === 'stage'
+      ? '.stage.env'
+      : '.dev.env',
+  ),
+});
+
+const ormConfig = new DataSource({
   type: 'mysql',
   host: process.env.DATABASE_HOST,
   port: 3306,
@@ -11,6 +22,7 @@ const dataSource = new DataSource({
   database: 'test',
   entities: ['dist/**/*.entity{.ts,.js}'],
   synchronize: Boolean(process.env.DATABASE_SYNCHRONIZE),
+  migrations: ['dist/migration/*{.ts,.js}'],
 });
 
-export default dataSource;
+export default ormConfig;

@@ -20,9 +20,9 @@ import { validationSchema } from './config/validationSchema';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({}),
       dataSourceFactory: async () => {
-        const { default: dataSource } = await import('./DataSource');
-        await dataSource.initialize();
-        return dataSource;
+        const { default: ormConfig } = await import('./db/ormconfig');
+        await ormConfig.initialize();
+        return ormConfig;
       },
     }),
   ],
