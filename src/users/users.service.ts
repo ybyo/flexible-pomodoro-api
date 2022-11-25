@@ -4,7 +4,7 @@ import { ulid } from 'ulid';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserInfo } from '../UserInfo';
-import { UserEntity } from './entity/user.entity';
+import { UserEntity } from '../entity/user.entity';
 
 @Injectable()
 export class UsersService {
