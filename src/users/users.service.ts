@@ -13,12 +13,12 @@ import { UserEntity } from '../entity/user.entity';
 
 @Injectable()
 export class UsersService {
-  private authService: AuthService;
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
     private emailService: EmailService,
+    @InjectRepository(UserEntity)
+    private usersRepository: Repository<UserEntity>,
     private connection: Connection,
+    private authService: AuthService,
   ) {}
 
   async createUser(name: string, email: string, password: string) {
@@ -39,7 +39,7 @@ export class UsersService {
   }
 
   async verifyEmail(signupVerifyToken: string): Promise<string> {
-    const user = await this.userRepository.findOneBy({
+    const user = await this.usersRepository.findOneBy({
       signupVerifyToken: signupVerifyToken,
     });
 
@@ -55,16 +55,38 @@ export class UsersService {
   }
 
   async login(email: string, password: string): Promise<string> {
-    throw new Error('Method not implemented');
+    const user = await this.usersRepository.findOneBy({
+      email: email,
+      password: password,
+    });
+
+    if (user === null) {
+      throw new NotFoundException('The account could not be found.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async getUserInfo(userId: string): Promise<UserInfo> {
-    // TODO
-    throw new Error('Method not implemented');
+    const user = await this.usersRepository.findOneBy({ id: userId });
+
+    if (user === null) {
+      throw new NotFoundException('This user does not exist.');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   private async checkUserExists(emailAddress: string): Promise<boolean> {
-    const res = await this.userRepository.findOneBy({ email: emailAddress });
+    const res = await this.usersRepository.findOneBy({ email: emailAddress });
 
     return res === null;
   }
