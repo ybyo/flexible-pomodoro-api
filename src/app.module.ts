@@ -9,6 +9,12 @@ import emailConfig from './config/emailConfig';
 
 import { validationSchema } from './config/validationSchema';
 
+import * as winston from 'winston';
+import {
+  utilities as nestWinstonModuleUtilities,
+  WinstonModule,
+} from 'nest-winston';
+
 @Module({
   imports: [
     UsersModule,
@@ -26,6 +32,19 @@ import { validationSchema } from './config/validationSchema';
         await ormConfig.initialize();
         return ormConfig;
       },
+    }),
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          level: process.env.NODE_ENV === 'prod' ? 'info' : 'silly',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            nestWinstonModuleUtilities.format.nestLike('MyApp', {
+              prettyPrint: true,
+            }),
+          ),
+        }),
+      ],
     }),
   ],
   controllers: [],
