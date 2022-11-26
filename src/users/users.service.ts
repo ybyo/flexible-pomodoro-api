@@ -1,7 +1,12 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 import { ulid } from 'ulid';
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { UserInfo } from '../UserInfo';
 import { UserEntity } from '../entity/user.entity';
@@ -9,10 +14,11 @@ import { UserEntity } from '../entity/user.entity';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
     private emailService: EmailService,
+    @InjectRepository(UserEntity)
+    private usersRepository: Repository<UserEntity>,
     private connection: Connection,
+    private authService: AuthService,
   ) {}
 
   async createUser(name: string, email: string, password: string) {
@@ -33,21 +39,54 @@ export class UsersService {
   }
 
   async verifyEmail(signupVerifyToken: string): Promise<string> {
-    // TODO
-    throw new Error('Method not implemented.');
+    const user = await this.usersRepository.findOneBy({
+      signupVerifyToken: signupVerifyToken,
+    });
+
+    if (user === null) {
+      throw new NotFoundException('User does not exist.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async login(email: string, password: string): Promise<string> {
-    throw new Error('Method not implemented');
+    const user = await this.usersRepository.findOneBy({
+      email: email,
+      password: password,
+    });
+
+    if (user === null) {
+      throw new NotFoundException('The account could not be found.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async getUserInfo(userId: string): Promise<UserInfo> {
-    // TODO
-    throw new Error('Method not implemented');
+    const user = await this.usersRepository.findOneBy({ id: userId });
+
+    if (user === null) {
+      throw new NotFoundException('This user does not exist.');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   private async checkUserExists(emailAddress: string): Promise<boolean> {
-    const res = await this.userRepository.findOneBy({ email: emailAddress });
+    const res = await this.usersRepository.findOneBy({ email: emailAddress });
 
     return res === null;
   }
@@ -77,36 +116,4 @@ export class UsersService {
       await this.sendMemberJoinEmail(email, signupVerifyToken);
     });
   }
-
-  // private async saveUserUsingQueryRunner(
-  //   name: string,
-  //   email: string,
-  //   password: string,
-  //   signupVerifyToken: string,
-  // ) {
-  //   const queryRunner = this.connection.createQueryRunner();
-  //
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-  //
-  //   try {
-  //     const user = new UserEntity();
-  //     user.id = ulid();
-  //     user.name = name;
-  //     user.email = email;
-  //     user.password = password;
-  //     user.signupVerifyToken = signupVerifyToken;
-  //
-  //     await queryRunner.manager.save(user);
-  //
-  //     await queryRunner.commitTransaction();
-  //   } catch (e) {
-  //     console.log(
-  //       'An error occurred while processing the transaction. Executing transaction rollback...',
-  //     );
-  //     await queryRunner.rollbackTransaction();
-  //   } finally {
-  //     await queryRunner.release();
-  //   }
-  // }
 }

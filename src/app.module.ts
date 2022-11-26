@@ -4,7 +4,9 @@ import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
 import { ConfigModule } from '@nestjs/config';
 
+import authConfig from './config/authConfig';
 import emailConfig from './config/emailConfig';
+
 import { validationSchema } from './config/validationSchema';
 
 @Module({
@@ -13,7 +15,7 @@ import { validationSchema } from './config/validationSchema';
     EmailModule,
     ConfigModule.forRoot({
       envFilePath: [`${__dirname}/config/env/.${process.env.NODE_ENV}.env`],
-      load: [emailConfig],
+      load: [emailConfig, authConfig],
       isGlobal: true,
       validationSchema,
     }),
