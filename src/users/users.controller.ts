@@ -7,9 +7,12 @@ import {
   Query,
   Headers,
   UseGuards,
+  LoggerService,
+  Inject,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
 import { UserInfo } from '../UserInfo';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -19,12 +22,13 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
   constructor(
+    @Inject(Logger) private readonly logger: LoggerService,
     private usersService: UsersService,
-    private authService: AuthService,
   ) {}
 
   @Post()
   async createUser(@Body() dto: CreateUserDto): Promise<void> {
+    this.printLoggerServiceLog(dto);
     const { name, email, password } = dto;
     await this.usersService.createUser(name, email, password);
   }
@@ -49,5 +53,17 @@ export class UsersController {
     @Param('id') userId: string,
   ): Promise<UserInfo> {
     return await this.usersService.getUserInfo(userId);
+  }
+
+  private printLoggerServiceLog(dto: CreateUserDto) {
+    try {
+      throw new InternalServerErrorException('test');
+    } catch (e) {
+      this.logger.error('error: ' + JSON.stringify(dto), e.stack);
+    }
+    // this.logger.warn('warn: ' + JSON.stringify(dto));
+    // this.logger.verbose('verbose: ' + JSON.stringify(dto));
+    // this.logger.debug('debug: ' + JSON.stringify(dto));
+    this.logger.log('log: ' + JSON.stringify(dto));
   }
 }
