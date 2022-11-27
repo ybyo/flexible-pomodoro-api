@@ -8,6 +8,7 @@ import authConfig from './config/authConfig';
 import emailConfig from './config/emailConfig';
 
 import { validationSchema } from './config/validationSchema';
+import { ExceptionModule } from './exception/exception-module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { validationSchema } from './config/validationSchema';
         return ormConfig;
       },
     }),
+    ExceptionModule,
   ],
   controllers: [],
   providers: [],
