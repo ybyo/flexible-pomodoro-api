@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
@@ -9,6 +9,7 @@ import emailConfig from './config/emailConfig';
 
 import { validationSchema } from './config/validationSchema';
 import { ExceptionModule } from './exception/exception-module';
+import { LoggingModule } from './interceptor/logging.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ExceptionModule } from './exception/exception-module';
       },
     }),
     ExceptionModule,
+    LoggingModule,
   ],
   controllers: [],
   providers: [],
