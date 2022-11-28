@@ -1,4 +1,6 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
+import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { EmailModule } from './email/email.module';
@@ -10,6 +12,7 @@ import emailConfig from './config/emailConfig';
 import { validationSchema } from './config/validationSchema';
 import { ExceptionModule } from './exception/exception-module';
 import { LoggingModule } from './interceptor/logging.module';
+import { HealthCheckController } from './health-check/health-check.controller';
 
 @Module({
   imports: [
@@ -31,8 +34,10 @@ import { LoggingModule } from './interceptor/logging.module';
     }),
     ExceptionModule,
     LoggingModule,
+    TerminusModule,
+    HttpModule,
   ],
-  controllers: [],
+  controllers: [HealthCheckController],
   providers: [],
 })
 export class AppModule {}
