@@ -10,7 +10,6 @@ import {
   LoggerService,
   Inject,
   Logger,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserInfo } from '../UserInfo';
