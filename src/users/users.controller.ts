@@ -54,16 +54,4 @@ export class UsersController {
   ): Promise<UserInfo> {
     return await this.usersService.getUserInfo(userId);
   }
-
-  private printLoggerServiceLog(dto: CreateUserDto) {
-    try {
-      throw new InternalServerErrorException('test');
-    } catch (e) {
-      this.logger.error('error: ' + JSON.stringify(dto), e.stack);
-    }
-    // this.logger.warn('warn: ' + JSON.stringify(dto));
-    // this.logger.verbose('verbose: ' + JSON.stringify(dto));
-    // this.logger.debug('debug: ' + JSON.stringify(dto));
-    this.logger.log('log: ' + JSON.stringify(dto));
-  }
 }
