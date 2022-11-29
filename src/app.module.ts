@@ -11,7 +11,7 @@ import emailConfig from './config/emailConfig';
 
 import { validationSchema } from './config/validationSchema';
 import { ExceptionModule } from './exception/exception-module';
-import { LoggingModule } from './interceptor/logging.module';
+import { LoggingModule } from './logging/logging.module';
 import { HealthCheckController } from './health-check/health-check.controller';
 
 @Module({
