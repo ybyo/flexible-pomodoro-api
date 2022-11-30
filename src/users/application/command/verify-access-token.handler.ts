@@ -1,9 +1,9 @@
 import * as jwt from 'jsonwebtoken';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import authConfig from '../../config/authConfig';
 import { VerifyAccessTokenCommand } from './verify-access-token.command';
+import authConfig from 'src/config/authConfig';
+import { ConfigType } from '@nestjs/config';
 
 interface User {
   id: string;
@@ -29,7 +29,9 @@ export class VerifyAccessTokenHandler
         | string
       ) &
         User;
+
       const { id, email } = payload;
+
       return {
         userId: id,
         email,

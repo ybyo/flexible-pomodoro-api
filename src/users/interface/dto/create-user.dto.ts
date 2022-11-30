@@ -7,24 +7,29 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { NotIn } from 'src/utils/decorators/not-in';
 
 export class CreateUserDto {
+  @Transform((params) => params.value.trim())
+  @NotIn('password', {
+    message: 'The name string is included in the password.',
+  })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(128)
+  readonly name: string;
+
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {
       throw new BadRequestException(
-        'The string contained in name cannot be specified as a password.',
+        'The name string is included in the password.',
       );
     }
     return value.trim();
   })
   @IsString()
-  @MinLength(2)
-  @MaxLength(30)
-  readonly name: string;
-
-  @IsString()
   @IsEmail()
-  @MaxLength(60)
+  @MaxLength(128)
   readonly email: string;
 
   @IsString()

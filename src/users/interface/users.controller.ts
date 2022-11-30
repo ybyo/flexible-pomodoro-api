@@ -5,30 +5,28 @@ import {
   Param,
   Post,
   Query,
-  Headers,
   UseGuards,
-  LoggerService,
   Inject,
+  LoggerService,
   Logger,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { UserInfo } from '../UserInfo';
-import { CreateUserCommand } from './command/create-user.command';
-import { LoginCommand } from './command/login.command';
-import { VerifyEmailCommand } from './command/verify-email.command';
+import { AuthGuard } from 'src/guard/auth.guard';
+import { UserInfo } from './UserInfo';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from '../application/command/create-user.command';
+import { LoginCommand } from '../application/command/login.command';
+import { VerifyEmailCommand } from '../application/command/verify-email.command';
+import { GetUserInfoQuery } from '../application/query/get-user-info.query';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { GetUserInfoQuery } from './query/get-user-info.query';
-
 @Controller('users')
 export class UsersController {
   constructor(
-    @Inject(Logger) private readonly logger: LoggerService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   @Post()
@@ -46,7 +44,7 @@ export class UsersController {
 
     const command = new VerifyEmailCommand(signupVerifyToken);
 
-    return await this.commandBus.execute(command);
+    return this.commandBus.execute(command);
   }
 
   @Post('/login')
@@ -60,10 +58,7 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Get('/:id')
-  async getUserInfo(
-    @Headers() headers: any,
-    @Param('id') userId: string,
-  ): Promise<UserInfo> {
+  async getUserInfo(@Param('id') userId: string): Promise<UserInfo> {
     const getUserInfoQuery = new GetUserInfoQuery(userId);
 
     return this.queryBus.execute(getUserInfoQuery);

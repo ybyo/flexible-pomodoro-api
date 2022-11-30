@@ -2,8 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../entity/user.entity';
-import { UserInfo } from '../../UserInfo';
+import { UserEntity } from '../../infra/db/entity/user.entity';
+import { UserInfo } from '../../interface/UserInfo';
 import { GetUserInfoQuery } from './get-user-info.query';
 
 @QueryHandler(GetUserInfoQuery)
@@ -12,16 +12,16 @@ export class GetUserInfoQueryHandler
 {
   constructor(
     @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
+    private usersRepository: Repository<UserEntity>,
   ) {}
 
   async execute(query: GetUserInfoQuery): Promise<UserInfo> {
     const { userId } = query;
 
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.usersRepository.findOneBy({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('User does not exist');
+      throw new NotFoundException('유저가 존재하지 않습니다');
     }
 
     return {
