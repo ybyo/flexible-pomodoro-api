@@ -11,8 +11,8 @@ export class UserFactory {
     id: string,
     name: string,
     email: string,
-    signupVerifyToken: string,
     password: string,
+    signupVerifyToken: string,
   ): User {
     const user = new User(id, name, email, password, signupVerifyToken);
 
@@ -25,8 +25,8 @@ export class UserFactory {
     id: string,
     name: string,
     email: string,
-    signupVerifyToken: string,
     password: string,
+    signupVerifyToken: string,
   ): User {
     return new User(id, name, email, password, signupVerifyToken);
   }
