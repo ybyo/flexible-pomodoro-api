@@ -38,6 +38,6 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
       signupVerifyToken,
     );
 
-    this.userFactory.create(id, name, email, signupVerifyToken, password);
+    this.userFactory.create(id, name, email, password, signupVerifyToken);
   }
 }
