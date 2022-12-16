@@ -29,7 +29,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:9000'],
+    credentials: true,
+  });
   await app.listen(3000);
 }
 bootstrap();
