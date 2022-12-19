@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('User')
 export class UserEntity {
@@ -16,4 +22,10 @@ export class UserEntity {
 
   @Column({ length: 60 })
   signupVerifyToken: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

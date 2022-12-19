@@ -5,6 +5,7 @@ import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { UserEntity } from '../entity/user.entity';
 import { User } from 'src/users/domain/user';
 import { UserFactory } from 'src/users/domain/user.factory';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -85,10 +86,11 @@ export class UserRepository implements IUserRepository {
   ): Promise<void> {
     await this.connection.transaction(async (manager) => {
       const user = new UserEntity();
+      const hashedPassword = await argon2.hash(password);
       user.id = id;
       user.name = name;
       user.email = email;
-      user.password = password;
+      user.password = hashedPassword;
       user.signupVerifyToken = signupVerifyToken;
 
       await manager.save(user);
