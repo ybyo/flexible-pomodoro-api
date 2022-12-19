@@ -1,6 +1,5 @@
 import { ConfigType } from '@nestjs/config';
 import { Inject, Injectable } from '@nestjs/common';
-
 import * as nodemailer from 'nodemailer';
 import Mail = require('nodemailer/lib/mailer');
 
@@ -29,7 +28,7 @@ export class EmailService {
     });
   }
 
-  async sendMemberJoinVerification(
+  async sendUserSignupVerification(
     emailAddress: string,
     signupVerifyToken: string,
   ) {

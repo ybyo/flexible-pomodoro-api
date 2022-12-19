@@ -12,7 +12,7 @@ export class UserEventsHandler implements IEventHandler<UserCreatedEvent> {
       case UserCreatedEvent.name: {
         console.log('UserCreatedEvent!');
         const { email, signupVerifyToken } = event as UserCreatedEvent;
-        await this.emailService.sendMemberJoinVerification(
+        await this.emailService.sendUserSignupVerification(
           email,
           signupVerifyToken,
         );
