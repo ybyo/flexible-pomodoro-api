@@ -1,9 +1,10 @@
-import { ConfigType } from '@nestjs/config';
 import { Inject, Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import Mail = require('nodemailer/lib/mailer');
-
+import { ConfigType } from '@nestjs/config';
 import emailConfig from '../config/emailConfig';
+import Mail = require('nodemailer/lib/mailer');
+import * as path from 'path';
+import * as nodemailer from 'nodemailer';
+import * as ejs from 'ejs';
 
 interface EmailOptions {
   to: string;
@@ -33,18 +34,32 @@ export class EmailService {
     signupVerifyToken: string,
   ) {
     const baseUrl = this.config.baseUrl;
+    const verification_url = `${baseUrl}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
 
-    const url = `${baseUrl}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
+    let renderedTemplate = '';
+
+    const emailTemplateStr = path.join(
+      __dirname,
+      '../../public/signup-email-inlined.ejs',
+    );
+
+    const dataMap = {
+      app_name: 'Flexible Pomodoro',
+      verification_url: verification_url,
+    };
+
+    await ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        renderedTemplate = data;
+      }
+    });
 
     const mailOptions: EmailOptions = {
       to: emailAddress,
-      subject: '가입 인증 메일',
-      html: `
-        가입확인 버튼를 누르시면 가입 인증이 완료됩니다.<br/>
-        <form action="${url}" method="POST">
-          <button>가입확인</button>
-        </form>
-      `,
+      subject: 'Flexible Pomodoro',
+      html: renderedTemplate,
     };
 
     return await this.transporter.sendMail(mailOptions);

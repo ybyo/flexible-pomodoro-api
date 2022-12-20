@@ -20,9 +20,11 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
   async execute(command: CreateUserCommand) {
     const { name, email, password } = command;
 
-    const user = await this.userRepository.findByEmail(email);
-    if (user !== null) {
-      throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
+    if (process.env.NODE_ENV != 'dev') {
+      const user = await this.userRepository.findByEmail(email);
+      if (user !== null) {
+        throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
+      }
     }
 
     const id = ulid();
