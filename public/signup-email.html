@@ -376,6 +376,11 @@
       .content-cell {
         padding: 35px;
       }
+
+      .logo-img {
+          padding: 0 0 2rem 0;
+      }
+
       /*Media Queries ------------------------------ */
 
       @media only screen and (max-width: 600px) {
@@ -468,13 +473,27 @@
                   <tr>
                     <td class="content-cell">
                       <div class="f-fallback">
-                        <!--                    TODO:브랜드 로고 추가하기-->
-                        <h1>이메일 인증 요청입니다.</h1>
+                        <picture>
+                          <source
+                            srcset="
+                              https://img.yibyeongyong.com/public/dummy-logo-white.png
+                            "
+                            media="(prefers-color-scheme: dark)"
+                          />
+                          <img
+                            class="logo-img"
+                            src="https://img.yibyeongyong.com/public/dummy-logo-black.png"
+                            alt="dummy-logo"
+                            width="413"
+                            height="68"
+                          />
+                        </picture>
+                        <h1>이메일을 인증해주세요.</h1>
                         <!-- Action -->
                         <p>
                           유효한 이메일을 사용 중이신지 확인하는 절차입니다.
                           서비스 이용을 원하신다면, 아래 링크를 눌러 인증을
-                          수행해주세요.
+                          진행해주세요.
                         </p>
                         <table
                           class="body-action"
