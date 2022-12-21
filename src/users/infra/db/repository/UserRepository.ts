@@ -1,10 +1,10 @@
-import { Connection, Repository } from 'typeorm';
+import { UserFactory } from 'src/users/domain/user.factory';
+import { UserEntity } from '../entity/user.entity';
+import { User } from 'src/users/domain/user';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { UserEntity } from '../entity/user.entity';
-import { User } from 'src/users/domain/user';
-import { UserFactory } from 'src/users/domain/user.factory';
+import { Connection, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 
 @Injectable()
@@ -22,14 +22,14 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const { id, name, signupVerifyToken, password } = userEntity;
+    const { id, name, password, signupVerifyToken } = userEntity;
 
     return this.userFactory.reconstitute(
       id,
       name,
       email,
-      signupVerifyToken,
       password,
+      signupVerifyToken,
     );
   }
 
@@ -51,8 +51,8 @@ export class UserRepository implements IUserRepository {
       id,
       name,
       email,
-      signupVerifyToken,
       password,
+      signupVerifyToken,
     );
   }
 
@@ -72,8 +72,8 @@ export class UserRepository implements IUserRepository {
       id,
       name,
       email,
-      signupVerifyToken,
       password,
+      signupVerifyToken,
     );
   }
 
