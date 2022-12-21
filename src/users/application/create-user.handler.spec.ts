@@ -66,8 +66,8 @@ describe('CreateUserHandler', () => {
         id,
         name,
         email,
-        signupVerifyToken,
         password,
+        signupVerifyToken,
       );
     });
 
