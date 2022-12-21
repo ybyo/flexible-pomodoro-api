@@ -6,5 +6,7 @@ export default registerAs('email', () => ({
     user: process.env.EMAIL_AUTH_USER,
     pass: process.env.EMAIL_AUTH_PASSWORD,
   },
-  baseUrl: process.env.EMAIL_BASE_URL,
+  host: process.env.BASE_URL,
+  api_port: parseInt(process.env.API_PORT, 10),
+  front_port: parseInt(process.env.FRONT_PORT, 10),
 }));
