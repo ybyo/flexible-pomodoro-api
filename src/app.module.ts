@@ -12,12 +12,15 @@ import { validationSchema } from './config/validationSchema';
 import { ExceptionModule } from './exception/exception-module';
 import { LoggingModule } from './logging/logging.module';
 import { HealthCheckController } from './health-check/health-check.controller';
+import * as path from 'path';
 
 @Module({
   imports: [
     UsersModule,
     ConfigModule.forRoot({
-      envFilePath: [`${__dirname}/config/env/.${process.env.NODE_ENV}.env`],
+      envFilePath: [
+        path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
+      ],
       load: [emailConfig, authConfig],
       isGlobal: true,
       validationSchema,
