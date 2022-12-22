@@ -33,10 +33,10 @@ export class EmailService {
     emailAddress: string,
     signupVerifyToken: string,
   ) {
-    const baseUrl = this.config.baseUrl;
-    const verification_url = `${baseUrl}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
+    const host = this.config.host;
+    const verification_url = `${host}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
 
-    let renderedTemplate = '';
+    let renderedTemplate: string;
 
     const emailTemplateStr = path.join(
       __dirname,
