@@ -18,4 +18,12 @@ export class User {
   getEmail(): Readonly<string> {
     return this.email;
   }
+
+  getPassword(): Readonly<string> {
+    return this.password;
+  }
+
+  getToken(): Readonly<string> {
+    return this.signupVerifyToken;
+  }
 }
