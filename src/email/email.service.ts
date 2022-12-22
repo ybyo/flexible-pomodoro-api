@@ -33,10 +33,10 @@ export class EmailService {
     emailAddress: string,
     signupVerifyToken: string,
   ) {
-    const host = this.config.host;
-    const verification_url = `${host}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
+    const frontUrl = `${this.config.host}:${this.config.front_port}`;
+    const verificationUrl = `http://${frontUrl}/users/verify-email?signupVerifyToken=${signupVerifyToken}`;
 
-    let renderedTemplate: string;
+    let renderedTemplate;
 
     const emailTemplateStr = path.join(
       __dirname,
@@ -45,7 +45,7 @@ export class EmailService {
 
     const dataMap = {
       app_name: 'Flexible Pomodoro',
-      verification_url: verification_url,
+      verification_url: verificationUrl,
     };
 
     await ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
