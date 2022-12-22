@@ -16,6 +16,7 @@ export class AuthService {
   ) {}
 
   login(user: User) {
+    // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
     const payload = { ...user };
 
     return jwt.sign(payload, this.config.jwtSecret, {
