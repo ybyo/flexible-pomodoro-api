@@ -28,6 +28,11 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
       );
     }
 
+    await this.userRepository.update(
+      { signupVerifyToken: signupVerifyToken },
+      { isVerified: true },
+    );
+
     return this.authService.login({
       id: user.getId(),
       name: user.getName(),
