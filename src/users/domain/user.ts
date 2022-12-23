@@ -5,6 +5,9 @@ export class User {
     private email: string,
     private password: string,
     private signupVerifyToken: string,
+    private isVerified?: boolean,
+    private isLoggedin?: boolean,
+    private isActive?: boolean,
   ) {}
 
   getId(): Readonly<string> {
@@ -25,5 +28,17 @@ export class User {
 
   getToken(): Readonly<string> {
     return this.signupVerifyToken;
+  }
+
+  getIsVerified(): Readonly<boolean> {
+    return this.isVerified;
+  }
+
+  getIsLoggedin(): Readonly<boolean> {
+    return this.isLoggedin;
+  }
+
+  getIsActive(): Readonly<boolean> {
+    return this.isActive;
   }
 }

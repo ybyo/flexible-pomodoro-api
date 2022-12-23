@@ -23,6 +23,15 @@ export class UserEntity {
   @Column({ length: 60 })
   signupVerifyToken: string;
 
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ default: false })
+  isLoggedin: boolean;
+
+  @Column({ default: false })
+  isActive: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
