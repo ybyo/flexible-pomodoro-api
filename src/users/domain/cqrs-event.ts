@@ -1,3 +1,3 @@
 export abstract class CqrsEvent {
-  constructor(readonly name: string) {}
+  protected constructor(readonly name: string) {}
 }
