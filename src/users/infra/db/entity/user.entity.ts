@@ -9,10 +9,10 @@ import {
 @Entity('User')
 export class UserEntity {
   @PrimaryColumn()
-  id: string;
+  uid: string;
 
   @Column({ length: 30 })
-  name: string;
+  userName: string;
 
   @Column({ length: 128 })
   email: string;
