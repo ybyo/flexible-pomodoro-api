@@ -1,10 +1,10 @@
-import { NotFoundException } from '@nestjs/common';
+import { GetUserInfoQuery } from './get-user-info.query';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { IUser } from '@/typeDefs/message.interface';
 import { InjectRepository } from '@nestjs/typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../../infra/db/entity/user.entity';
-import { UserInfo } from '../../interface/UserInfo';
-import { GetUserInfoQuery } from './get-user-info.query';
 
 @QueryHandler(GetUserInfoQuery)
 export class GetUserInfoQueryHandler
@@ -16,7 +16,7 @@ export class GetUserInfoQueryHandler
     private usersRepository: Repository<UserEntity>,
   ) {}
 
-  async execute(query: GetUserInfoQuery): Promise<UserInfo> {
+  async execute(query: GetUserInfoQuery): Promise<IUser> {
     const { userId } = query;
 
     const user = await this.usersRepository.findOneBy({ uid: userId });
@@ -26,8 +26,8 @@ export class GetUserInfoQueryHandler
     }
 
     return {
-      id: user.uid,
-      name: user.userName,
+      uid: user.uid,
+      userName: user.userName,
       email: user.email,
     };
   }

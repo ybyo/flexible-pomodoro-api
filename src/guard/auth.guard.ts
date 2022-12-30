@@ -1,7 +1,7 @@
-import { Request } from 'express';
-import { Observable } from 'rxjs';
+import { AuthService } from '@/auth/auth.service';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AuthService } from '../auth/auth.service';
+import { Observable } from 'rxjs';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -11,14 +11,15 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    return this.validateRequest(request);
+
+    const result = this.validateRequest(request);
+
+    return result.success;
   }
 
   private validateRequest(request: Request) {
-    const accessToken = request.headers.authorization.split('Bearer ')[1];
+    const jwtString = request.cookies['accessToken'];
 
-    this.authService.verify(accessToken);
-
-    return true;
+    return this.authService.verify(jwtString);
   }
 }

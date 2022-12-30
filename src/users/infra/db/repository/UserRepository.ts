@@ -1,7 +1,7 @@
 import { UserFactory } from 'src/users/domain/user.factory';
 import { UserEntity } from '../entity/user.entity';
 import { User } from 'src/users/domain/user';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { Connection, Repository } from 'typeorm';
@@ -10,6 +10,7 @@ import * as argon2 from 'argon2';
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
+    // TODO: Connection Deprecated 문제 해결
     private connection: Connection,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -18,19 +19,12 @@ export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ email: email });
+
     if (!userEntity) {
       return null;
     }
 
-    const { id, name, password, signupVerifyToken } = userEntity;
-
-    return this.userFactory.reconstitute(
-      id,
-      name,
-      email,
-      password,
-      signupVerifyToken,
-    );
+    return this.userFactory.reconstitute(userEntity);
   }
 
   async findByEmailAndPassword(
@@ -45,15 +39,7 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const { id, name, signupVerifyToken } = userEntity;
-
-    return this.userFactory.reconstitute(
-      id,
-      name,
-      email,
-      password,
-      signupVerifyToken,
-    );
+    return this.userFactory.reconstitute(userEntity);
   }
 
   async findBySignupVerifyToken(
@@ -66,34 +52,28 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const { id, name, email, password } = userEntity;
-
-    return this.userFactory.reconstitute(
-      id,
-      name,
-      email,
-      password,
-      signupVerifyToken,
-    );
+    return this.userFactory.reconstitute(userEntity);
   }
 
-  async save(
-    id: string,
-    name: string,
-    email: string,
-    password: string,
-    signupVerifyToken: string,
-  ): Promise<void> {
+  async saveUser(user: User): Promise<void> {
     await this.connection.transaction(async (manager) => {
-      const user = new UserEntity();
-      const hashedPassword = await argon2.hash(password);
-      user.id = id;
-      user.name = name;
-      user.email = email;
-      user.password = hashedPassword;
-      user.signupVerifyToken = signupVerifyToken;
+      user.setPassword(await argon2.hash(user.getPassword()));
+      const newUser = new UserEntity(user);
 
-      await manager.save(user);
+      await manager.save(newUser);
+    });
+  }
+
+  // TODO: 해당 카테고리가 실제로 있는지, 있다면 타입은 일치하는지 사전에 확인
+  async updateUser(criteria: object, partialEntity: object): Promise<void> {
+    await this.connection.transaction(async (manager) => {
+      // TODO: 에러 처리 구간 확인, 에러메시지 작성
+      const user = await this.userRepository.findOneBy(criteria);
+      if (!user) {
+        return null;
+      } else {
+        await manager.update(UserEntity, criteria, partialEntity);
+      }
     });
   }
 }

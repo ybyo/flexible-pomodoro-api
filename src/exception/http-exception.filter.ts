@@ -32,6 +32,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
     this.logger.log(log);
 
-    res.status((exception as HttpException).getStatus()).json(response);
+    // TODO: 쿠키 생성등을 위해 이미 응답이 전송된 경우 오류가 발생하는 문제 해결
+    return res.status((exception as HttpException).getStatus()).json(response);
   }
 }

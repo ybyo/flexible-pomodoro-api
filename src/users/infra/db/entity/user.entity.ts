@@ -5,16 +5,17 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { User } from '@/users/domain/user';
 
 @Entity('User')
-export class UserEntity {
+export class UserEntity extends User {
   @PrimaryColumn()
   uid: string;
 
   @Column({ length: 30 })
   userName: string;
 
-  @Column({ length: 128 })
+  @Column({ length: 128, unique: true })
   email: string;
 
   @Column({ length: 128 })
@@ -22,6 +23,12 @@ export class UserEntity {
 
   @Column({ length: 60 })
   signupVerifyToken: string;
+
+  @Column({ type: 'text', default: null })
+  refreshToken: string;
+
+  @Column({ default: null })
+  resetPasswordToken: string;
 
   @Column({ default: false })
   isVerified: boolean;

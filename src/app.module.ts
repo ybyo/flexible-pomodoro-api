@@ -1,16 +1,17 @@
-import { validationSchema } from './config/validationSchema';
-import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { TerminusModule } from '@nestjs/terminus';
-import { Module } from '@nestjs/common';
-import { LoggingModule } from './logging/logging.module';
-import { HttpModule } from '@nestjs/axios';
-import { HealthCheckController } from './health-check/health-check.controller';
-import { ExceptionModule } from './exception/exception-module';
-import { ConfigModule } from '@nestjs/config';
-import emailConfig from './config/emailConfig';
-import authConfig from './config/authConfig';
 import * as path from 'path';
+import authConfig from './config/authConfig';
+import cookieConfig from '@/config/cookieConfig';
+import emailConfig from './config/emailConfig';
+import { ConfigModule } from '@nestjs/config';
+import { ExceptionModule } from './exception/exception-module';
+import { HealthCheckController } from './health-check/health-check.controller';
+import { HttpModule } from '@nestjs/axios';
+import { LoggingModule } from './logging/logging.module';
+import { Module } from '@nestjs/common';
+import { TerminusModule } from '@nestjs/terminus';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { validationSchema } from './config/validationSchema';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
@@ -19,8 +20,9 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     UsersModule,
     ConfigModule.forRoot({
       envFilePath: [envPath],
-      load: [emailConfig, authConfig],
+      load: [authConfig, cookieConfig, emailConfig],
       isGlobal: true,
+      // TODO: validationSchema 항목 보완
       validationSchema,
     }),
     TypeOrmModule.forRootAsync({
@@ -32,9 +34,9 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
       },
     }),
     ExceptionModule,
+    HttpModule,
     LoggingModule,
     TerminusModule,
-    HttpModule,
   ],
   controllers: [HealthCheckController],
   providers: [],
