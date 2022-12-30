@@ -33,7 +33,7 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: ['http://localhost:9000'],
+    origin: ['https://localhost:9000'],
     credentials: true,
   });
 

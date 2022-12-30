@@ -1,28 +1,28 @@
+import * as path from 'path';
+import authConfig from './config/authConfig';
+import cookieConfig from '@/config/cookieConfig';
+import emailConfig from './config/emailConfig';
+import { ConfigModule } from '@nestjs/config';
+import { ExceptionModule } from './exception/exception-module';
+import { HealthCheckController } from './health-check/health-check.controller';
 import { HttpModule } from '@nestjs/axios';
+import { LoggingModule } from './logging/logging.module';
 import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { ConfigModule } from '@nestjs/config';
-
-import authConfig from './config/authConfig';
-import emailConfig from './config/emailConfig';
-
 import { validationSchema } from './config/validationSchema';
-import { ExceptionModule } from './exception/exception-module';
-import { LoggingModule } from './logging/logging.module';
-import { HealthCheckController } from './health-check/health-check.controller';
-import * as path from 'path';
+
+const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
 @Module({
   imports: [
     UsersModule,
     ConfigModule.forRoot({
-      envFilePath: [
-        path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
-      ],
-      load: [emailConfig, authConfig],
+      envFilePath: [envPath],
+      load: [authConfig, cookieConfig, emailConfig],
       isGlobal: true,
+      // TODO: validationSchema 항목 보완
       validationSchema,
     }),
     TypeOrmModule.forRootAsync({
@@ -34,9 +34,9 @@ import * as path from 'path';
       },
     }),
     ExceptionModule,
+    HttpModule,
     LoggingModule,
     TerminusModule,
-    HttpModule,
   ],
   controllers: [HealthCheckController],
   providers: [],

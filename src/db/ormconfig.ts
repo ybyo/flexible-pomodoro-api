@@ -3,8 +3,9 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 dotenv.config({
-  path: path.resolve(
-    'src/config/env',
+  path: path.join(
+    process.cwd(),
+    'env',
     process.env.NODE_ENV === 'prod'
       ? '.prod.env'
       : process.env.NODE_ENV === 'stage'

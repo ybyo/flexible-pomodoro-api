@@ -1,21 +1,45 @@
-export class User {
-  constructor(
-    private id: string,
-    private name: string,
-    private email: string,
-    private password: string,
-    private signupVerifyToken: string,
-    private isVerified?: boolean,
-    private isLoggedin?: boolean,
-    private isActive?: boolean,
-  ) {}
+import { Expose, plainToClass } from 'class-transformer';
+import { UserTypeInterface } from '@/users/domain/user-type.interface';
 
-  getId(): Readonly<string> {
-    return this.id;
+export class User implements UserTypeInterface {
+  @Expose()
+  uid: string;
+  @Expose()
+  userName: string;
+  @Expose()
+  email: string;
+  @Expose()
+  password: string;
+  @Expose()
+  signupVerifyToken: string;
+  @Expose()
+  refreshToken: string;
+  @Expose()
+  resetPasswordToken: string;
+  @Expose()
+  isVerified: boolean;
+  @Expose()
+  isLoggedin: boolean;
+  @Expose()
+  isActive: boolean;
+
+  constructor(user: Partial<User>) {
+    if (user) {
+      Object.assign(
+        this,
+        plainToClass(User, user, {
+          excludeExtraneousValues: true,
+        }),
+      );
+    }
   }
 
-  getName(): Readonly<string> {
-    return this.name;
+  getUid(): Readonly<string> {
+    return this.uid;
+  }
+
+  getUserName(): Readonly<string> {
+    return this.userName;
   }
 
   getEmail(): Readonly<string> {
@@ -26,8 +50,20 @@ export class User {
     return this.password;
   }
 
+  setPassword(hashedPassword: string) {
+    this.password = hashedPassword;
+  }
+
   getToken(): Readonly<string> {
     return this.signupVerifyToken;
+  }
+
+  getRefreshToken(): Readonly<string> {
+    return this.refreshToken;
+  }
+
+  getResetPasswordToken(): Readonly<string> {
+    return this.resetPasswordToken;
   }
 
   getIsVerified(): Readonly<boolean> {
