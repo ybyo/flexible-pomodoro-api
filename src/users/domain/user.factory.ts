@@ -5,29 +5,18 @@ import { User } from './user';
 
 @Injectable()
 export class UserFactory {
+  // TODO: 구현된 메소드들이 오브젝트들을 받도록 구현
   constructor(private eventBus: EventBus) {}
 
-  create(
-    id: string,
-    name: string,
-    email: string,
-    password: string,
-    signupVerifyToken: string,
-  ): User {
-    const user = new User(id, name, email, password, signupVerifyToken);
-
-    this.eventBus.publish(new UserCreatedEvent(email, signupVerifyToken));
+  create(user: User): User {
+    this.eventBus.publish(
+      new UserCreatedEvent(user.email, user.signupVerifyToken),
+    );
 
     return user;
   }
 
-  reconstitute(
-    id: string,
-    name: string,
-    email: string,
-    password: string,
-    signupVerifyToken: string,
-  ): User {
-    return new User(id, name, email, password, signupVerifyToken);
+  reconstitute(user: User): User {
+    return user;
   }
 }

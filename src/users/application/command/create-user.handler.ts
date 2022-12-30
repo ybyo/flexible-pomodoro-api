@@ -8,6 +8,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateUserCommand } from './create-user.command';
 import { UserFactory } from '../../domain/user.factory';
 import { IUserRepository } from '../../domain/repository/iuser.repository';
+import { User } from '../../domain/user';
 
 @Injectable()
 @CommandHandler(CreateUserCommand)
@@ -18,26 +19,21 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
   ) {}
 
   async execute(command: CreateUserCommand) {
-    const { name, email, password } = command;
+    const { email } = command;
 
-    if (process.env.NODE_ENV != 'dev') {
-      const user = await this.userRepository.findByEmail(email);
-      if (user !== null) {
-        throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
-      }
+    const user = await this.userRepository.findByEmail(email);
+    if (user !== null) {
+      throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
     }
 
-    const id = ulid();
-    const signupVerifyToken = ulid();
+    const newUser = new User({
+      ...command,
+      uid: ulid(),
+      signupVerifyToken: ulid(),
+    });
 
-    await this.userRepository.save(
-      id,
-      name,
-      email,
-      password,
-      signupVerifyToken,
-    );
+    await this.userRepository.saveUser(newUser);
 
-    this.userFactory.create(id, name, email, password, signupVerifyToken);
+    this.userFactory.create(newUser);
   }
 }
