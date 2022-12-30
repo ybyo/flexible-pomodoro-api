@@ -1,10 +1,11 @@
+import { UserRepository } from '../infra/db/repository/UserRepository';
+import { UserFactory } from '../domain/user.factory';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import * as ulid from 'ulid';
-import { UserFactory } from '../domain/user.factory';
-import { UserRepository } from '../infra/db/repository/UserRepository';
-import { CreateUserCommand } from './command/create-user.command';
 import { CreateUserHandler } from './command/create-user.handler';
+import { CreateUserCommand } from './command/create-user.command';
+import * as ulid from 'ulid';
+import { User } from '../domain/user';
 
 jest.mock('ulid');
 jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
@@ -38,11 +39,13 @@ describe('CreateUserHandler', () => {
     userRepository = module.get('UserRepository');
   });
 
-  const id = ulid.ulid();
-  const name = 'test';
-  const email = 'test@example.com';
-  const password = 'test';
-  const signupVerifyToken = ulid.ulid();
+  const userObject: Partial<User> = {
+    uid: ulid.ulid(),
+    userName: 'test',
+    email: 'test@example.com',
+    password: 'test',
+    signupVerifyToken: ulid.ulid(),
+  };
 
   describe('execute', () => {
     it('should execute CreateUserCommand', async () => {
@@ -51,40 +54,34 @@ describe('CreateUserHandler', () => {
 
       // When
       await createUserHandler.execute(
-        new CreateUserCommand(name, email, password),
+        new CreateUserCommand(
+          userObject.userName,
+          userObject.email,
+          userObject.password,
+        ),
       );
 
       // Then
-      expect(userRepository.save).toBeCalledWith(
-        id,
-        name,
-        email,
-        password,
-        signupVerifyToken,
-      );
-      expect(userFactory.create).toBeCalledWith(
-        id,
-        name,
-        email,
-        password,
-        signupVerifyToken,
-      );
+      expect(userRepository.saveUser).toBeCalledWith(userObject);
+      expect(userFactory.create).toBeCalledWith(userObject);
     });
 
     it('should throw UnprocessableEntityException when user exists', async () => {
       // Given
       userRepository.findByEmail = jest.fn().mockResolvedValue({
-        id,
-        name,
-        email,
-        password,
-        signupVerifyToken,
+        userObject,
       });
 
       // When
       // Then
       await expect(
-        createUserHandler.execute(new CreateUserCommand(name, email, password)),
+        createUserHandler.execute(
+          new CreateUserCommand(
+            userObject.userName,
+            userObject.email,
+            userObject.password,
+          ),
+        ),
       ).rejects.toThrowError(UnprocessableEntityException);
     });
   });

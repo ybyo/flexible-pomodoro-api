@@ -1,34 +1,43 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
+  Inject,
+  Logger,
+  LoggerService,
   Param,
   Post,
   Query,
-  UseGuards,
-  Inject,
-  LoggerService,
-  Logger,
+  Req,
   Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { VerifyEmailDto } from './dto/verify-email.dto';
-import { VerifyEmailCommand } from '../application/command/verify-email.command';
-import { UserLoginDto } from './dto/user-login.dto';
-import { UserInfo } from './UserInfo';
-import { Response } from 'express';
-import { LoginCommand } from '../application/command/login.command';
-import { GetUserInfoQuery } from '../application/query/get-user-info.query';
-import { CreateUserDto } from './dto/create-user.dto';
-import { CreateUserCommand } from '../application/command/create-user.command';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { AuthGuard } from 'src/guard/auth.guard';
+import { AuthService } from '@/auth/auth.service';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from '../application/command/create-user.command';
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUserInfoQuery } from '../application/query/get-user-info.query';
+import {
+  IGeneralResponse,
+  IErrorResponse,
+  IUser,
+} from '@/typeDefs/message.interface';
+import { LoginCommand } from '../application/command/login.command';
+import { Response, Request } from 'express';
+import { UserLoginDto } from './dto/user-login.dto';
+import { VerifyEmailCommand } from '../application/command/verify-email.command';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(
+    @Inject(Logger) private readonly logger: LoggerService,
+    private authService: AuthService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   @Post()
@@ -54,25 +63,71 @@ export class UsersController {
   async login(
     @Body() dto: UserLoginDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<string> {
+  ): Promise<void> {
     // TODO: 비밀번호를 네트워크에서 받는 순간부터 해싱하도록 변경
     const { email, password } = dto;
 
     const command = new LoginCommand(email, password);
 
-    const accessToken = await this.commandBus.execute(command);
-    res.setHeader('Authorization', 'Bearer ' + accessToken);
-    res.cookie('access_token', accessToken, {
-      maxAge: 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
+    // TODO: accessToken 제거
+    const userPayload = await this.commandBus.execute(command);
 
-    return accessToken;
+    this.authService.issueCookie(userPayload, res);
+  }
+
+  @Get('/me')
+  async getUserInfoWithAccessToken(
+    @Req() request: Request,
+    // @Res({ passthrough: true }) response: Response,
+  ): Promise<IGeneralResponse<IUser> | IErrorResponse> {
+    const jwtString = request.cookies['accessToken'];
+
+    if (!jwtString) {
+      throw new UnauthorizedException('No access token');
+    } else {
+      const result = this.authService.verify(jwtString);
+      if (result.success) {
+        return result;
+      } else {
+        result.data = null;
+        throw new ForbiddenException(result);
+      }
+    }
+  }
+
+  @Get('/auth/refresh')
+  async refreshAuth(
+    @Req() request: Request,
+    @Res({ passthrough: false }) response: Response,
+  ) {
+    const jwtString = request.cookies['accessToken'];
+
+    if (!jwtString) {
+      throw new UnauthorizedException('No access token');
+    }
+
+    const result = this.authService.verify(jwtString);
+
+    if (result.success === false) {
+      const user = result.data;
+      if (result.message === 'jwt expired') {
+        console.log('cookie reissued');
+        this.authService.issueCookie(user, response);
+      } else {
+        console.log('invalid token');
+        throw new UnauthorizedException('invalid token');
+      }
+    }
+  }
+
+  @Get('/logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+    this.authService.logout(response);
   }
 
   @UseGuards(AuthGuard)
   @Get('/:id')
-  async getUserInfo(@Param('id') userId: string): Promise<UserInfo> {
+  async getUserInfoWithUid(@Param('id') userId: string): Promise<IUser> {
     const getUserInfoQuery = new GetUserInfoQuery(userId);
 
     return this.queryBus.execute(getUserInfoQuery);
