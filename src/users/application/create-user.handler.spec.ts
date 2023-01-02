@@ -1,11 +1,11 @@
-import { UserRepository } from '../infra/db/repository/UserRepository';
-import { UserFactory } from '../domain/user.factory';
-import { UnprocessableEntityException } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { CreateUserHandler } from './command/create-user.handler';
-import { CreateUserCommand } from './command/create-user.command';
 import * as ulid from 'ulid';
+import { CreateUserCommand } from './command/create-user.command';
+import { CreateUserHandler } from './command/create-user.handler';
+import { Test } from '@nestjs/testing';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { User } from '../domain/user';
+import { UserFactory } from '../domain/user.factory';
+import { UserRepository } from '../infra/db/repository/UserRepository';
 
 jest.mock('ulid');
 jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
@@ -28,7 +28,7 @@ describe('CreateUserHandler', () => {
         {
           provide: 'UserRepository',
           useValue: {
-            save: jest.fn(),
+            saveUser: jest.fn(),
           },
         },
       ],

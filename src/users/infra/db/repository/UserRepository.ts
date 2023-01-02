@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { Connection, Repository } from 'typeorm';
-import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -57,7 +56,6 @@ export class UserRepository implements IUserRepository {
 
   async saveUser(user: User): Promise<void> {
     await this.connection.transaction(async (manager) => {
-      user.setPassword(await argon2.hash(user.getPassword()));
       const newUser = new UserEntity(user);
 
       await manager.save(newUser);

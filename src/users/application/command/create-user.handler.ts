@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateUserCommand } from './create-user.command';
-import { UserFactory } from '../../domain/user.factory';
 import { IUserRepository } from '../../domain/repository/iuser.repository';
 import { User } from '../../domain/user';
+import { UserFactory } from '../../domain/user.factory';
 
 @Injectable()
 @CommandHandler(CreateUserCommand)

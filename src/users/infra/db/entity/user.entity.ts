@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -6,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '@/users/domain/user';
+import * as argon2 from 'argon2';
 
 @Entity('User')
 export class UserEntity extends User {
@@ -44,4 +46,9 @@ export class UserEntity extends User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await argon2.hash(this.password);
+  }
 }
