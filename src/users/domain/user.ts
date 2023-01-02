@@ -1,4 +1,4 @@
-import { Expose, plainToClass } from 'class-transformer';
+import { plainToClass } from 'class-transformer';
 
 export class User {
   readonly userId: string;
