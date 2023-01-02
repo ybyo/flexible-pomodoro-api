@@ -28,7 +28,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 
     const newUser = new User({
       ...command,
-      uid: ulid(),
+      userId: ulid(),
       signupVerifyToken: ulid(),
     });
 

@@ -27,7 +27,7 @@ export class AuthService {
         IUser;
 
       const user = {
-        uid: payload.uid,
+        userId: payload.userId,
         userName: payload.userName,
         email: payload.email,
       };
@@ -41,7 +41,7 @@ export class AuthService {
         IUser;
 
       const user = {
-        uid: payload.uid,
+        userId: payload.userId,
         userName: payload.userName,
         email: payload.email,
       };

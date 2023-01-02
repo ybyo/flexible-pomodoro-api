@@ -10,7 +10,7 @@ import { User } from '@/users/domain/user';
 @Entity('User')
 export class UserEntity extends User {
   @PrimaryColumn()
-  uid: string;
+  userId: string;
 
   @Column({ length: 30 })
   userName: string;

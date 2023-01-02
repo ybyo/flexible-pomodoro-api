@@ -40,7 +40,7 @@ describe('CreateUserHandler', () => {
   });
 
   const userObject: Partial<User> = {
-    uid: ulid.ulid(),
+    userId: ulid.ulid(),
     userName: 'test',
     email: 'test@example.com',
     password: 'test',

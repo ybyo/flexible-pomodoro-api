@@ -6,7 +6,7 @@ import authConfig from 'src/config/authConfig';
 import { ConfigType } from '@nestjs/config';
 
 interface User {
-  uid: string;
+  userId: string;
   userName: string;
   email: string;
 }
@@ -30,10 +30,10 @@ export class VerifyAccessTokenHandler
       ) &
         User;
 
-      const { uid, email } = payload;
+      const { userId, email } = payload;
 
       return {
-        userId: uid,
+        userId: userId,
         email,
       };
     } catch (e) {

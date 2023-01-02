@@ -19,14 +19,14 @@ export class GetUserInfoQueryHandler
   async execute(query: GetUserInfoQuery): Promise<IUser> {
     const { userId } = query;
 
-    const user = await this.usersRepository.findOneBy({ uid: userId });
+    const user = await this.usersRepository.findOneBy({ userId: userId });
 
     if (!user) {
       throw new NotFoundException('유저가 존재하지 않습니다');
     }
 
     return {
-      uid: user.uid,
+      userId: user.userId,
       userName: user.userName,
       email: user.email,
     };
