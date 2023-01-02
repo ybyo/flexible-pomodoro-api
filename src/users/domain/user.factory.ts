@@ -5,7 +5,6 @@ import { User } from './user';
 
 @Injectable()
 export class UserFactory {
-  // TODO: 구현된 메소드들이 오브젝트들을 받도록 구현
   constructor(private eventBus: EventBus) {}
 
   create(user: User): User {

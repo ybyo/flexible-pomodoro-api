@@ -127,7 +127,7 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Get('/:id')
-  async getUserInfoWithUid(@Param('id') userId: string): Promise<IUser> {
+  async getUserInfoWithuserId(@Param('id') userId: string): Promise<IUser> {
     const getUserInfoQuery = new GetUserInfoQuery(userId);
 
     return this.queryBus.execute(getUserInfoQuery);

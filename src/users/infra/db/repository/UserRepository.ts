@@ -1,7 +1,7 @@
 import { UserFactory } from 'src/users/domain/user.factory';
 import { UserEntity } from '../entity/user.entity';
 import { User } from 'src/users/domain/user';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { Connection, Repository } from 'typeorm';

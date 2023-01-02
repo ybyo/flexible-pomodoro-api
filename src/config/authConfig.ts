@@ -5,5 +5,5 @@ export default registerAs('auth', () => ({
 }));
 
 export const jwtOptions = {
-  expiresIn: '5s',
+  expiresIn: '60s',
 };

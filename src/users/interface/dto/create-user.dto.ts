@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { NotIn } from 'src/utils/decorators/not-in';
 
+// TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
 export class CreateUserDto {
   @Transform((params) => params.value.trim())
   @NotIn('password', {

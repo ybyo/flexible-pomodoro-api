@@ -1,41 +1,30 @@
 import { Expose, plainToClass } from 'class-transformer';
-import { UserTypeInterface } from '@/users/domain/user-type.interface';
 
-export class User implements UserTypeInterface {
-  @Expose()
-  uid: string;
-  @Expose()
-  userName: string;
-  @Expose()
-  email: string;
-  @Expose()
+export class User {
+  readonly userId: string;
+  readonly userName: string;
+  readonly email: string;
   password: string;
-  @Expose()
-  signupVerifyToken: string;
-  @Expose()
-  refreshToken: string;
-  @Expose()
-  resetPasswordToken: string;
-  @Expose()
-  isVerified: boolean;
-  @Expose()
-  isLoggedin: boolean;
-  @Expose()
-  isActive: boolean;
+  readonly signupVerifyToken: string;
+  readonly refreshToken: string;
+  readonly resetPasswordToken: string;
+  readonly isVerified: boolean;
+  readonly isLoggedin: boolean;
+  readonly isActive: boolean;
 
-  constructor(user: Partial<User>) {
+  constructor(protected user: Partial<User>) {
     if (user) {
       Object.assign(
         this,
         plainToClass(User, user, {
-          excludeExtraneousValues: true,
+          excludeExtraneousValues: false,
         }),
       );
     }
   }
 
-  getUid(): Readonly<string> {
-    return this.uid;
+  getUserId(): Readonly<string> {
+    return this.userId;
   }
 
   getUserName(): Readonly<string> {

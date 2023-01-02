@@ -30,7 +30,7 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
     }
 
     const userPayload: IUser = {
-      uid: user.getUid(),
+      userId: user.getUserId(),
       userName: user.getUserName(),
       email: user.getEmail(),
     };
