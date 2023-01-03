@@ -1,18 +1,18 @@
 import { plainToClass } from 'class-transformer';
 
 export class User {
-  readonly userId: string;
-  readonly userName: string;
-  readonly email: string;
+  userId: string;
+  userName: string;
+  email: string;
   password: string;
-  readonly signupVerifyToken: string;
-  readonly refreshToken: string;
-  readonly resetPasswordToken: string;
-  readonly isVerified: boolean;
-  readonly isLoggedin: boolean;
-  readonly isActive: boolean;
+  signupVerifyToken: string;
+  refreshToken: string;
+  resetPasswordToken: string;
+  isVerified: boolean;
+  isLoggedin: boolean;
+  isActive: boolean;
 
-  constructor(protected user: Partial<User>) {
+  constructor(user: Partial<User>) {
     if (user) {
       Object.assign(
         this,

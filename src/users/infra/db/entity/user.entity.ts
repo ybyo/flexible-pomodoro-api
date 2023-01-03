@@ -48,7 +48,7 @@ export class UserEntity extends User {
   updatedAt: Date;
 
   @BeforeInsert()
-  async hashPassword() {
+  private async hashPassword() {
     this.password = await argon2.hash(this.password);
   }
 }
