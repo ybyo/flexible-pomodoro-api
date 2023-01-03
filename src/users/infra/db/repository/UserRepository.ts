@@ -4,13 +4,12 @@ import { User } from 'src/users/domain/user';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { Connection, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
-    // TODO: Connection Deprecated 문제 해결
-    private connection: Connection,
+    private connection: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private userFactory: UserFactory,
