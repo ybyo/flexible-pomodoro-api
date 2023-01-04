@@ -22,7 +22,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async findByEmailAndPassword(
@@ -37,7 +39,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async findBySignupVerifyToken(
@@ -50,12 +54,14 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async saveUser(user: User): Promise<void> {
     await this.connection.transaction(async (manager) => {
-      const newUser = new UserEntity(user);
+      const newUser = UserEntity.create(user);
 
       await manager.save(newUser);
     });

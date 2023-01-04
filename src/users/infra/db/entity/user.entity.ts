@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   BeforeInsert,
   Column,
   CreateDateColumn,
@@ -6,11 +7,11 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '@/users/domain/user';
 import * as argon2 from 'argon2';
+import { User } from '@/users/domain/user';
 
 @Entity('User')
-export class UserEntity extends User {
+export class UserEntity extends BaseEntity {
   @PrimaryColumn()
   userId: string;
 
@@ -48,7 +49,22 @@ export class UserEntity extends User {
   updatedAt: Date;
 
   @BeforeInsert()
-  private async hashPassword() {
+  async hashPassword() {
     this.password = await argon2.hash(this.password);
+  }
+
+  static toUser(entity: UserEntity) {
+    const user = new User({});
+    user.userId = entity.userId;
+    user.userName = entity.userName;
+    user.email = entity.email;
+    user.password = entity.password;
+    user.signupVerifyToken = entity.signupVerifyToken;
+    user.refreshToken = entity.refreshToken;
+    user.resetPasswordToken = entity.resetPasswordToken;
+    user.isVerified = entity.isVerified;
+    user.isLoggedin = entity.isVerified;
+    user.isActive = entity.isVerified;
+    return user;
   }
 }
