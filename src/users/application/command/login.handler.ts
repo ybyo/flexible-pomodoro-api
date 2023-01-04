@@ -22,7 +22,7 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
     // TODO: 로그인 인증절차 수정(우선 계정 존재 확인, 계정이 존재하면 비밀번호 확인)
     const user = await this.userRepository.findByEmail(email);
 
-    const storedPassword = user.getPassword();
+    const storedPassword = user.password;
     const isValid = await verifyPassword(storedPassword, password);
 
     if (!isValid) {
@@ -30,9 +30,9 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
     }
 
     const userPayload: IUser = {
-      userId: user.getUserId(),
-      userName: user.getUserName(),
-      email: user.getEmail(),
+      userId: user.userId,
+      userName: user.userName,
+      email: user.email,
     };
 
     return userPayload;
