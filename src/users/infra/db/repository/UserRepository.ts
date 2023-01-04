@@ -4,13 +4,12 @@ import { User } from 'src/users/domain/user';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { Connection, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
-    // TODO: Connection Deprecated 문제 해결
-    private connection: Connection,
+    private connection: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private userFactory: UserFactory,
@@ -23,7 +22,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async findByEmailAndPassword(
@@ -38,7 +39,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async findBySignupVerifyToken(
@@ -51,12 +54,14 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    return this.userFactory.reconstitute(userEntity);
+    const newUser = UserEntity.toUser(userEntity);
+
+    return this.userFactory.reconstitute(newUser);
   }
 
   async saveUser(user: User): Promise<void> {
     await this.connection.transaction(async (manager) => {
-      const newUser = new UserEntity(user);
+      const newUser = UserEntity.create(user);
 
       await manager.save(newUser);
     });

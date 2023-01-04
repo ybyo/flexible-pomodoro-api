@@ -3,12 +3,22 @@ import { CreateUserCommand } from './command/create-user.command';
 import { CreateUserHandler } from './command/create-user.handler';
 import { Test } from '@nestjs/testing';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { User } from '../domain/user';
 import { UserFactory } from '../domain/user.factory';
 import { UserRepository } from '../infra/db/repository/UserRepository';
+import { Chance } from 'chance';
+
+const chance = new Chance();
 
 jest.mock('ulid');
 jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
+
+const userObject = {
+  _userId: ulid.ulid(),
+  _email: chance.email(),
+  _userName: chance.name(),
+  _password: chance.string(),
+  _signupVerifyToken: ulid.ulid(),
+};
 
 describe('CreateUserHandler', () => {
   let createUserHandler: CreateUserHandler;
@@ -39,14 +49,6 @@ describe('CreateUserHandler', () => {
     userRepository = module.get('UserRepository');
   });
 
-  const userObject: Partial<User> = {
-    userId: ulid.ulid(),
-    userName: 'test',
-    email: 'test@example.com',
-    password: 'test',
-    signupVerifyToken: ulid.ulid(),
-  };
-
   describe('execute', () => {
     it('should execute CreateUserCommand', async () => {
       // Given
@@ -55,9 +57,9 @@ describe('CreateUserHandler', () => {
       // When
       await createUserHandler.execute(
         new CreateUserCommand(
-          userObject.userName,
-          userObject.email,
-          userObject.password,
+          userObject._email,
+          userObject._userName,
+          userObject._password,
         ),
       );
 
@@ -77,9 +79,9 @@ describe('CreateUserHandler', () => {
       await expect(
         createUserHandler.execute(
           new CreateUserCommand(
-            userObject.userName,
-            userObject.email,
-            userObject.password,
+            userObject._email,
+            userObject._userName,
+            userObject._password,
           ),
         ),
       ).rejects.toThrowError(UnprocessableEntityException);

@@ -1,18 +1,18 @@
 import { plainToClass } from 'class-transformer';
 
 export class User {
-  readonly userId: string;
-  readonly userName: string;
-  readonly email: string;
-  password: string;
-  readonly signupVerifyToken: string;
-  readonly refreshToken: string;
-  readonly resetPasswordToken: string;
-  readonly isVerified: boolean;
-  readonly isLoggedin: boolean;
-  readonly isActive: boolean;
+  private _userId: string;
+  private _userName: string;
+  private _email: string;
+  private _password: string;
+  private _signupVerifyToken: string;
+  private _refreshToken: string;
+  private _resetPasswordToken: string;
+  private _isVerified: boolean;
+  private _isLoggedin: boolean;
+  private _isActive: boolean;
 
-  constructor(protected user: Partial<User>) {
+  constructor(user: Partial<User>) {
     if (user) {
       Object.assign(
         this,
@@ -23,47 +23,83 @@ export class User {
     }
   }
 
-  getUserId(): Readonly<string> {
-    return this.userId;
+  get userId(): Readonly<string> {
+    return this._userId;
   }
 
-  getUserName(): Readonly<string> {
-    return this.userName;
+  set userId(userId: string) {
+    this._userId = userId;
   }
 
-  getEmail(): Readonly<string> {
-    return this.email;
+  get userName(): Readonly<string> {
+    return this._userName;
   }
 
-  getPassword(): Readonly<string> {
-    return this.password;
+  set userName(userName: string) {
+    this._userName = userName;
   }
 
-  setPassword(hashedPassword: string) {
-    this.password = hashedPassword;
+  get email(): Readonly<string> {
+    return this._email;
   }
 
-  getToken(): Readonly<string> {
-    return this.signupVerifyToken;
+  set email(email: string) {
+    this._email = email;
   }
 
-  getRefreshToken(): Readonly<string> {
-    return this.refreshToken;
+  get password(): Readonly<string> {
+    return this._password;
   }
 
-  getResetPasswordToken(): Readonly<string> {
-    return this.resetPasswordToken;
+  set password(hashedPassword: string) {
+    this._password = hashedPassword;
   }
 
-  getIsVerified(): Readonly<boolean> {
-    return this.isVerified;
+  get signupVerifyToken(): Readonly<string> {
+    return this._signupVerifyToken;
   }
 
-  getIsLoggedin(): Readonly<boolean> {
-    return this.isLoggedin;
+  set signupVerifyToken(signupVerifyToken: string) {
+    this._signupVerifyToken = signupVerifyToken;
   }
 
-  getIsActive(): Readonly<boolean> {
-    return this.isActive;
+  get refreshToken(): Readonly<string> {
+    return this._refreshToken;
+  }
+
+  set refreshToken(refreshToken: string) {
+    this._refreshToken = refreshToken;
+  }
+
+  get resetPasswordToken(): Readonly<string> {
+    return this._resetPasswordToken;
+  }
+
+  set resetPasswordToken(resetPasswordToken: string) {
+    this._resetPasswordToken = resetPasswordToken;
+  }
+
+  get isVerified(): Readonly<boolean> {
+    return this._isVerified;
+  }
+
+  set isVerified(isVerified: boolean) {
+    this._isVerified = isVerified;
+  }
+
+  get isLoggedin(): Readonly<boolean> {
+    return this._isLoggedin;
+  }
+
+  set isLoggedin(isLoggedin: boolean) {
+    this._isLoggedin = isLoggedin;
+  }
+
+  get isActive(): Readonly<boolean> {
+    return this._isActive;
+  }
+
+  set isActive(isActive: boolean) {
+    this._isActive = isActive;
   }
 }

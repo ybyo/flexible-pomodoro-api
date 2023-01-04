@@ -35,9 +35,9 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
     );
 
     return this.authService.issueToken({
-      userId: user.getUserId(),
-      userName: user.getUserName(),
-      email: user.getEmail(),
+      userId: user.userId,
+      userName: user.userName,
+      email: user.email,
     });
   }
 }
