@@ -7,7 +7,7 @@ import {
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateUserCommand } from './create-user.command';
 import { IUserRepository } from '../../domain/repository/iuser.repository';
-import { User } from '../../domain/user';
+import { User } from '../../domain/user.model';
 import { UserFactory } from '../../domain/user.factory';
 
 @Injectable()
@@ -26,6 +26,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
       throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
     }
 
+    // TODO: userId, signupVerifyToken 등이 undefined일 때, 자동으로 값 부여하도록 구현
     const newUser = new User({
       ...command,
       userId: ulid(),

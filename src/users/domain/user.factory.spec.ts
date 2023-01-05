@@ -1,5 +1,5 @@
 import { UserFactory } from './user.factory';
-import { User } from './user';
+import { User } from './user.model';
 import { Test } from '@nestjs/testing';
 import { EventBus } from '@nestjs/cqrs';
 import * as ulid from 'ulid';

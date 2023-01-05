@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as argon2 from 'argon2';
-import { User } from '@/users/domain/user';
+import { User } from '@/users/domain/user.model';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {
