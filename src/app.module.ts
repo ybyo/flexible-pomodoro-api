@@ -2,6 +2,7 @@ import * as path from 'path';
 import authConfig from './config/authConfig';
 import cookieConfig from '@/config/cookieConfig';
 import emailConfig from './config/emailConfig';
+import { AutomapperModule } from '@automapper/nestjs';
 import { ConfigModule } from '@nestjs/config';
 import { ExceptionModule } from './exception/exception-module';
 import { HealthCheckController } from './health-check/health-check.controller';
@@ -11,13 +12,16 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
+import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
 @Module({
   imports: [
-    UsersModule,
+    AutomapperModule.forRoot({
+      strategyInitializer: classes(),
+    }),
     ConfigModule.forRoot({
       envFilePath: [envPath],
       load: [authConfig, cookieConfig, emailConfig],
@@ -33,10 +37,11 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
         return ormConfig;
       },
     }),
-    ExceptionModule,
+    UsersModule,
     HttpModule,
     LoggingModule,
     TerminusModule,
+    ExceptionModule,
   ],
   controllers: [HealthCheckController],
   providers: [],
