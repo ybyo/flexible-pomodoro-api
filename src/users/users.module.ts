@@ -14,6 +14,7 @@ import { GetUserInfoQueryHandler } from './application/query/get-user-info.handl
 import { UsersController } from './interface/users.controller';
 import { UserRepository } from './infra/db/repository/UserRepository';
 import { EmailService } from './infra/adapter/email.service';
+import { UsersProfile } from '@/users/interface/mapper/users.profile';
 
 const commandHandlers = [
   CreateUserHandler,
@@ -35,14 +36,15 @@ const repositories = [
 
 @Module({
   imports: [
-    EmailModule,
-    TypeOrmModule.forFeature([UserEntity]),
     AuthModule,
     CqrsModule,
+    EmailModule,
+    TypeOrmModule.forFeature([UserEntity]),
   ],
   controllers: [UsersController],
   providers: [
     Logger,
+    UsersProfile,
     ...commandHandlers,
     ...queryHandlers,
     ...eventHandlers,

@@ -5,10 +5,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { DataSource, Repository } from 'typeorm';
+import { InjectMapper } from '@automapper/nestjs';
+import { Mapper } from '@automapper/core';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
+    @InjectMapper() private mapper: Mapper,
     private connection: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -22,9 +25,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const newUser = UserEntity.toUser(userEntity);
+    const newEntity = this.mapper.map(userEntity, UserEntity, User);
 
-    return this.userFactory.reconstitute(newUser);
+    return this.userFactory.reconstitute(newEntity);
   }
 
   async findByEmailAndPassword(
@@ -39,9 +42,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const newUser = UserEntity.toUser(userEntity);
+    const newEntity = this.mapper.map(userEntity, UserEntity, User);
 
-    return this.userFactory.reconstitute(newUser);
+    return this.userFactory.reconstitute(newEntity);
   }
 
   async findBySignupVerifyToken(
@@ -54,9 +57,9 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const newUser = UserEntity.toUser(userEntity);
+    const newEntity = this.mapper.map(userEntity, UserEntity, User);
 
-    return this.userFactory.reconstitute(newUser);
+    return this.userFactory.reconstitute(newEntity);
   }
 
   async saveUser(user: User): Promise<void> {
