@@ -1,6 +1,6 @@
 import { GetUserInfoQuery } from './get-user-info.query';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { IUser } from '@/typeDefs/message.interface';
+import { IUser } from '@/type-defs/message.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';

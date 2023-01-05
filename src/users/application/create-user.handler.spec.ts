@@ -12,6 +12,7 @@ const chance = new Chance();
 jest.mock('ulid');
 jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
 
+// DTO 사용
 const userObject = {
   _userId: ulid.ulid(),
   _email: chance.email(),
@@ -57,8 +58,8 @@ describe('CreateUserHandler', () => {
       // When
       await createUserHandler.execute(
         new CreateUserCommand(
-          userObject._email,
           userObject._userName,
+          userObject._email,
           userObject._password,
         ),
       );
@@ -79,8 +80,8 @@ describe('CreateUserHandler', () => {
       await expect(
         createUserHandler.execute(
           new CreateUserCommand(
-            userObject._email,
             userObject._userName,
+            userObject._email,
             userObject._password,
           ),
         ),

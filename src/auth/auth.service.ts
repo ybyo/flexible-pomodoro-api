@@ -2,7 +2,7 @@ import * as jwt from 'jsonwebtoken';
 import authConfig, { jwtOptions } from 'src/config/authConfig';
 import cookieConfig from '@/config/cookieConfig';
 import { ConfigType } from '@nestjs/config';
-import { IUser } from '@/typeDefs/message.interface';
+import { IUser } from '@/type-defs/message.interface';
 import { Inject, Injectable, Res } from '@nestjs/common';
 import { Response } from 'express';
 
