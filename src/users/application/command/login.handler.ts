@@ -1,7 +1,7 @@
 // TODO: 경로 표현방식 일치시키기
 import { AuthService } from 'src/auth/auth.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { IUser } from '@/typeDefs/message.interface';
+import { IUser } from '@/type-defs/message.interface';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { LoginCommand } from './login.command';

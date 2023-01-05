@@ -24,7 +24,7 @@ import {
   IGeneralResponse,
   IErrorResponse,
   IUser,
-} from '@/typeDefs/message.interface';
+} from '@/type-defs/message.interface';
 import { LoginCommand } from '../application/command/login.command';
 import { Response, Request } from 'express';
 import { UserLoginDto } from './dto/user-login.dto';
