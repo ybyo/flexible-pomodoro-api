@@ -1,0 +1,21 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8
+    container_name: ${DATABASE_CONTAINER_NAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
+    volumes:
+      - /opt/mysql_data:/var/lib/mysql
+  redis:
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: redis:latest
+    ports:
+      - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+  rcli:
+    image: redis:latest
+    links:
+      - redis
+    command: redis-cli -h redis
