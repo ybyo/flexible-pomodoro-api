@@ -1,21 +1,22 @@
-// TODO: 경로 표현방식 일치시키기
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '@/auth/auth.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUser } from '@/type-defs/message.interface';
-import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { LoginCommand } from './login.command';
+import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 import { verifyPassword } from '@/utils/password-util';
 
 @Injectable()
-@CommandHandler(LoginCommand)
-export class LoginHandler implements ICommandHandler<LoginCommand> {
+@CommandHandler(ValidateUserCommand)
+export class ValidateUserHandler
+  implements ICommandHandler<ValidateUserCommand>
+{
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
     private authService: AuthService,
   ) {}
 
-  async execute(command: LoginCommand) {
+  async execute(command: ValidateUserCommand) {
     const { email, password } = command;
 
     // TODO: 데이터베이스가 완전히 비어있을 때 에러 처리

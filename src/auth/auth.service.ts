@@ -3,22 +3,67 @@ import authConfig, { jwtOptions } from 'src/config/authConfig';
 import cookieConfig from '@/config/cookieConfig';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
-import { Inject, Injectable, Res } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Res } from '@nestjs/common';
 import { Response } from 'express';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
+import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
+import { CommandBus } from '@nestjs/cqrs';
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
+import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject(authConfig.KEY) private auth: ConfigType<typeof authConfig>,
     @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
+    private commandBus: CommandBus,
   ) {}
 
-  issueToken(user: IUser) {
-    // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
-    return jwt.sign(user, this.auth.jwtSecret, jwtOptions);
+  // Interact with passport local strategy
+  async validateUser(user: LoginUserDto) {
+    // login command
+    const { email, password } = user;
+    // TODO: 에러 핸들링 auth service에서 수행하도록 구현
+    const foundUser = await this.commandBus.execute(
+      new ValidateUserCommand(email, password),
+    );
+    // if (!users || !(await verifyPassword(foundUser.password, users.password))) {
+    //   throw new UnauthorizedException('Incorrect username or password');
+    // }
+
+    return foundUser;
   }
 
-  verify(jwtString: string) {
+  async logoutUser(@Res({ passthrough: true }) res: Response) {
+    return res.cookie('accessToken', '', { ...this.cookie, maxAge: 1 });
+  }
+
+  async findByUserId(userId: string) {
+    const user = await this.commandBus.execute(
+      new GetUserByUserIdQuery(userId),
+    );
+    if (!user) {
+      throw new BadRequestException(`No user found with id ${userId}`);
+    }
+    return user;
+  }
+
+  async registerUser(user): Promise<IUser> {
+    const { userName, email, password } = user;
+    return await this.commandBus.execute(
+      new RegisterUserCommand(userName, email, password),
+    );
+
+    // TODO: Confirmation Password 검증절차 서버에서 수행
+    // if (users.password !== users.confirmationPassword) {
+    //   throw new BadRequestException(
+    //     'Password and Confirmation Password must match',
+    //   );
+    // }
+    // const { confirmationPassword: _, ...newUser } = users;
+  }
+
+  async verify(jwtString: string) {
     try {
       const payload = jwt.verify(jwtString, this.auth.jwtSecret) as (
         | jwt.JwtPayload
@@ -55,7 +100,12 @@ export class AuthService {
     }
   }
 
-  issueCookie(user: IUser, @Res({ passthrough: true }) res: Response) {
+  async issueToken(user: IUser) {
+    // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
+    return jwt.sign(user, this.auth.jwtSecret, jwtOptions);
+  }
+
+  async issueCookie(user: IUser, @Res({ passthrough: true }) res: Response) {
     const loginResult = {
       status: 'success',
       userPayload: user,
@@ -67,9 +117,5 @@ export class AuthService {
       .cookie('accessToken', accessToken, this.cookie)
       .status(200)
       .json(loginResult);
-  }
-
-  logout(@Res({ passthrough: true }) res: Response) {
-    return res.cookie('accessToken', '', { ...this.cookie, maxAge: 1 });
   }
 }

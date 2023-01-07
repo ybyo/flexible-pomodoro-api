@@ -40,7 +40,7 @@ describe('UserFactory', () => {
   });
 
   describe('create', () => {
-    it('Should create user', () => {
+    it('Should create users', () => {
       // Given
       // When
       const user = userFactory.create(newUser);
@@ -52,7 +52,7 @@ describe('UserFactory', () => {
   });
 
   describe('reconstitute', () => {
-    it('Should reconstitute user', () => {
+    it('Should reconstitute users', () => {
       // Given
       // When
       const user = userFactory.reconstitute(newUser);

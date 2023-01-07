@@ -1,11 +1,11 @@
 import * as ulid from 'ulid';
-import { CreateUserCommand } from './command/create-user.command';
-import { CreateUserHandler } from './command/create-user.handler';
 import { Test } from '@nestjs/testing';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { UserFactory } from '../domain/user.factory';
 import { UserRepository } from '../infra/db/repository/UserRepository';
 import { Chance } from 'chance';
+import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
+import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 
 const chance = new Chance();
 
@@ -22,14 +22,14 @@ const userObject = {
 };
 
 describe('CreateUserHandler', () => {
-  let createUserHandler: CreateUserHandler;
+  let registerUserHandler: RegisterUserHandler;
   let userFactory: UserFactory;
   let userRepository: UserRepository;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        CreateUserHandler,
+        RegisterUserHandler,
         {
           provide: UserFactory,
           useValue: {
@@ -45,7 +45,7 @@ describe('CreateUserHandler', () => {
       ],
     }).compile();
 
-    createUserHandler = module.get(CreateUserHandler);
+    registerUserHandler = module.get(RegisterUserHandler);
     userFactory = module.get(UserFactory);
     userRepository = module.get('UserRepository');
   });
@@ -56,8 +56,8 @@ describe('CreateUserHandler', () => {
       userRepository.findByEmail = jest.fn().mockResolvedValue(null);
 
       // When
-      await createUserHandler.execute(
-        new CreateUserCommand(
+      await registerUserHandler.execute(
+        new RegisterUserCommand(
           userObject._userName,
           userObject._email,
           userObject._password,
@@ -69,7 +69,7 @@ describe('CreateUserHandler', () => {
       expect(userFactory.create).toBeCalledWith(userObject);
     });
 
-    it('should throw UnprocessableEntityException when user exists', async () => {
+    it('should throw UnprocessableEntityException when users exists', async () => {
       // Given
       userRepository.findByEmail = jest.fn().mockResolvedValue({
         userObject,
@@ -78,8 +78,8 @@ describe('CreateUserHandler', () => {
       // When
       // Then
       await expect(
-        createUserHandler.execute(
-          new CreateUserCommand(
+        registerUserHandler.execute(
+          new RegisterUserCommand(
             userObject._userName,
             userObject._email,
             userObject._password,

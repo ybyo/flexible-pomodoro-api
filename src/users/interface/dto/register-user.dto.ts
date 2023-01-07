@@ -10,7 +10,7 @@ import {
 import { NotIn } from 'src/utils/decorators/not-in';
 
 // TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
-export class CreateUserDto {
+export class RegisterUserDto {
   @Transform((params) => params.value.trim())
   @NotIn('password', {
     message: 'The name string is included in the password.',
@@ -18,7 +18,7 @@ export class CreateUserDto {
   @IsString()
   @MinLength(2)
   @MaxLength(128)
-  readonly name: string;
+  readonly userName: string;
 
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {

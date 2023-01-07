@@ -1,22 +1,21 @@
-import { GetUserInfoQuery } from './get-user-info.query';
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { IUser } from '@/type-defs/message.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../infra/db/entity/user.entity';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
-@QueryHandler(GetUserInfoQuery)
-export class GetUserInfoQueryHandler
-  implements IQueryHandler<GetUserInfoQuery>
+@QueryHandler(GetUserByUserIdQuery)
+export class GetUserByUserIdHandler
+  implements IQueryHandler<GetUserByUserIdQuery>
 {
-  // TODO: usersRepository, 의존성 문제 해결
   constructor(
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
   ) {}
 
-  async execute(query: GetUserInfoQuery): Promise<IUser> {
+  async execute(query: GetUserByUserIdQuery): Promise<IUser> {
     const { userId } = query;
 
     const user = await this.usersRepository.findOneBy({ userId: userId });
