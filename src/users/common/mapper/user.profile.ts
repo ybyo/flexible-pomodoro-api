@@ -6,7 +6,7 @@ import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { createMap } from '@automapper/core';
 
 @Injectable()
-export class UsersProfile extends AutomapperProfile {
+export class UserProfile extends AutomapperProfile {
   constructor(@InjectMapper() mapper: Mapper) {
     super(mapper);
   }
