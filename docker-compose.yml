@@ -1,4 +1,9 @@
-version: '3'
+version: '2'
+
+networks:
+  app-tier:
+    driver: bridge
+
 services:
   mysql:
     image: mysql:8
@@ -9,13 +14,20 @@ services:
       - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
     volumes:
       - /opt/mysql_data:/var/lib/mysql
+
   redis:
+    image: bitnami/redis:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: ${REDIS_CONTAINER_NAME}
-    image: redis:latest
     ports:
       - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+    networks:
+      - app-tier
   rcli:
-    image: redis:latest
+    image: bitnami/redis:latest
     links:
       - redis
     command: redis-cli -h redis
+    networks:
+      - app-tier
