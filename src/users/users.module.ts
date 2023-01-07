@@ -1,32 +1,21 @@
 import { Logger, Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { CqrsModule } from '@nestjs/cqrs';
 import { EmailModule } from 'src/email/email.module';
-import { CreateUserHandler } from './application/command/create-user.handler';
-import { LoginHandler } from './application/command/login.handler';
-import { VerifyAccessTokenHandler } from './application/command/verify-access-token.handler';
-import { VerifyEmailHandler } from './application/command/verify-email.handler';
-import { UserFactory } from './domain/user.factory';
+import { EmailService } from './infra/adapter/email.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './infra/db/entity/user.entity';
 import { UserEventsHandler } from './application/event/user-events.handler';
-import { GetUserInfoQueryHandler } from './application/query/get-user-info.handler';
-import { UsersController } from './interface/users.controller';
+import { UserFactory } from './domain/user.factory';
 import { UserRepository } from './infra/db/repository/UserRepository';
-import { EmailService } from './infra/adapter/email.service';
-import { UsersProfile } from '@/users/common/mapper/users.profile';
+import { UsersController } from './interface/users.controller';
+import { UserProfile } from '@/users/common/mapper/user.profile';
+import { VerifyEmailHandler } from '@/users/application/command/handler/verify-email.handler';
+import { PassportModule } from '@nestjs/passport';
 
-const commandHandlers = [
-  CreateUserHandler,
-  VerifyEmailHandler,
-  LoginHandler,
-  VerifyAccessTokenHandler,
-];
-
-const queryHandlers = [GetUserInfoQueryHandler];
-
+const commandHandlers = [VerifyEmailHandler];
+const queryHandlers = [];
 const eventHandlers = [UserEventsHandler];
-
 const factories = [UserFactory];
 
 const repositories = [
@@ -40,11 +29,14 @@ const repositories = [
     CqrsModule,
     EmailModule,
     TypeOrmModule.forFeature([UserEntity]),
+    PassportModule.register({
+      session: true,
+    }),
   ],
   controllers: [UsersController],
   providers: [
     Logger,
-    UsersProfile,
+    UserProfile,
     ...commandHandlers,
     ...queryHandlers,
     ...eventHandlers,
@@ -53,3 +45,31 @@ const repositories = [
   ],
 })
 export class UsersModule {}
+
+// export class UsersModule implements NestModule {
+//   constructor(@Inject(REDIS) private readonly redis: RedisClient) {}
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer
+//       .apply(
+//         session({
+//           store: new (RedisStore(session))({
+//             client: this.redis,
+//             logErrors: true,
+//           }),
+//           saveUninitialized: false,
+//           // TODO: secret 변경, cookie 옵션 일치시키기
+//           secret: 'sup3rs3cr3t',
+//           resave: false,
+//           cookie: {
+//             sameSite: true,
+//             httpOnly: false,
+//             maxAge: 60000,
+//           },
+//         }),
+//         // Must be called before `passport.session()`
+//         passport.initialize(),
+//         passport.session(),
+//       )
+//       .forRoutes('*');
+//   }
+// }

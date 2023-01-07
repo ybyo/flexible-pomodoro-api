@@ -4,9 +4,9 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { VerifyEmailCommand } from './verify-email.command';
 import { AuthService } from '@/auth/auth.service';
-import { IUserRepository } from '../../domain/repository/iuser.repository';
+import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(VerifyEmailCommand)

@@ -5,20 +5,22 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CreateUserCommand } from './create-user.command';
-import { IUserRepository } from '../../domain/repository/iuser.repository';
-import { User } from '../../domain/user.model';
-import { UserFactory } from '../../domain/user.factory';
+import { User } from '@/users/domain/user.model';
+import { UserFactory } from '@/users/domain/user.factory';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 
 @Injectable()
-@CommandHandler(CreateUserCommand)
-export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
+@CommandHandler(RegisterUserCommand)
+export class RegisterUserHandler
+  implements ICommandHandler<RegisterUserCommand>
+{
   constructor(
     private userFactory: UserFactory,
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: CreateUserCommand) {
+  async execute(command: RegisterUserCommand) {
     const { email } = command;
 
     const user = await this.userRepository.findByEmail(email);
@@ -36,5 +38,11 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
     await this.userRepository.saveUser(newUser);
 
     this.userFactory.create(newUser);
+
+    return {
+      userId: newUser.userId,
+      userName: newUser.userName,
+      email: newUser.email,
+    };
   }
 }
