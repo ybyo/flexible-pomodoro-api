@@ -26,9 +26,8 @@ export class AuthService {
     // login command
     const { email, password } = user;
     // TODO: 에러 핸들링 auth service에서 수행하도록 구현
-    const foundUser = await this.commandBus.execute(
-      new ValidateUserCommand(email, password),
-    );
+    const command = new ValidateUserCommand(email, password);
+    const foundUser = await this.commandBus.execute(command);
     // if (!users || !(await verifyPassword(foundUser.password, users.password))) {
     //   throw new UnauthorizedException('Incorrect username or password');
     // }
@@ -52,9 +51,9 @@ export class AuthService {
 
   async registerUser(user): Promise<IUser> {
     const { userName, email, password } = user;
-    return await this.commandBus.execute(
-      new RegisterUserCommand(userName, email, password),
-    );
+    const command = new RegisterUserCommand(userName, email, password);
+
+    return await this.commandBus.execute(command);
 
     // TODO: Confirmation Password 검증절차 서버에서 수행
     // if (users.password !== users.confirmationPassword) {
