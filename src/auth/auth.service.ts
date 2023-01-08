@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
-import authConfig, { jwtOptions } from 'src/config/authConfig';
-import cookieConfig from '@/config/cookieConfig';
+import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
+import accessTokenConfig from '@/config/accessTokenConfig';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
 import { BadRequestException, Inject, Injectable, Res } from '@nestjs/common';
@@ -14,8 +14,9 @@ import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(authConfig.KEY) private auth: ConfigType<typeof authConfig>,
-    @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
+    @Inject(jwtConfig.KEY) private jwtConf: ConfigType<typeof jwtConfig>,
+    @Inject(accessTokenConfig.KEY)
+    private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
   ) {}
 
@@ -35,7 +36,7 @@ export class AuthService {
   }
 
   async logoutUser(@Res({ passthrough: true }) res: Response) {
-    return res.cookie('accessToken', '', { ...this.cookie, maxAge: 1 });
+    return res.cookie('accessToken', '', { ...this.accessTokenConf, maxAge: 1 });
   }
 
   async findByUserId(userId: string) {
@@ -65,7 +66,7 @@ export class AuthService {
 
   async verify(jwtString: string) {
     try {
-      const payload = jwt.verify(jwtString, this.auth.jwtSecret) as (
+      const payload = jwt.verify(jwtString, this.jwtConf.jwtSecret) as (
         | jwt.JwtPayload
         | string
       ) &
@@ -102,20 +103,6 @@ export class AuthService {
 
   async issueToken(user: IUser) {
     // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
-    return jwt.sign(user, this.auth.jwtSecret, jwtOptions);
-  }
-
-  async issueCookie(user: IUser, @Res({ passthrough: true }) res: Response) {
-    const loginResult = {
-      status: 'success',
-      userPayload: user,
-    };
-
-    const accessToken = this.issueToken(user);
-
-    return res
-      .cookie('accessToken', accessToken, this.cookie)
-      .status(200)
-      .json(loginResult);
+    return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 }
