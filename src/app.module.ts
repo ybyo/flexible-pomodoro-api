@@ -2,8 +2,8 @@ import * as RedisStore from 'connect-redis';
 import * as path from 'path';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import authConfig from './config/authConfig';
-import cookieConfig from '@/config/cookieConfig';
+import jwtConfig from './config/jwtConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
 import emailConfig from './config/emailConfig';
 import { AuthModule } from '@/auth/auth.module';
 import { AutomapperModule } from '@automapper/nestjs';
@@ -20,6 +20,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
+import accessTokenConfig from '@/config/accessTokenConfig';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
@@ -30,7 +31,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     }),
     ConfigModule.forRoot({
       envFilePath: [envPath],
-      load: [authConfig, cookieConfig, emailConfig],
+      load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
       isGlobal: true,
       // TODO: validationSchema 항목 보완
       validationSchema,
@@ -57,7 +58,8 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 export class AppModule implements NestModule {
   constructor(
     @Inject(REDIS) private readonly redis: RedisClient,
-    @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
+    @Inject(refreshTokenConfig.KEY)
+    private refreshTokenConf: ConfigType<typeof refreshTokenConfig>,
   ) {}
   configure(consumer: MiddlewareConsumer) {
     consumer
@@ -70,7 +72,7 @@ export class AppModule implements NestModule {
           saveUninitialized: false,
           secret: process.env.SESSION_SECRET,
           resave: false,
-          cookie: this.cookie,
+          cookie: this.refreshTokenConf,
         }),
         // `initialize()` must be called before `session()`
         passport.initialize(),

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Inject,
   Logger,
@@ -13,21 +12,20 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { AuthService } from '@/auth/auth.service';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
-import {
-  IErrorResponse,
-  IGeneralResponse,
-  IUser,
-} from '@/type-defs/message.interface';
+import { IUser } from '@/type-defs/message.interface';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import cookieConfig from '@/config/accessTokenConfig';
+import { ConfigType } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
   constructor(
+    @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
     private commandBus: CommandBus,
@@ -41,45 +39,39 @@ export class AuthController {
 
   @UseGuards(LocalGuard)
   @Post('login')
-  async login(
-    @Body() dto: LoginUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
-    const user = await this.authService.validateUser(dto);
+  async login(@Req() req, @Res({ passthrough: true }) res) {
+    const user = req.session.passport.user;
 
-    await this.authService.issueCookie(user, res);
+    // Refresh tokens are at App.module.ts
+    const accessToken = await this.authService.issueToken(user);
+
+    const loginResult = {
+      status: 'success',
+      data: user,
+    };
+
+    res.cookie('accessToken', accessToken, this.cookie).status(200);
+
+    return loginResult;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getUserInfoWithAccessToken(
-    @Req() request: Request,
-  ): Promise<IGeneralResponse<IUser> | IErrorResponse> {
-    const jwtString = request.cookies['accessToken'];
-
-    if (!jwtString) {
-      throw new UnauthorizedException('No access token');
-    } else {
-      const result = await this.authService.verify(jwtString);
-      if (result.success) {
-        return result;
-      } else {
-        result.data = null;
-        throw new ForbiddenException(result);
-      }
-    }
+  async getUserInfoWithAccessToken(@Req() req: Request) {
+    return req.user;
   }
 
   @Get('logout')
-  async logout(@Res({ passthrough: true }) response: Response) {
-    await this.authService.logoutUser(response);
+  async logout(@Res({ passthrough: true }) res: Response) {
+    await this.authService.logoutUser(res);
   }
 
   @Get('refresh')
   async refreshAuth(
-    @Req() request: Request,
+    @Req() req: Request,
     @Res({ passthrough: false }) response: Response,
   ) {
-    const jwtString = request.cookies['accessToken'];
+    const jwtString = req.cookies['accessToken'];
 
     if (!jwtString) {
       throw new UnauthorizedException('No access token');
@@ -91,7 +83,7 @@ export class AuthController {
       const user = result.data;
       if (result.message === 'jwt expired') {
         console.log('cookie reissued');
-        await this.authService.issueCookie(user, response);
+        // await this.authService.issueCookie(user, response);
       } else {
         console.log('invalid token');
         throw new UnauthorizedException('invalid token');

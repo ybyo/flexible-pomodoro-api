@@ -1,22 +1,24 @@
 import * as jwt from 'jsonwebtoken';
-import authConfig, { jwtOptions } from 'src/config/authConfig';
-import cookieConfig from '@/config/cookieConfig';
+import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
+import accessTokenConfig from '@/config/accessTokenConfig';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
 import { BadRequestException, Inject, Injectable, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(authConfig.KEY) private auth: ConfigType<typeof authConfig>,
-    @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
+    @Inject(jwtConfig.KEY) private jwtConf: ConfigType<typeof jwtConfig>,
+    @Inject(accessTokenConfig.KEY)
+    private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   // Interact with passport local strategy
@@ -24,9 +26,8 @@ export class AuthService {
     // login command
     const { email, password } = user;
     // TODO: 에러 핸들링 auth service에서 수행하도록 구현
-    const foundUser = await this.commandBus.execute(
-      new ValidateUserCommand(email, password),
-    );
+    const command = new ValidateUserCommand(email, password);
+    const foundUser = await this.commandBus.execute(command);
     // if (!users || !(await verifyPassword(foundUser.password, users.password))) {
     //   throw new UnauthorizedException('Incorrect username or password');
     // }
@@ -35,13 +36,13 @@ export class AuthService {
   }
 
   async logoutUser(@Res({ passthrough: true }) res: Response) {
-    return res.cookie('accessToken', '', { ...this.cookie, maxAge: 1 });
+    return res.cookie('accessToken', '', { ...this.accessTokenConf, maxAge: 1 });
   }
 
   async findByUserId(userId: string) {
-    const user = await this.commandBus.execute(
-      new GetUserByUserIdQuery(userId),
-    );
+    const command = new GetUserByUserIdQuery(userId);
+    const user = await this.queryBus.execute(command);
+
     if (!user) {
       throw new BadRequestException(`No user found with id ${userId}`);
     }
@@ -50,9 +51,9 @@ export class AuthService {
 
   async registerUser(user): Promise<IUser> {
     const { userName, email, password } = user;
-    return await this.commandBus.execute(
-      new RegisterUserCommand(userName, email, password),
-    );
+    const command = new RegisterUserCommand(userName, email, password);
+
+    return await this.commandBus.execute(command);
 
     // TODO: Confirmation Password 검증절차 서버에서 수행
     // if (users.password !== users.confirmationPassword) {
@@ -65,7 +66,7 @@ export class AuthService {
 
   async verify(jwtString: string) {
     try {
-      const payload = jwt.verify(jwtString, this.auth.jwtSecret) as (
+      const payload = jwt.verify(jwtString, this.jwtConf.jwtSecret) as (
         | jwt.JwtPayload
         | string
       ) &
@@ -102,20 +103,6 @@ export class AuthService {
 
   async issueToken(user: IUser) {
     // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
-    return jwt.sign(user, this.auth.jwtSecret, jwtOptions);
-  }
-
-  async issueCookie(user: IUser, @Res({ passthrough: true }) res: Response) {
-    const loginResult = {
-      status: 'success',
-      userPayload: user,
-    };
-
-    const accessToken = this.issueToken(user);
-
-    return res
-      .cookie('accessToken', accessToken, this.cookie)
-      .status(200)
-      .json(loginResult);
+    return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 }
