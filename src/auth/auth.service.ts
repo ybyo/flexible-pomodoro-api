@@ -7,7 +7,7 @@ import { BadRequestException, Inject, Injectable, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 
@@ -18,6 +18,7 @@ export class AuthService {
     @Inject(accessTokenConfig.KEY)
     private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   // Interact with passport local strategy
@@ -40,9 +41,9 @@ export class AuthService {
   }
 
   async findByUserId(userId: string) {
-    const user = await this.commandBus.execute(
-      new GetUserByUserIdQuery(userId),
-    );
+    const command = new GetUserByUserIdQuery(userId);
+    const user = await this.queryBus.execute(command);
+
     if (!user) {
       throw new BadRequestException(`No user found with id ${userId}`);
     }
