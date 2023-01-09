@@ -1,11 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   Logger,
   LoggerService,
-  Param,
   Post,
   Req,
   Res,
@@ -17,19 +17,20 @@ import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
-import { IUser } from '@/type-defs/message.interface';
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import cookieConfig from '@/config/accessTokenConfig';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/accessTokenConfig';
 import { ConfigType } from '@nestjs/config';
+import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(cookieConfig.KEY) private cookie: ConfigType<typeof cookieConfig>,
+    @Inject(accessTokenConfig.KEY)
+    private accessConf: ConfigType<typeof accessTokenConfig>,
+    @Inject(accessTokenConfig.KEY)
+    private refreshConf: ConfigType<typeof refreshTokenConfig>,
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
-    private commandBus: CommandBus,
-    private queryBus: QueryBus,
   ) {}
 
   @Post('register')
@@ -45,32 +46,21 @@ export class AuthController {
     // Refresh tokens are at App.module.ts
     const accessToken = await this.authService.issueToken(user);
 
-    const loginResult = {
-      status: 'success',
-      data: user,
-    };
+    res.cookie('accessToken', accessToken, this.accessConf);
 
-    res.cookie('accessToken', accessToken, this.cookie).status(200);
-
-    return loginResult;
+    return req.session;
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
+  @UseGuards(LoggedInGuard)
   @Get('me')
   async getUserInfoWithAccessToken(@Req() req: Request) {
-    return req.user;
+    return req.session;
   }
 
-  @Get('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
-    await this.authService.logoutUser(res);
-  }
-
+  // TODO: Passport 라이브러리 활용하여 리프레시토큰 로직 추가, 기존 인증 로직 개선
   @Get('refresh')
-  async refreshAuth(
-    @Req() req: Request,
-    @Res({ passthrough: false }) response: Response,
-  ) {
+  async refreshAuth(@Req() req: Request) {
     const jwtString = req.cookies['accessToken'];
 
     if (!jwtString) {
@@ -91,11 +81,24 @@ export class AuthController {
     }
   }
 
-  @Get(':userId')
-  async getUserInfoWithUserId(@Param('userId') userId: string): Promise<IUser> {
-    // const getUserInfoQuery = new GetUserByUserId(userId);
-    //
-    // return this.queryBus.execute(getUserInfoQuery);
-    return this.authService.findByUserId(userId);
+  // TODO: 악의적인 유저로부터 강제로 로그아웃 되지 않도록 고려
+  @Delete('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    req.logout(function (err) {
+      if (err) {
+        return err;
+      }
+    });
+
+    res.cookie('accessToken', null, { ...this.accessConf, maxAge: 1 });
+    return req.session;
   }
+
+  // @Get(':userId')
+  // async getUserInfoWithUserId(@Param('userId') userId: string): Promise<IUser> {
+  //   // const getUserInfoQuery = new GetUserByUserId(userId);
+  //   //
+  //   // return this.queryBus.execute(getUserInfoQuery);
+  //   return this.authService.findByUserId(userId);
+  // }
 }
