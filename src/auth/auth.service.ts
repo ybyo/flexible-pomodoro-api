@@ -1,10 +1,10 @@
+// TODO: nest 공식 지원 모듈로 변환
 import * as jwt from 'jsonwebtoken';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
-import { BadRequestException, Inject, Injectable, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -33,10 +33,6 @@ export class AuthService {
     // }
 
     return foundUser;
-  }
-
-  async logoutUser(@Res({ passthrough: true }) res: Response) {
-    return res.cookie('accessToken', '', { ...this.accessTokenConf, maxAge: 1 });
   }
 
   async findByUserId(userId: string) {

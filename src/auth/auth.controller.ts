@@ -91,11 +91,24 @@ export class AuthController {
     }
   }
 
-  @Get(':userId')
-  async getUserInfoWithUserId(@Param('userId') userId: string): Promise<IUser> {
-    // const getUserInfoQuery = new GetUserByUserId(userId);
-    //
-    // return this.queryBus.execute(getUserInfoQuery);
-    return this.authService.findByUserId(userId);
+  // TODO: 악의적인 유저로부터 강제로 로그아웃 되지 않도록 고려
+  @Delete('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    req.logout(function (err) {
+      if (err) {
+        return err;
+      }
+    });
+
+    res.cookie('accessToken', null, { ...this.accessConf, maxAge: 1 });
+    return req.session;
   }
+
+  // @Get(':userId')
+  // async getUserInfoWithUserId(@Param('userId') userId: string): Promise<IUser> {
+  //   // const getUserInfoQuery = new GetUserByUserId(userId);
+  //   //
+  //   // return this.queryBus.execute(getUserInfoQuery);
+  //   return this.authService.findByUserId(userId);
+  // }
 }
