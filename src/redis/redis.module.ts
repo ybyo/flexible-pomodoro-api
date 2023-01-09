@@ -3,7 +3,7 @@ import * as Redis from 'redis';
 
 import { REDIS } from './redis.constants';
 
-// 'rediss://username:password@your.redis.url'
+// 'redis://username:password@your.redis.url'
 const url = 'redis://localhost:6379';
 
 @Module({

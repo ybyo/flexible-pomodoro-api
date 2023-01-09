@@ -13,7 +13,6 @@ export class ValidateUserHandler
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private authService: AuthService,
   ) {}
 
   async execute(command: ValidateUserCommand) {
