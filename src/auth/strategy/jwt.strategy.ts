@@ -16,14 +16,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
+      authService: AuthService,
     });
   }
 
   async validate(payload: any) {
-    return {
-      userId: payload.userId,
-      userName: payload.userName,
-      email: payload.email,
-    };
+    return payload;
   }
 }
