@@ -22,7 +22,7 @@ export class AuthService {
   ) {}
 
   // Interact with passport local strategy
-  async validateUser(user: LoginUserDto) {
+  async validateWithIdPw(user: LoginUserDto) {
     // login command
     const { email, password } = user;
     // TODO: 에러 핸들링 auth service에서 수행하도록 구현
@@ -60,33 +60,30 @@ export class AuthService {
     // const { confirmationPassword: _, ...newUser } = users;
   }
 
-  async verify(jwtString: string) {
+  async verifyJwt(jwtString: string) {
+    let payload = null;
+    const user = {} as IUser;
     try {
-      const payload = jwt.verify(jwtString, this.jwtConf.jwtSecret) as (
+      payload = jwt.verify(jwtString, this.jwtConf.jwtSecret) as (
         | jwt.JwtPayload
         | string
       ) &
         IUser;
 
-      const user = {
-        userId: payload.userId,
-        userName: payload.userName,
-        email: payload.email,
-      };
+      user.userId = payload.userId;
+      user.userName = payload.userName;
+      user.email = payload.email;
 
       return {
         success: true,
         data: user,
       };
     } catch (err) {
-      const payload = jwt.decode(jwtString) as (jwt.JwtPayload | string) &
-        IUser;
+      payload = jwt.decode(jwtString) as (jwt.JwtPayload | string) & IUser;
 
-      const user = {
-        userId: payload.userId,
-        userName: payload.userName,
-        email: payload.email,
-      };
+      user.userId = payload.userId;
+      user.userName = payload.userName;
+      user.email = payload.email;
 
       return {
         success: false,

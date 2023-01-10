@@ -9,18 +9,18 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from '@/auth/auth.service';
-import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
-import { LocalGuard } from '@/auth/guard/local.guard';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Request, Response } from 'express';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/accessTokenConfig';
+import { AuthService } from '@/auth/auth.service';
 import { ConfigType } from '@nestjs/config';
+import { IUser } from '@/type-defs/message.interface';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
+import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -51,34 +51,21 @@ export class AuthController {
     return req.session;
   }
 
-  // @UseGuards(JwtAuthGuard)
-  @UseGuards(LoggedInGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   async getUserInfoWithAccessToken(@Req() req: Request) {
     return req.session;
   }
 
-  // TODO: Passport 라이브러리 활용하여 리프레시토큰 로직 추가, 기존 인증 로직 개선
+  @UseGuards(LoggedInGuard)
   @Get('refresh')
-  async refreshAuth(@Req() req: Request) {
-    const jwtString = req.cookies['accessToken'];
+  async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {
+    const user = req.user;
 
-    if (!jwtString) {
-      throw new UnauthorizedException('No access token');
-    }
+    const accessToken = await this.authService.issueToken(user as IUser);
 
-    const result = await this.authService.verify(jwtString);
-
-    if (result.success === false) {
-      const user = result.data;
-      if (result.message === 'jwt expired') {
-        console.log('cookie reissued');
-        // await this.authService.issueCookie(user, response);
-      } else {
-        console.log('invalid token');
-        throw new UnauthorizedException('invalid token');
-      }
-    }
+    res.cookie('accessToken', accessToken, this.accessConf);
+    return req.session;
   }
 
   // TODO: 악의적인 유저로부터 강제로 로그아웃 되지 않도록 고려
