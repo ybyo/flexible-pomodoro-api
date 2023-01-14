@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 
 export class User {
-  private _id: string;
+  private _userId: string;
   private _userName: string;
   private _email: string;
   private _password: string;
@@ -23,12 +23,12 @@ export class User {
     }
   }
 
-  get id(): Readonly<string> {
-    return this._id;
+  get userId(): Readonly<string> {
+    return this._userId;
   }
 
-  set id(id: string) {
-    this._id = id;
+  set userId(userId: string) {
+    this._userId = userId;
   }
 
   get userName(): Readonly<string> {

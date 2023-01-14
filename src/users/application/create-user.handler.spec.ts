@@ -14,7 +14,7 @@ jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
 
 // DTO 사용
 const userObject = {
-  _id: ulid.ulid(),
+  _userId: ulid.ulid(),
   _email: chance.email(),
   _userName: chance.name(),
   _password: chance.string(),

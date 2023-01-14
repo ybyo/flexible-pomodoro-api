@@ -9,7 +9,7 @@ const chance = new Chance();
 
 // TODO: 공통 오브젝트 임포트해서 사용하도록 타입 근처에 정의
 const userObject: Partial<User> = {
-  id: ulid.ulid(),
+  userId: ulid.ulid(),
   userName: chance.name(),
   email: chance.email(),
   password: chance.string(),

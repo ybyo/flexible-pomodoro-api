@@ -13,7 +13,7 @@ import { User } from '@/users/domain/user.model';
 @Entity('User')
 export class UserEntity extends BaseEntity {
   @PrimaryColumn()
-  id: string;
+  userId: string;
 
   @Column({ length: 30 })
   userName: string;
@@ -55,7 +55,7 @@ export class UserEntity extends BaseEntity {
 
   static toUser(entity: UserEntity) {
     const user = new User({});
-    user.id = entity.id;
+    user.userId = entity.userId;
     user.userName = entity.userName;
     user.email = entity.email;
     user.password = entity.password;
