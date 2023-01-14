@@ -4,14 +4,20 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import * as argon2 from 'argon2';
 import { User } from '@/users/domain/user.model';
+import { FragEntity } from '@/frags/infra/db/entity/frag.entity';
+import { Frag } from '@/frags/domain/frag.model';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {
+  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user)
+  frags: Frag[];
+
   @PrimaryColumn()
   id: string;
 
