@@ -80,12 +80,4 @@ export class AuthController {
     res.cookie('accessToken', null, { ...this.accessConf, maxAge: 1 });
     return req.session;
   }
-
-  // @Get(':userId')
-  // async getUserInfoWithUserId(@Param('userId') userId: string): Promise<IUser> {
-  //   // const getUserInfoQuery = new GetUserByUserId(userId);
-  //   //
-  //   // return this.queryBus.execute(getUserInfoQuery);
-  //   return this.authService.findByUserId(userId);
-  // }
 }
