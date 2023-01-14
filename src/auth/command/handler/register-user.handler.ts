@@ -28,10 +28,10 @@ export class RegisterUserHandler
       throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
     }
 
-    // TODO: id, signupVerifyToken 등이 undefined일 때, 자동으로 값 부여하도록 구현
+    // TODO: userId, signupVerifyToken 등이 undefined일 때, 자동으로 값 부여하도록 구현
     const newUser = new User({
       ...command,
-      id: ulid(),
+      userId: ulid(),
       signupVerifyToken: ulid(),
     });
 
@@ -40,7 +40,7 @@ export class RegisterUserHandler
     this.userFactory.create(newUser);
 
     return {
-      id: newUser.id,
+      userId: newUser.userId,
       userName: newUser.userName,
       email: newUser.email,
     };

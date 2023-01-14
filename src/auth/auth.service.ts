@@ -35,12 +35,12 @@ export class AuthService {
     return foundUser;
   }
 
-  async findByUserId(id: string) {
-    const command = new GetUserByUserIdQuery(id);
+  async findByUserId(userId: string) {
+    const command = new GetUserByUserIdQuery(userId);
     const user = await this.queryBus.execute(command);
 
     if (!user) {
-      throw new BadRequestException(`No user found with id ${id}`);
+      throw new BadRequestException(`No user found with id ${userId}`);
     }
     return user;
   }
@@ -70,7 +70,7 @@ export class AuthService {
       ) &
         IUser;
 
-      user.id = payload.id;
+      user.userId = payload.userId;
       user.userName = payload.userName;
       user.email = payload.email;
 
@@ -81,7 +81,7 @@ export class AuthService {
     } catch (err) {
       payload = jwt.decode(jwtString) as (jwt.JwtPayload | string) & IUser;
 
-      user.id = payload.id;
+      user.userId = payload.userId;
       user.userName = payload.userName;
       user.email = payload.email;
 

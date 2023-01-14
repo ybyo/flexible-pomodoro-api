@@ -16,16 +16,16 @@ export class GetUserByUserIdHandler
   ) {}
 
   async execute(query: GetUserByUserIdQuery): Promise<IUser> {
-    const { id } = query;
+    const { userId } = query;
 
-    const user = await this.usersRepository.findOneBy({ id: id });
+    const user = await this.usersRepository.findOneBy({ userId: userId });
 
     if (!user) {
       throw new NotFoundException('유저가 존재하지 않습니다');
     }
 
     return {
-      id: user.id,
+      userId: user.userId,
       userName: user.userName,
       email: user.email,
     };

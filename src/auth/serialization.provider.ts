@@ -12,21 +12,21 @@ export class AuthSerializer extends PassportSerializer {
     user: IUser,
     done: (
       err: Error,
-      user: { id: string; userName: string; email: string },
+      user: { userId: string; userName: string; email: string },
     ) => void,
   ) {
     done(null, {
-      id: user.id,
+      userId: user.userId,
       userName: user.userName,
       email: user.email,
     });
   }
 
   async deserializeUser(
-    payload: { id: string; userName: string; email: string },
+    payload: { userId: string; userName: string; email: string },
     done: (err: Error, user: Omit<IUser, 'password'>) => void,
   ) {
-    const user = await this.authService.findByUserId(payload.id);
+    const user = await this.authService.findByUserId(payload.userId);
     done(null, user);
   }
 }
