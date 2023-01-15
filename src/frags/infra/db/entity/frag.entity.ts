@@ -3,10 +3,11 @@ import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Entity('Frag')
 export class FragEntity {
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frags)
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag)
   user: UserEntity;
 
   @RelationId((fragEntity: FragEntity) => fragEntity.user)
+  @Column()
   userId: string;
 
   @PrimaryColumn()
