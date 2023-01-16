@@ -1,6 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { AuthService } from '@/auth/auth.service';
+import { JwtPayload } from 'jsonwebtoken';
+import { IUser } from '@/type-defs/message.interface';
+import * as jwt from 'jsonwebtoken';
 
 const cookieExtractor = (req) => {
   let token = null;
@@ -20,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: JwtPayload & IUser) {
     return payload;
   }
 }
