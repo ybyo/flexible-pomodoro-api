@@ -1,7 +1,8 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
-  UnprocessableEntityException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AuthService } from '@/auth/auth.service';
@@ -25,14 +26,17 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
 
     if (user === null) {
       // TODO: 프론트에서 출력되는 오류 메시지 변경
-      throw new UnprocessableEntityException('유효하지 않은 인증 코드 입니다.');
+      throw new UnauthorizedException('Invalid email verification code');
     }
 
-    // TODO: 이미 인증된 경우 처리 로직 수정
-    await this.userRepository.updateUser(
-      { signupVerifyToken: signupVerifyToken },
-      { isVerified: true },
-    );
+    if (!user.isVerified) {
+      await this.userRepository.updateUser(
+        { signupVerifyToken: signupVerifyToken },
+        { isVerified: true },
+      );
+    } else {
+      throw new BadRequestException('Already verified email');
+    }
 
     return this.authService.issueToken({
       id: user.id,

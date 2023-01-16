@@ -2,7 +2,7 @@ import { AuthService } from '@/auth/auth.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUser } from '@/type-defs/message.interface';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 import { verifyPassword } from '@/utils/password-util';
 
@@ -22,11 +22,15 @@ export class ValidateUserHandler
     // TODO: 로그인 인증절차 수정(우선 계정 존재 확인, 계정이 존재하면 비밀번호 확인)
     const user = await this.userRepository.findByEmail(email);
 
+    if (!user) {
+      throw new UnauthorizedException('No matching account information');
+    }
+
     const storedPassword = user.password;
     const isValid = await verifyPassword(storedPassword, password);
 
     if (!isValid) {
-      throw new NotFoundException('일치하는 계정 정보가 없습니다.');
+      throw new UnauthorizedException('Incorrect email or password');
     }
 
     const userPayload: IUser = {
