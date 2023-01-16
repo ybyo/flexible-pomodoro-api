@@ -45,31 +45,3 @@ const repositories = [
   ],
 })
 export class UsersModule {}
-
-// export class UsersModule implements NestModule {
-//   constructor(@Inject(REDIS) private readonly redis: RedisClient) {}
-//   configure(consumer: MiddlewareConsumer) {
-//     consumer
-//       .apply(
-//         session({
-//           store: new (RedisStore(session))({
-//             client: this.redis,
-//             logErrors: true,
-//           }),
-//           saveUninitialized: false,
-//           // TODO: secret 변경, cookie 옵션 일치시키기
-//           secret: 'sup3rs3cr3t',
-//           resave: false,
-//           cookie: {
-//             sameSite: true,
-//             httpOnly: false,
-//             maxAge: 60000,
-//           },
-//         }),
-//         // Must be called before `passport.session()`
-//         passport.initialize(),
-//         passport.session(),
-//       )
-//       .forRoutes('*');
-//   }
-// }
