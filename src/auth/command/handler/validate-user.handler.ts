@@ -30,7 +30,7 @@ export class ValidateUserHandler
     }
 
     const userPayload: IUser = {
-      userId: user.userId,
+      id: user.id,
       userName: user.userName,
       email: user.email,
     };
