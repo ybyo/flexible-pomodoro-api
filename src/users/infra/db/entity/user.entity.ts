@@ -18,7 +18,7 @@ import { AutoMap } from '@automapper/classes';
 export class UserEntity extends BaseEntity {
   @AutoMap(() => [Frag])
   @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user)
-  frags: Frag[];
+  frag: Frag[];
 
   @PrimaryColumn()
   id: string;
