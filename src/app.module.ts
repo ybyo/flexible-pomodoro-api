@@ -71,9 +71,10 @@ export class AppModule implements NestModule {
             client: this.redis,
             logErrors: true,
           }),
+          name: 'refreshToken',
           saveUninitialized: false,
-          secret: process.env.SESSION_SECRET,
           resave: false,
+          secret: process.env.SESSION_SECRET,
           cookie: this.refreshTokenConf,
         }),
         // `initialize()` must be called before `session()`
