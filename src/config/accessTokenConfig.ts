@@ -4,6 +4,6 @@ import { CookieOptions } from 'express';
 export default registerAs<CookieOptions>('accessToken', () => ({
   maxAge: parseInt(process.env.ACCESS_TOKEN_LIFETIME) * 60 * 1000,
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: 'none',
 }));

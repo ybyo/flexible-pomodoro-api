@@ -4,6 +4,6 @@ import { CookieOptions } from 'express';
 export default registerAs<CookieOptions>('refreshToken', () => ({
   maxAge: 60 * 60 * 24 * parseInt(process.env.REFRESH_TOKEN_LIFETIME),
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: 'none',
 }));
