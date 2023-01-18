@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { AuthService } from '@/auth/auth.service';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
