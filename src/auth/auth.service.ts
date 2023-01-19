@@ -27,10 +27,8 @@ export class AuthService {
     const { email, password } = user;
     // TODO: 에러 핸들링 auth service에서 수행하도록 구현
     const command = new ValidateUserCommand(email, password);
+
     const foundUser = await this.commandBus.execute(command);
-    // if (!users || !(await verifyPassword(foundUser.password, users.password))) {
-    //   throw new UnauthorizedException('Incorrect username or password');
-    // }
 
     return foundUser;
   }
