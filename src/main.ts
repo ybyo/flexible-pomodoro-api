@@ -32,16 +32,19 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.enableCors({
-    origin: ['http://localhost:9000'],
+
+  const corsOption = {
+    origin: 'http://localhost:9000',
     credentials: true,
-  });
+  };
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
   app.use(cookieParser());
+
+  app.enableCors(corsOption);
 
   await app.listen(3000);
 }

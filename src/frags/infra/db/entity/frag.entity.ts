@@ -1,9 +1,18 @@
-import { Column, Entity, ManyToOne, PrimaryColumn, RelationId } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryColumn,
+  RelationId,
+} from 'typeorm';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Entity('Frag')
-export class FragEntity {
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag)
+export class FragEntity extends BaseEntity {
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag, {
+    cascade: true,
+  })
   user: UserEntity;
 
   @RelationId((fragEntity: FragEntity) => fragEntity.user)

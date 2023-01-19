@@ -7,7 +7,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { NotIn } from 'src/utils/decorators/not-in';
+import { NotIn } from '@/utils/decorators/not-in.decorator';
 
 // TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
 export class RegisterUserDto {

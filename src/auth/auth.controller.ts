@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { AuthService } from '@/auth/auth.service';
 import { ConfigType } from '@nestjs/config';
 import { IUser } from '@/type-defs/message.interface';
@@ -54,9 +54,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getUserInfoWithAccessToken(@Req() req: Request) {
-    return req.session;
+    return req.user;
   }
 
+  // TODO: Refresh시 인증정보 있는지 우선 확인(인증정보 자체가 없다면 재인증요구)
   @UseGuards(LoggedInGuard)
   @Get('refresh')
   async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {

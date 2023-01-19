@@ -7,10 +7,5 @@ export interface IUser {
 export interface IGeneralResponse<T> {
   success: boolean;
   data?: T;
-}
-
-export interface IErrorResponse {
-  success: boolean;
-  status: number;
-  message: string;
+  message?: string;
 }
