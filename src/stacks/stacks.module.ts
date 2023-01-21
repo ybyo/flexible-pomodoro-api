@@ -7,10 +7,10 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { PassportModule } from '@nestjs/passport';
 import { Logger, Module } from '@nestjs/common';
 import { StacksProfile } from '@/stacks/common/mapper/stacks.profile';
-import { GetStacksCommand } from '@/stacks/application/command/impl/get-stacks.command';
 import { SaveStacksHandler } from '@/stacks/application/command/handler/save-stacks.handler';
+import { GetStacksHandler } from '@/stacks/application/command/handler/get-stacks.handler';
 
-const commandHandlers = [GetStacksCommand, SaveStacksHandler];
+const commandHandlers = [GetStacksHandler, SaveStacksHandler];
 const queryHandlers = [];
 const eventHandlers = [];
 const factories = [];

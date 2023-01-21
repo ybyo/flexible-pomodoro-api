@@ -5,7 +5,7 @@ import { GetStacksCommand } from '@/stacks/application/command/impl/get-stacks.c
 
 @Injectable()
 @CommandHandler(GetStacksCommand)
-export class GetFragsHandler implements ICommandHandler<GetStacksCommand> {
+export class GetStacksHandler implements ICommandHandler<GetStacksCommand> {
   constructor(
     @Inject('StacksRepository')
     private stacksRepository: IStacksRepository,
