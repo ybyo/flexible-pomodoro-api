@@ -22,6 +22,7 @@ import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
 import { FragModule } from './frags/frag.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
+import { StacksModule } from '@/stacks/stacks.module';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
@@ -53,6 +54,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     TerminusModule,
     ExceptionModule,
     FragModule,
+    StacksModule,
   ],
   controllers: [HealthCheckController],
   providers: [],

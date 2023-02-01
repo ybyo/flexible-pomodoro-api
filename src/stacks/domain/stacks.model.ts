@@ -1,29 +1,61 @@
+import { Frag } from '@/frags/domain/frag.model';
+import { plainToClass } from 'class-transformer';
+
 export class Stacks {
-  private _id: string;
-  private _name: string;
-  private _count: number;
+  id: string;
+  name: string;
+  count: number;
+  data: Frag[];
+  isEditing: boolean;
 
-  get id(): string {
-    return this._id;
+  constructor(stacks: Partial<Stacks>) {
+    if (stacks) {
+      Object.assign(
+        this,
+        plainToClass(Stacks, stacks, {
+          excludeExtraneousValues: false,
+        }),
+      );
+    }
   }
 
-  set id(value: string) {
-    this._id = value;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  set name(value: string) {
-    this._name = value;
-  }
-
-  get count(): number {
-    return this._count;
-  }
-
-  set count(value: number) {
-    this._count = value;
-  }
+  // get id(): string {
+  //   return this._id;
+  // }
+  //
+  // set id(value: string) {
+  //   this._id = value;
+  // }
+  //
+  // get name(): string {
+  //   return this._name;
+  // }
+  //
+  // set name(value: string) {
+  //   this._name = value;
+  // }
+  //
+  // get count(): number {
+  //   return this._count;
+  // }
+  //
+  // set count(value: number) {
+  //   this._count = value;
+  // }
+  //
+  // get data(): Frag[] {
+  //   return this._data;
+  // }
+  //
+  // set data(value: Frag[]) {
+  //   this._data = value;
+  // }
+  //
+  // get isEditing(): boolean {
+  //   return this._isEditing;
+  // }
+  //
+  // set isEditing(value: boolean) {
+  //   this._isEditing = value;
+  // }
 }

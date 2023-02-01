@@ -17,14 +17,6 @@ import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {
-  @AutoMap(() => [Frag])
-  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user)
-  frag: Frag[];
-
-  @AutoMap(() => [Stacks])
-  @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user)
-  stacks: Stacks[];
-
   @PrimaryColumn()
   id: string;
 
@@ -65,4 +57,16 @@ export class UserEntity extends BaseEntity {
   async hashPassword() {
     this.password = await argon2.hash(this.password);
   }
+
+  @AutoMap(() => [Frag])
+  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user, {
+    cascade: true,
+  })
+  frag: Frag[];
+
+  @AutoMap(() => [Stacks])
+  @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user, {
+    cascade: true,
+  })
+  stacks: Stacks[];
 }

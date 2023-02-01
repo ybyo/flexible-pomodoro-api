@@ -39,9 +39,11 @@ export class FragRepository implements IFragRepository {
   ): Promise<IGeneralResponse<void>> {
     try {
       await this.connection.transaction(async (manager) => {
-        const { result, ids } = entityFormatter(frags, '_', { userId: userId });
+        const { formatResult, ids } = entityFormatter(frags, '_', {
+          userId: userId,
+        });
 
-        const entity = FragEntity.create(result);
+        const entity = FragEntity.create(formatResult);
 
         const data = await this.fragRepository.find({
           select: ['id'],
@@ -49,6 +51,7 @@ export class FragRepository implements IFragRepository {
           loadRelationIds: false,
         });
 
+        // 현재 사용자의 Timer 인벤토리에 저장된 Timer만을 반영
         const dataToRemove = data.filter((frag) => !ids.includes(frag.id));
 
         await manager.remove(dataToRemove);

@@ -13,48 +13,53 @@ import { DataSource, Repository } from 'typeorm';
 export class StacksRepository implements IStacksRepository {
   constructor(
     @InjectMapper() private mapper: Mapper,
-    private connection: DataSource,
+    private dataSource: DataSource,
     @InjectRepository(StacksEntity)
     private stackRepository: Repository<StacksEntity>,
   ) {}
-  async fetchStack(id: string): Promise<Stacks[]> {
+  // TODO: 리턴 타입 수정
+  async fetchStack(id: string): Promise<any> {
+    // TODO: 불필요한 데이터는 리턴하지 않도록 수정
     const stackEntity = await this.stackRepository.find({
-      // relations: ['user'],
       where: { userId: id },
       loadRelationIds: false,
+      relations: {
+        stacksToFrag: true,
+      },
     });
+
+    // Using query builder
+    // const stackEntity = await this.dataSource.manager
+    //   .createQueryBuilder(StacksEntity, 'Stacks')
+    //   .leftJoinAndSelect('Stacks.stacksToFrag', 'stacksToFrag')
+    //   .getMany();
 
     if (!stackEntity) {
       return null;
     }
 
-    const stacks = this.mapper.mapArray(stackEntity, StacksEntity, Stacks);
+    // TODO: Mapper 재정의
+    // const stacks = this.mapper.mapArray(stackEntity, StacksEntity, Stacks);
+    // console.log(stacks);
 
-    return stacks;
+    return stackEntity;
   }
 
   async saveStack(
     userId: string,
-    stacks: Stacks[],
+    stacks: Stacks,
   ): Promise<IGeneralResponse<void>> {
     try {
-      await this.connection.transaction(async (manager) => {
-        const { result, ids } = entityFormatter(stacks, '_', {
+      await this.dataSource.transaction(async (manager) => {
+        // TODO: 불필요한 프로퍼티 생성 최소화
+        // TODO: Mapper 활용하여 내부 데이터 id -> fragId 수행
+        const { formatResult, ids } = entityFormatter([stacks], '_', {
           userId: userId,
+          stacksToFragId: 'ulid',
         });
+        const result = StacksEntity.create(formatResult[0]);
 
-        const entity = StacksEntity.create(result);
-
-        const data = await this.stackRepository.find({
-          select: ['id'],
-          where: { userId },
-          loadRelationIds: false,
-        });
-
-        const dataToRemove = data.filter((stacks) => !ids.includes(stacks.id));
-
-        await manager.remove(dataToRemove);
-        await manager.save(entity);
+        await manager.save(result);
       });
     } catch (err) {
       throw new Error(err);

@@ -64,7 +64,7 @@ export class UserRepository implements IUserRepository {
 
   async saveUser(user: User): Promise<void> {
     await this.connection.transaction(async (manager) => {
-      const newUser = UserEntity.create(user);
+      const newUser = UserEntity.create({ ...user });
 
       await manager.save(newUser);
     });

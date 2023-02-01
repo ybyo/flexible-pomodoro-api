@@ -1,30 +1,19 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
   RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
-import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
-import { Stacks } from '@/stacks/domain/stacks.model';
+import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
 
 @Entity('Frag')
 export class FragEntity extends BaseEntity {
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag, {
-    cascade: true,
-  })
-  user: UserEntity;
-
-  @RelationId((fragEntity: FragEntity) => fragEntity.user)
-  @Column()
-  userId: string;
-
-  @ManyToMany(() => StacksEntity, (stacks) => stacks.frags)
-  stacks: Stacks[];
-
   @PrimaryColumn()
   id: string;
 
@@ -38,5 +27,27 @@ export class FragEntity extends BaseEntity {
   count: number;
 
   @Column()
+  order: number;
+
+  @Column()
   color: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag)
+  user: UserEntity;
+
+  @RelationId((fragEntity: FragEntity) => fragEntity.user)
+  @Column({ nullable: true })
+  userId: string;
+
+  @OneToMany(() => StacksToFragEntity, (stacksToFrag) => stacksToFrag.frag, {
+    eager: true,
+    cascade: true,
+  })
+  stacksToFrag: StacksToFragEntity[];
 }
