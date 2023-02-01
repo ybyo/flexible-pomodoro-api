@@ -28,7 +28,7 @@ export class FragController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('commit')
+  @Post('save')
   async commit(@Req() req: Request, @Body() frags: Frag[]) {
     const user = req.user as JwtPayload & IUser;
 

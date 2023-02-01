@@ -28,8 +28,8 @@ export class StacksController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('commit')
-  async commit(@Req() req: Request, @Body() stacks: Stacks[]) {
+  @Post('save')
+  async save(@Req() req: Request, @Body() stacks: Stacks) {
     const user = req.user as JwtPayload & IUser;
 
     const command = new SaveStacksCommand(user.id, stacks);
