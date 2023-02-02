@@ -23,11 +23,16 @@ export class StacksRepository implements IStacksRepository {
   // TODO: 리턴 타입 수정
   async fetchStack(id: string): Promise<any> {
     // TODO: 불필요한 데이터는 리턴하지 않도록 수정
+    // TODO: 쿼리결과 order by 'order'
     const stackEntity = await this.stackRepository.find({
       where: { userId: id },
-      loadRelationIds: false,
       relations: {
-        stacksToFrag: true,
+        user: false,
+        stacksToFrag: {
+          stacksToFragId: false,
+          frag: true,
+          stacks: false,
+        },
       },
     });
 
