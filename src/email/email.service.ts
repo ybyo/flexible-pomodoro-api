@@ -34,7 +34,7 @@ export class EmailService {
     signupVerifyToken: string,
   ) {
     const frontUrl = `${this.config.host}:${this.config.front_port}`;
-    const verificationUrl = `http://${frontUrl}/user/verify-email?signupVerifyToken=${signupVerifyToken}`;
+    const verificationUrl = `https://${frontUrl}/user/verify-email?signupVerifyToken=${signupVerifyToken}`;
 
     let renderedTemplate;
 
