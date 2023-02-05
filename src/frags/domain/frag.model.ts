@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 
 export class Frag {
-  id: string;
+  fragId: string;
   name: string;
   duration: number;
   count: number;

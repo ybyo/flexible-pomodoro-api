@@ -29,8 +29,8 @@ export class StacksRepository implements IStacksRepository {
       relations: {
         user: false,
         stacksToFrag: {
-          stacksToFragId: false,
           frag: true,
+          // TODO: 순환 쿼리 방지하도록 엔티티 수정
           stacks: false,
         },
       },

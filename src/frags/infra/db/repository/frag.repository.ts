@@ -46,13 +46,13 @@ export class FragRepository implements IFragRepository {
         const entity = FragEntity.create(formatResult);
 
         const data = await this.fragRepository.find({
-          select: ['id'],
+          select: ['fragId'],
           where: { userId },
           loadRelationIds: false,
         });
 
         // 현재 사용자의 Timer 인벤토리에 저장된 Timer만을 반영
-        const dataToRemove = data.filter((frag) => !ids.includes(frag.id));
+        const dataToRemove = data.filter((frag) => !ids.includes(frag.fragId));
 
         await manager.remove(dataToRemove);
         await manager.save(entity);
