@@ -21,6 +21,7 @@ import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { Request, Response } from 'express';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -80,5 +81,19 @@ export class AuthController {
 
     res.cookie('accessToken', null, { ...this.accessConf, maxAge: 1 });
     return req.session;
+  }
+
+  @Post('check-email')
+  async checkEmail(
+    @Body() dto: CheckEmailDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = this.authService.checkEmail(dto);
+
+    // const uniqueEmailToken = await this.authService.issueToken(dto);
+
+    // TODO: 아무런 응답도 전송하지 않으면 왜 201로 응답하는지 확인
+    // res.cookie('uniqueEmailToken', uniqueEmailToken, { ...this.accessConf });
+    return result;
   }
 }
