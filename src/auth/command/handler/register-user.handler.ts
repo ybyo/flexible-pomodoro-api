@@ -1,9 +1,5 @@
 import { ulid } from 'ulid';
-import {
-  Inject,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { User } from '@/users/domain/user.model';
 import { UserFactory } from '@/users/domain/user.factory';
@@ -25,7 +21,7 @@ export class RegisterUserHandler
 
     const user = await this.userRepository.findByEmail(email);
     if (user !== null) {
-      throw new UnprocessableEntityException('이미 사용중인 이메일입니다.');
+      throw new BadRequestException('Duplicate email');
     }
 
     // TODO: id, signupVerifyToken 등이 undefined일 때, 자동으로 값 부여하도록 구현
