@@ -40,8 +40,9 @@ async function bootstrap() {
   );
 
   const corsOption = {
-    origin: 'https://localhost:9000',
+    origin: 'https://localhost:9200',
     credentials: true,
+    optionsSuccessStatus: 200,
   };
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
