@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FragEntity } from '@/frags/infra/db/entity/frag.entity';
 import { Frag } from '@/frags/domain/frag.model';
 import { IFragRepository } from '@/frags/domain/ifrag.repository';
-import { IGeneralResponse } from '@/type-defs/message.interface';
+import { IRes } from '@/type-defs/message.interface';
 import { entityFormatter } from '@/utils/entity-formatter.util';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class FragRepository implements IFragRepository {
   async saveFrag(
     userId: string,
     frags: Frag[],
-  ): Promise<IGeneralResponse<void>> {
+  ): Promise<IRes<void>> {
     try {
       await this.connection.transaction(async (manager) => {
         const { formatResult, ids } = entityFormatter(frags, '_', {
@@ -61,7 +61,7 @@ export class FragRepository implements IFragRepository {
       throw new Error(err);
     }
 
-    const result = {} as IGeneralResponse<void>;
+    const result = {} as IRes<void>;
 
     result.success = true;
 

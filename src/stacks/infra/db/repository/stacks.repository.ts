@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Mapper } from '@automapper/core';
-import { IGeneralResponse } from '@/type-defs/message.interface';
+import { IRes } from '@/type-defs/message.interface';
 import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { entityFormatter } from '@/utils/entity-formatter.util';
@@ -56,7 +56,7 @@ export class StacksRepository implements IStacksRepository {
   async saveStack(
     userId: string,
     stacks: Stacks,
-  ): Promise<IGeneralResponse<void>> {
+  ): Promise<IRes<void>> {
     try {
       await this.dataSource.transaction(async (manager) => {
         // TODO: 불필요한 프로퍼티 생성 최소화
@@ -75,7 +75,7 @@ export class StacksRepository implements IStacksRepository {
       throw new Error(err);
     }
 
-    const result = {} as IGeneralResponse<void>;
+    const result = {} as IRes<void>;
 
     result.success = true;
 
