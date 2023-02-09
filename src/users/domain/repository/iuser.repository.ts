@@ -1,7 +1,7 @@
 import { User } from '../user.model';
 
 export interface IUserRepository {
-  findByEmail: (email: string) => Promise<User>;
+  findByEmail: (email: string) => Promise<User | null>;
   findByEmailAndPassword: (email: string, password: string) => Promise<User>;
   findBySignupVerifyToken: (signupVerifyToken: string) => Promise<User>;
   saveUser: (user: User) => Promise<void>;
