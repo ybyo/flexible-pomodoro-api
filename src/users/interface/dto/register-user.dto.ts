@@ -16,9 +16,14 @@ export class RegisterUserDto {
     message: 'The name string is included in the password.',
   })
   @IsString()
-  @MinLength(2)
-  @MaxLength(128)
+  @MinLength(3)
+  @MaxLength(39)
   readonly userName: string;
+
+  @IsString()
+  @IsEmail()
+  @MaxLength(320)
+  readonly email: string;
 
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {
@@ -29,11 +34,6 @@ export class RegisterUserDto {
     return value.trim();
   })
   @IsString()
-  @IsEmail()
-  @MaxLength(128)
-  readonly email: string;
-
-  @IsString()
-  @Matches(/^[A-Za-z\d!@#$%^&*()]{8,128}$/)
+  @Matches(/^[A-Za-z\d!@#$%^&*()]{8,32}$/)
   readonly password: string;
 }
