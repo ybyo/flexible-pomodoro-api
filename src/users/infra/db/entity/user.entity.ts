@@ -20,16 +20,16 @@ export class UserEntity extends BaseEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ length: 30 })
+  @Column({ length: 39 })
   userName: string;
 
-  @Column({ length: 128, unique: true })
+  @Column({ length: 320, unique: true })
   email: string;
 
-  @Column({ length: 128 })
+  @Column()
   password: string;
 
-  @Column({ length: 60 })
+  @Column()
   signupVerifyToken: string;
 
   @Column({ type: 'text', default: null })
