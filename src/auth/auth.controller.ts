@@ -28,14 +28,14 @@ export class AuthController {
   constructor(
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
-    @Inject(accessTokenConfig.KEY)
+    @Inject(refreshTokenConfig.KEY)
     private refreshConf: ConfigType<typeof refreshTokenConfig>,
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
   ) {}
 
   @Post('register')
-  registerUser(@Body() user: RegisterUserDto) {
+  registerUser(@Req() req: any, @Body() user: RegisterUserDto) {
     return this.authService.registerUser(user);
   }
 
@@ -58,7 +58,7 @@ export class AuthController {
     return req.user;
   }
 
-  // TODO: Refresh시 인증정보 있는지 우선 확인(인증정보 자체가 없다면 재인증요구)
+  // TODO: Refresh 시 인증정보 있는지 우선 확인(인증정보 자체가 없다면 재인증요구)
   @UseGuards(LoggedInGuard)
   @Get('refresh')
   async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {
