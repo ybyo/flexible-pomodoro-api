@@ -88,7 +88,7 @@ export class AuthController {
     @Body() dto: CheckEmailDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = this.authService.checkEmail(dto);
+    const result = await this.authService.checkEmail(dto);
 
     // const uniqueEmailToken = await this.authService.issueToken(dto);
 
