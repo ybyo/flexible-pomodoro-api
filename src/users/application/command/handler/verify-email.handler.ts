@@ -1,13 +1,12 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AuthService } from '@/auth/auth.service';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { IRes, IUser } from '@/type-defs/message.interface';
 
 @Injectable()
 @CommandHandler(VerifyEmailCommand)
@@ -24,9 +23,12 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
       signupVerifyToken,
     );
 
+    const response = {} as IRes<IUser>;
+
     if (user === null) {
-      // TODO: 프론트에서 출력되는 오류 메시지 변경
-      throw new UnauthorizedException('Invalid email verification code');
+      response.success = false;
+      response.message = 'Invalid email verification code';
+      return response;
     }
 
     if (!user.isVerified) {
@@ -35,13 +37,14 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
         { isVerified: true },
       );
     } else {
-      throw new BadRequestException('Already verified email');
+      response.success = true;
+      response.message = 'Already verified email';
+      return response;
     }
 
-    return this.authService.issueToken({
-      id: user.id,
-      userName: user.userName,
-      email: user.email,
-    });
+    response.success = true;
+    response.message = 'Email verified';
+
+    return response;
   }
 }

@@ -8,32 +8,42 @@ import {
   MinLength,
 } from 'class-validator';
 import { NotIn } from '@/utils/decorators/not-in.decorator';
+import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 
 // TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
 export class RegisterUserDto {
-  @Transform((params) => params.value.trim())
-  @NotIn('password', {
-    message: 'The name string is included in the password.',
-  })
-  @IsString()
-  @MinLength(2)
-  @MaxLength(128)
-  readonly userName: string;
-
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {
       throw new BadRequestException(
-        'The name string is included in the password.',
+        'The email string is included in the password.',
       );
     }
     return value.trim();
   })
   @IsString()
   @IsEmail()
-  @MaxLength(128)
+  @MaxLength(320)
   readonly email: string;
 
+  @Transform((params) => params.value.trim())
+  @NotIn('password', {
+    message: 'The name string is included in the password.',
+  })
   @IsString()
-  @Matches(/^[A-Za-z\d!@#$%^&*()]{8,128}$/)
+  @MinLength(3)
+  @MaxLength(39)
+  readonly userName: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(32)
+  @Matches(/^[A-Za-z\d!@#$%^&*()]{8,32}$/)
   readonly password: string;
+
+  // TODO: Test 추가
+  @IsString()
+  @MinLength(8)
+  @MaxLength(32)
+  @MatchPassword('password', { message: 'Password does not match.' })
+  passwordConfirm: string;
 }

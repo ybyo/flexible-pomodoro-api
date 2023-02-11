@@ -23,11 +23,13 @@ import { validationSchema } from './config/validationSchema';
 import { FragModule } from './frags/frag.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { StacksModule } from '@/stacks/stacks.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
     }),

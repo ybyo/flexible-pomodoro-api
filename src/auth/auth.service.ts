@@ -10,6 +10,8 @@ import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
+import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +25,6 @@ export class AuthService {
 
   // Interact with passport local strategy
   async validateWithIdPw(user: LoginUserDto) {
-    // login command
     const { email, password } = user;
     // TODO: 에러 핸들링 auth service에서 수행하도록 구현
     const command = new ValidateUserCommand(email, password);
@@ -95,5 +96,12 @@ export class AuthService {
   async issueToken(user: IUser) {
     // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
     return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
+  }
+
+  async checkEmail(dto: CheckEmailDto) {
+    const { email } = dto;
+    const command = new CheckEmailCommand(email);
+
+    return await this.commandBus.execute(command);
   }
 }

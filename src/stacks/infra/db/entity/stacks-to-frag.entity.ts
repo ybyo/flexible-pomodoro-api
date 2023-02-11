@@ -14,20 +14,25 @@ export class StacksToFragEntity {
   @PrimaryColumn()
   stacksToFragId: string;
 
-  @Column({ default: -2 })
+  @Column({ default: 0 })
   order: number;
 
-  @Column()
+  @Column({ select: false })
   fragId: string;
+
+  @Column({ select: false })
+  stacksId: string;
 
   @ManyToOne(() => StacksEntity, (stacks) => stacks, {
     createForeignKeyConstraints: false,
   })
+  @JoinColumn({ name: 'stacksId', referencedColumnName: 'id' })
   stacks: StacksEntity;
 
   @ManyToOne(() => FragEntity, (frag) => frag.stacksToFrag, {
     createForeignKeyConstraints: false,
     nullable: false,
   })
+  @JoinColumn({ name: 'fragId', referencedColumnName: 'fragId' })
   frag: FragEntity;
 }

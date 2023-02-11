@@ -15,7 +15,7 @@ import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.enti
 @Entity('Frag')
 export class FragEntity extends BaseEntity {
   @PrimaryColumn()
-  id: string;
+  fragId: string;
 
   @Column()
   name: string;
@@ -32,21 +32,20 @@ export class FragEntity extends BaseEntity {
   @Column()
   color: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ select: false })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ select: false })
   updatedAt: Date;
 
   @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag)
   user: UserEntity;
 
   @RelationId((fragEntity: FragEntity) => fragEntity.user)
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   userId: string;
 
   @OneToMany(() => StacksToFragEntity, (stacksToFrag) => stacksToFrag.frag, {
-    eager: true,
     cascade: true,
   })
   stacksToFrag: StacksToFragEntity[];

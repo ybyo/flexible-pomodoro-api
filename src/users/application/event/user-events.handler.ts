@@ -10,7 +10,7 @@ export class UserEventsHandler implements IEventHandler<UserCreatedEvent> {
   async handle(event: UserCreatedEvent) {
     switch (event.name) {
       case UserCreatedEvent.name: {
-        console.log('UserCreatedEvent!');
+        console.log('Event: User created');
         const { email, signupVerifyToken } = event as UserCreatedEvent;
         await this.emailService.sendUserSignupVerification(
           email,

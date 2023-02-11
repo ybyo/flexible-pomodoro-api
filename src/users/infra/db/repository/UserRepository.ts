@@ -1,21 +1,23 @@
 import { UserFactory } from 'src/users/domain/user.factory';
 import { UserEntity } from '../entity/user.entity';
 import { User } from '@/users/domain/user.model';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, LessThan, MoreThan, Repository } from 'typeorm';
 import { InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
     @InjectMapper() private mapper: Mapper,
-    private connection: DataSource,
+    private datasource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private userFactory: UserFactory,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -63,7 +65,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async saveUser(user: User): Promise<void> {
-    await this.connection.transaction(async (manager) => {
+    await this.datasource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });
 
       await manager.save(newUser);
@@ -72,7 +74,7 @@ export class UserRepository implements IUserRepository {
 
   // TODO: 해당 카테고리가 실제로 있는지, 있다면 타입은 일치하는지 사전에 확인
   async updateUser(criteria: object, partialEntity: object): Promise<void> {
-    await this.connection.transaction(async (manager) => {
+    await this.datasource.transaction(async (manager) => {
       // TODO: 에러 처리 구간 확인, 에러메시지 작성
       const user = await this.userRepository.findOneBy(criteria);
       if (!user) {
@@ -80,6 +82,17 @@ export class UserRepository implements IUserRepository {
       } else {
         await manager.update(UserEntity, criteria, partialEntity);
       }
+    });
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleCron() {
+    this.logger.log('Deleted unverified accounts');
+
+    const duration = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    await this.userRepository.delete({
+      createdAt: MoreThan(duration),
+      isVerified: false,
     });
   }
 }

@@ -15,8 +15,13 @@ import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategy/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtExpConfig } from '@/config/jwtConfig';
+import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
 
-const CommandHandlers = [ValidateUserHandler, RegisterUserHandler];
+const CommandHandlers = [
+  ValidateUserHandler,
+  RegisterUserHandler,
+  CheckEmailHandler,
+];
 const QueryHandlers = [GetUserByUserIdHandler];
 const EventHandlers = [];
 

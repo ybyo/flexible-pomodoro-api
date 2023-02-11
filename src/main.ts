@@ -9,7 +9,12 @@ import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
 } from 'nest-winston';
+import * as fs from 'fs';
 
+const httpsOptions = {
+  key: fs.readFileSync(path.resolve(__dirname, '../local-key.pem')),
+  cert: fs.readFileSync(path.resolve(__dirname, '../local-cert.pem')),
+};
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
@@ -26,6 +31,7 @@ async function bootstrap() {
         }),
       ],
     }),
+    httpsOptions,
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,8 +40,9 @@ async function bootstrap() {
   );
 
   const corsOption = {
-    origin: 'http://localhost:9000',
+    origin: 'https://localhost:9200',
     credentials: true,
+    optionsSuccessStatus: 200,
   };
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
