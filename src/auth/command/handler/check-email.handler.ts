@@ -1,15 +1,8 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { IRes } from '@/type-defs/message.interface';
-import { OmitType } from '@nestjs/mapped-types';
-import { User } from '@/users/domain/user.model';
 
 @Injectable()
 @CommandHandler(CheckEmailCommand)
@@ -29,7 +22,7 @@ export class CheckEmailHandler implements ICommandHandler<CheckEmailCommand> {
 
     const response = {} as IRes<any>;
     response.success = true;
-    response.message = 'Unique email';
+    response.message = email;
 
     return response;
   }
