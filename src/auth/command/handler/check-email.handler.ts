@@ -14,9 +14,11 @@ export class CheckEmailHandler implements ICommandHandler<CheckEmailCommand> {
   async execute(command: CheckEmailCommand) {
     const { email } = command;
 
-    const user = await this.userRepository.findByEmail(email);
+    const { email: foundEmail } = (await this.userRepository.findByEmail(
+      email,
+    )) || { email: 'dummy' };
 
-    if (user !== null) {
+    if (foundEmail !== 'dummy') {
       throw new BadRequestException('Duplicate email');
     }
 
