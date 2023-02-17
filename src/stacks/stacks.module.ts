@@ -10,8 +10,13 @@ import { StacksProfile } from '@/stacks/common/mapper/stacks.profile';
 import { SaveStacksHandler } from '@/stacks/application/command/handler/save-stacks.handler';
 import { GetStacksHandler } from '@/stacks/application/command/handler/get-stacks.handler';
 import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
+import { RemoveStacksHandler } from '@/stacks/application/command/handler/remove-stacks.handler';
 
-const commandHandlers = [GetStacksHandler, SaveStacksHandler];
+const commandHandlers = [
+  GetStacksHandler,
+  SaveStacksHandler,
+  RemoveStacksHandler,
+];
 const queryHandlers = [];
 const eventHandlers = [];
 const factories = [];

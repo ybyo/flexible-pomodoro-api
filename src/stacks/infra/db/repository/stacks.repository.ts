@@ -53,10 +53,7 @@ export class StacksRepository implements IStacksRepository {
     return stackEntity;
   }
 
-  async saveStack(
-    userId: string,
-    stacks: Stacks,
-  ): Promise<IRes<void>> {
+  async saveStack(userId: string, stacks: Stacks): Promise<IRes<void>> {
     try {
       await this.dataSource.transaction(async (manager) => {
         // TODO: 불필요한 프로퍼티 생성 최소화
@@ -70,6 +67,30 @@ export class StacksRepository implements IStacksRepository {
         // 기존에 DB에 저장되어있는 같은 stacksId 관련 정보 제거
         await this.stacksToFragRepository.delete({ stacksId: stacks.id });
         await manager.save(result);
+      });
+    } catch (err) {
+      throw new Error(err);
+    }
+
+    const result = {} as IRes<void>;
+
+    result.success = true;
+
+    return result;
+  }
+
+  async removeStack(stackId: string): Promise<IRes<void>> {
+    try {
+      await this.dataSource.transaction(async () => {
+        // const entities = await this.stackRepository.findBy({ id: stackId });
+        // await this.stackRepository.remove(entities);
+        const stack = await this.stackRepository.findBy({ id: stackId });
+        const relations = await this.stacksToFragRepository.findBy({
+          stacksId: stackId,
+        });
+
+        await this.stacksToFragRepository.remove(relations);
+        await this.stackRepository.remove(stack);
       });
     } catch (err) {
       throw new Error(err);
