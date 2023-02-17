@@ -1,12 +1,11 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { Request } from 'express';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtPayload } from 'jsonwebtoken';
 import { IUser } from '@/type-defs/message.interface';
 import { GetStacksCommand } from '@/stacks/application/command/impl/get-stacks.command';
 import { SaveStacksCommand } from '@/stacks/application/command/impl/save-stacks.command';
-import { Stacks } from '@/stacks/domain/stacks.model';
+import { RemoveStacksCommand } from '@/stacks/application/command/impl/remove-stacks.command';
 
 @Controller('stacks')
 export class StacksController {
@@ -14,7 +13,7 @@ export class StacksController {
   @UseGuards(JwtAuthGuard)
   @Get('fetch')
   // TODO: 응답 타입 정의
-  async fetch(@Req() req: Request) {
+  async fetch(@Req() req) {
     const user = req.user as JwtPayload & IUser;
 
     let stacks;
@@ -29,10 +28,19 @@ export class StacksController {
 
   @UseGuards(JwtAuthGuard)
   @Post('save')
-  async save(@Req() req: Request, @Body() stacks: Stacks) {
+  async save(@Req() req, @Body() stacks) {
     const user = req.user as JwtPayload & IUser;
 
     const command = new SaveStacksCommand(user.id, stacks);
+    const result = await this.commandBus.execute(command);
+
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('remove')
+  async remove(@Body() id) {
+    const command = new RemoveStacksCommand(Object.keys(id)[0]);
     const result = await this.commandBus.execute(command);
 
     return result;

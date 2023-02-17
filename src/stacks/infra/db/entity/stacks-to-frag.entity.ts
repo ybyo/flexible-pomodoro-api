@@ -23,7 +23,7 @@ export class StacksToFragEntity {
   @Column({ select: false })
   stacksId: string;
 
-  @ManyToOne(() => StacksEntity, (stacks) => stacks, {
+  @ManyToOne(() => StacksEntity, (stacks) => stacks.stacksToFrag, {
     createForeignKeyConstraints: false,
   })
   @JoinColumn({ name: 'stacksId', referencedColumnName: 'id' })

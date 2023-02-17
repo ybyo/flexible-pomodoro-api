@@ -4,7 +4,6 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 import jwtConfig from './config/jwtConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
-import emailConfig from './config/emailConfig';
 import { AuthModule } from '@/auth/auth.module';
 import { AutomapperModule } from '@automapper/nestjs';
 import { ConfigModule, ConfigType } from '@nestjs/config';
@@ -24,6 +23,7 @@ import { FragModule } from './frags/frag.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { StacksModule } from '@/stacks/stacks.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import emailConfig from '@/config/email.config';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 

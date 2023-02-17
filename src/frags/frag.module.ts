@@ -9,6 +9,7 @@ import { FragEntity } from '@/frags/infra/db/entity/frag.entity';
 import { FragRepository } from '@/frags/infra/db/repository/frag.repository';
 import { GetFragsHandler } from '@/frags/application/command/handler/get-frags.handler';
 import { SaveFragHandler } from '@/frags/application/command/handler/save-frag.handler';
+import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
 
 const commandHandlers = [GetFragsHandler, SaveFragHandler];
 const queryHandlers = [];
@@ -21,7 +22,7 @@ const repositories = [{ provide: 'FragRepository', useClass: FragRepository }];
   imports: [
     AuthModule,
     CqrsModule,
-    TypeOrmModule.forFeature([FragEntity]),
+    TypeOrmModule.forFeature([FragEntity, StacksToFragEntity]),
     PassportModule.register({
       session: true,
     }),
