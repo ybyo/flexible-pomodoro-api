@@ -4,8 +4,11 @@ import emailConfig from '@/config/email.config';
 import * as path from 'path';
 import * as nodemailer from 'nodemailer';
 import * as ejs from 'ejs';
+import nMail = require('nodemailer/lib/mailer');
+import sgMail = require('@sendgrid/mail');
+import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 
-interface EmailOptions {
+interface INodeMailerOptions {
   to: string;
   subject: string;
   html: string;
@@ -13,19 +16,23 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
-  private transporter: Mail;
+  private nMail: nMail;
 
   constructor(
     @Inject(emailConfig.KEY)
     private config: ConfigType<typeof emailConfig>,
   ) {
-    this.transporter = nodemailer.createTransport({
-      service: config.service,
-      auth: {
-        user: config.auth.user,
-        pass: config.auth.pass,
-      },
-    });
+    if (process.env.NODE_ENV === 'dev') {
+      this.nMail = nodemailer.createTransport({
+        service: config.service,
+        auth: {
+          user: config.auth.user,
+          pass: config.auth.pass,
+        },
+      });
+    } else if (process.env.NODE_ENV === 'prod') {
+      sgMail.setApiKey(this.config.auth.sgMailApi);
+    }
   }
 
   async sendUserSignupVerification(
@@ -55,12 +62,21 @@ export class EmailService {
       }
     });
 
-    const mailOptions: EmailOptions = {
-      to: emailAddress,
-      subject: 'Flexible Pomodoro',
-      html: renderedTemplate,
-    };
-
-    return await this.transporter.sendMail(mailOptions);
+    if (process.env.NODE_ENV === 'dev') {
+      const mailOptions: INodeMailerOptions = {
+        to: emailAddress,
+        subject: 'Flexible Pomodoro',
+        html: renderedTemplate,
+      };
+      return await this.nMail.sendMail(mailOptions);
+    } else if (process.env.NODE_ENV === 'prod') {
+      const mailOptions: MailDataRequired = {
+        to: emailAddress,
+        subject: 'Flexible Pomodoro',
+        from: 'no-reply@yibyeongyong.com',
+        html: renderedTemplate,
+      };
+      return await sgMail.send(mailOptions);
+    }
   }
 }
