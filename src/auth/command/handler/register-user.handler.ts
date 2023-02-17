@@ -24,7 +24,7 @@ export class RegisterUserHandler
       throw new BadRequestException('Duplicate email');
     }
 
-    // TODO: id, signupVerifyToken 등이 undefined일 때, 자동으로 값 부여하도록 구현
+    // TODO: id, signupVerifyToken 등이 undefined 일 때, 자동으로 값 부여하도록 구현
     const newUser = new User({
       ...command,
       id: ulid(),
