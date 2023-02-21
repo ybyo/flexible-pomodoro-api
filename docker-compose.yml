@@ -5,29 +5,46 @@ networks:
     driver: bridge
 
 services:
-  mysql:
-    image: mysql:8
-    container_name: ${DATABASE_CONTAINER_NAME}
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-    ports:
-      - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
-    volumes:
-      - /opt/mysql_data:/var/lib/mysql
+  #  mysql:
+  #    image: mysql:8
+  #    container_name: ${DATABASE_CONTAINER_NAME}
+  #    environment:
+  #      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+  #    ports:
+  #      - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
+  #    volumes:
+  #      - /opt/mysql_data:/var/lib/mysql
+  #
+  #  redis:
+  #    image: bitnami/redis:latest
+  #    environment:
+  #      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
+  #    container_name: ${REDIS_CONTAINER_NAME}
+  #    ports:
+  #      - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+  #    networks:
+  #      - app-tier
+  #
+  #  rcli:
+  #    image: bitnami/redis:latest
+  #    links:
+  #      - redis
+  #    command: redis-cli -h redis
+  #    networks:
+  #      - app-tier
 
-  redis:
-    image: bitnami/redis:latest
-    environment:
-      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
-    container_name: ${REDIS_CONTAINER_NAME}
+  nginx:
+    image: nginx:latest
     ports:
-      - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./templates:/etc/nginx/templates
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./local-cert.pem:/etc/nginx/local-cert.pem
+      - ./local-key.pem:/etc/nginx/local-key.pem
+    container_name: flex-nginx
     networks:
       - app-tier
-  rcli:
-    image: bitnami/redis:latest
-    links:
-      - redis
-    command: redis-cli -h redis
-    networks:
-      - app-tier
+    environment:
+      - SERVER_NAME=${BASE_URL}
