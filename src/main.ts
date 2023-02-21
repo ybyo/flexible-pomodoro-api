@@ -10,6 +10,7 @@ import {
   WinstonModule,
 } from 'nest-winston';
 import * as fs from 'fs';
+import helmet from 'helmet';
 
 const httpsOptions = {
   key: fs.readFileSync(path.resolve(__dirname, '../local-key.pem')),
@@ -40,7 +41,7 @@ async function bootstrap() {
   );
 
   const corsOption = {
-    origin: 'https://localhost:9200',
+    origin: ['https://127.0.0.1:4000', 'https://ec2-3-34-142-230.ap-northeast-2.compute.amazonaws.com:4000/'],
     credentials: true,
     optionsSuccessStatus: 200,
   };
@@ -52,6 +53,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors(corsOption);
+  app.use(helmet());
 
   await app.listen(3000);
 }

@@ -24,6 +24,8 @@ import accessTokenConfig from '@/config/accessTokenConfig';
 import { StacksModule } from '@/stacks/stacks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import emailConfig from '@/config/email.config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
@@ -48,6 +50,10 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
         return ormConfig;
       },
     }),
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
     UsersModule,
     AuthModule,
     RedisModule,
@@ -59,7 +65,12 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     StacksModule,
   ],
   controllers: [HealthCheckController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   constructor(

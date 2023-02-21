@@ -20,10 +20,11 @@ const ormConfig = new DataSource({
   port: 3306,
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
-  database: 'test',
+  database: process.env.DATABASE_NAME,
   entities: ['dist/**/*.entity{.ts,.js}'],
   synchronize: Boolean(process.env.DATABASE_SYNCHRONIZE),
   migrations: ['dist/migration/*{.ts,.js}'],
 });
 
 export default ormConfig;
+

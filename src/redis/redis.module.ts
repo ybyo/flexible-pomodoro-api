@@ -4,7 +4,7 @@ import * as Redis from 'redis';
 import { REDIS } from './redis.constants';
 
 // 'redis://username:password@your.redis.url'
-const url = 'redis://localhost:6379';
+const url = `redis://${process.env.REDIS_URL}`;
 
 @Module({
   providers: [
@@ -14,7 +14,6 @@ const url = 'redis://localhost:6379';
       useFactory: async () => {
         const client = Redis.createClient({
           url: url,
-          legacyMode: true,
         });
         await client.connect();
         return client;
@@ -24,3 +23,4 @@ const url = 'redis://localhost:6379';
   exports: [REDIS],
 })
 export class RedisModule {}
+
