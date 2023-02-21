@@ -4,7 +4,7 @@ import { User } from '@/users/domain/user.model';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, LessThan, MoreThan, Repository } from 'typeorm';
+import { DataSource, LessThan, Repository } from "typeorm";
 import { InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -91,7 +91,7 @@ export class UserRepository implements IUserRepository {
 
     const duration = new Date(Date.now() - 3 * 60 * 60 * 1000);
     await this.userRepository.delete({
-      createdAt: MoreThan(duration),
+      createdAt: LessThan(duration),
       isVerified: false,
     });
   }
