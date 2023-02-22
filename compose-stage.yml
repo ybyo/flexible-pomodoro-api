@@ -1,0 +1,19 @@
+version: '3'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./local-cert.pem:/etc/nginx/local-cert.pem
+      - ./local-key.pem:/etc/nginx/local-key.pem
+    container_name: flex-nginx
+    networks:
+      - app-tier
