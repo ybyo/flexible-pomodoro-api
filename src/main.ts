@@ -41,7 +41,7 @@ async function bootstrap() {
   );
 
   const corsOption = {
-    origin: ['https://127.0.0.1:4000', 'https://ec2-3-34-142-230.ap-northeast-2.compute.amazonaws.com:4000/'],
+    origin: ['https://127.0.0.1:4000', 'https://127.0.0.1'],
     credentials: true,
     optionsSuccessStatus: 200,
   };
