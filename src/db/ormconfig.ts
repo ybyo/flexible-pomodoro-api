@@ -27,4 +27,3 @@ const ormConfig = new DataSource({
 });
 
 export default ormConfig;
-

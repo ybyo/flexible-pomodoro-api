@@ -4,7 +4,7 @@ import { User } from '@/users/domain/user.model';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, LessThan, Repository } from "typeorm";
+import { DataSource, LessThan, MoreThan, Repository } from "typeorm";
 import { InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
