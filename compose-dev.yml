@@ -40,8 +40,8 @@ services:
         - '443:443'
       volumes:
         - ./nginx.conf:/etc/nginx/nginx.conf
-        - ./local-cert.pem:/etc/nginx/local-cert.pem
-        - ./local-key.pem:/etc/nginx/local-key.pem
+        - ./certs/local-cert.pem:/etc/nginx/local-cert.pem
+        - ./certs/local-key.pem:/etc/nginx/local-key.pem
         - ../flexible-pomodoro-front/dist/pwa:/etc/nginx/dist/pwa
       container_name: flex-nginx
       networks:

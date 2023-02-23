@@ -52,7 +52,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     }),
     ThrottlerModule.forRoot({
       ttl: 60,
-      limit: 10,
+      limit: 20,
     }),
     UsersModule,
     AuthModule,

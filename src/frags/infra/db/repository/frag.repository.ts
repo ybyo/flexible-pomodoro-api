@@ -1,3 +1,4 @@
+import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
 import { Injectable } from '@nestjs/common';
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
@@ -19,6 +20,8 @@ export class FragRepository implements IFragRepository {
     private fragRepository: Repository<FragEntity>,
     @InjectRepository(StacksToFragEntity)
     private stacksToFragRepository: Repository<StacksToFragEntity>,
+    @InjectRepository(StacksEntity)
+    private stacksRepository: Repository<StacksEntity>,
   ) {}
   async fetchFrag(id: string): Promise<Frag[]> {
     const fragEntity = await this.fragRepository.find({
@@ -39,6 +42,7 @@ export class FragRepository implements IFragRepository {
   async saveFrag(userId: string, frags: Frag[]): Promise<IRes<void>> {
     try {
       await this.connection.transaction(async (manager) => {
+        // ID 필터링 기준 = 'fragId'
         const { formatResult, ids } = entityFormatter(frags, '_', {
           userId: userId,
         });
@@ -58,6 +62,18 @@ export class FragRepository implements IFragRepository {
         //   this.stacksToFragRepository.delete({ fragId: frag.fragId });
         // });
         if (dataToRemove.length > 0) {
+          const stackIds: Set<string> = new Set();
+
+          // 스택 아이디 추출
+          for (const frag of dataToRemove) {
+            const stacksToFragEntries = await this.stacksToFragRepository.find({
+              where: { fragId: frag.fragId },
+              relations: ['stacks'],
+            });
+            const stackId = stacksToFragEntries.map((entry) => entry.stacks.id);
+            stackIds.add(stackId[0]);
+          }
+
           await this.stacksToFragRepository
             .createQueryBuilder()
             .delete()
@@ -65,7 +81,22 @@ export class FragRepository implements IFragRepository {
               fragIds: dataToRemove.map((f) => f.fragId),
             })
             .execute();
-          await manager.remove(dataToRemove);
+
+          // 만약 타이머 제거 후 스택에 남아있는 타이머가 없다면 스택도 함께 제거
+          for (const stackId of stackIds) {
+            // TODO: 찾는 메서드 find로 일치시키기
+            const entries = await this.stacksToFragRepository.findBy({
+              stacksId: stackId,
+            });
+            if (entries.length === 0) {
+              try {
+                console.log(stackId);
+                await this.stacksRepository.delete({ id: stackId });
+              } catch (err) {
+                console.log(err);
+              }
+            }
+          }
         }
 
         await manager.remove(dataToRemove);
