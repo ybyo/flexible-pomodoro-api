@@ -1,3 +1,4 @@
+import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
 import { Logger, Module } from '@nestjs/common';
 import { FragController } from '@/frags/interface/frag.controller';
 import { FragProfile } from '@/frags/common/mapper/frag.profile';
@@ -22,7 +23,7 @@ const repositories = [{ provide: 'FragRepository', useClass: FragRepository }];
   imports: [
     AuthModule,
     CqrsModule,
-    TypeOrmModule.forFeature([FragEntity, StacksToFragEntity]),
+    TypeOrmModule.forFeature([FragEntity, StacksToFragEntity, StacksEntity]),
     PassportModule.register({
       session: true,
     }),
