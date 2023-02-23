@@ -13,8 +13,8 @@ import * as fs from 'fs';
 import helmet from 'helmet';
 
 const httpsOptions = {
-  key: fs.readFileSync(path.resolve(__dirname, '../local-key.pem')),
-  cert: fs.readFileSync(path.resolve(__dirname, '../local-cert.pem')),
+  key: fs.readFileSync(path.resolve(__dirname, '../certs/local-key.pem')),
+  cert: fs.readFileSync(path.resolve(__dirname, '../certs/local-cert.pem')),
 };
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -41,7 +41,12 @@ async function bootstrap() {
   );
 
   const corsOption = {
-    origin: ['https://127.0.0.1:4000', 'https://127.0.0.1'],
+    origin: [
+      'https://127.0.0.1:4000',
+      'https://127.0.0.1',
+      'https://localhost:4000',
+      'https://localhost',
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   };
@@ -57,4 +62,5 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
+
 bootstrap();
