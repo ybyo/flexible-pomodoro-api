@@ -46,6 +46,8 @@ async function bootstrap() {
       'https://127.0.0.1',
       'https://localhost:4000',
       'https://localhost',
+      'https://pomo.yibyeongyong.com:4000',
+      'https://pomo.yibyeongyong.com',
     ],
     credentials: true,
     optionsSuccessStatus: 200,
