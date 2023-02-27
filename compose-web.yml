@@ -1,0 +1,41 @@
+version: '3.8'
+
+networks:
+  flex-net:
+    driver: bridge
+
+services:
+  backend:
+    image: ybyyng/backend:${NODE_ENV}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    env_file:
+      - env/.${NODE_ENV}.env
+    container_name: backend-${NODE_ENV}
+    ports:
+      - ${API_PORT}:${API_PORT}
+    volumes:
+      - ./certs/:/certs
+    networks:
+      - flex-net
+
+  frontend:
+    image: ybyyng/frontend:${NODE_ENV}
+    build:
+      context: ../flexible-pomodoro-front
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    env_file:
+      - ../flexible-pomodoro-front/env/.${NODE_ENV}.env
+    container_name: frontend-${NODE_ENV}
+    ports:
+      - '80:80'
+      - ${FRONT_PORT}:${FRONT_PORT}
+    volumes:
+      - ./certs/:/etc/nginx/certs
+    networks:
+      - flex-net
