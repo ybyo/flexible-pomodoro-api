@@ -1,7 +1,9 @@
 FROM node:18-alpine as dev
 
 ARG NODE_ENV=dev
-RUN echo "Currently run build process in '$NODE_ENV'"
+ENV ENV_NAME $NODE_ENV
+
+RUN echo "Currently run build process in '$ENV_NAME'"
 
 WORKDIR /app
 # Copying this first prevents re-running npm install on every code change.
@@ -14,6 +16,7 @@ USER node
 FROM node:18-alpine as build
 
 ARG NODE_ENV=dev
+ENV ENV_NAME $NODE_ENV
 
 WORKDIR /app
 
@@ -22,7 +25,7 @@ COPY --chown=node:node package*.json ./
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 COPY --chown=node:node . .
 
-RUN NODE_ENV=$NODE_ENV npm run build
+RUN NODE_ENV=$ENV_NAME npm run build
 
 # Running `npm ci` removes the existing node_modules directory and
 # passing in --only=prod ensures that only the production dependencies are installed.
