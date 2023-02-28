@@ -6,7 +6,7 @@ networks:
 
 services:
   backend:
-    image: ybyyng/backend:${NODE_ENV}
+    image: backend:${NODE_ENV}
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -23,7 +23,7 @@ services:
       - flex-net
 
   frontend:
-    image: ybyyng/frontend:${NODE_ENV}
+    image: frontend:${NODE_ENV}
     build:
       context: ../flexible-pomodoro-front
       dockerfile: ./Dockerfile
