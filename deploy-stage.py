@@ -42,7 +42,7 @@ ssm_client = boto3.client('ssm', region_name=region_name, aws_access_key_id=acce
 try:
     # Build Docker Compose files in local
     os.system(
-        f"docker compose -f compose-web.yml --env-file ./env/.{docker_tag}.env build")
+        f"docker compose -f compose-web.yml --env-file ./env/.{docker_tag}.env build --no-cache")
 
     for idx, instance_id in enumerate(instance_ids):
         ssm_client.send_command(
@@ -86,7 +86,7 @@ try:
 
         commands = []
         if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
-            local_command = f"docker save frontend | bzip2 | ssh -i 'flexible-pomodoro-all.pem' ubuntu@{ec2_frontend_dns} docker load"
+            local_command = f"docker save nginx | bzip2 | ssh -i 'flexible-pomodoro-all.pem' ubuntu@{ec2_frontend_dns} docker load"
             proc = subprocess.Popen(local_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, shell=True, universal_newlines=True)
             out, err = proc.communicate()
@@ -97,7 +97,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build frontend',
+                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build nginx certbot',
             ]
 
         elif instance_id == os.environ['INSTANCE_BACKEND_ID']:
@@ -124,7 +124,7 @@ try:
 
             scp.chdir(f'{remote_project_dir}/flexible-pomodoro-api')
 
-            print(f'Current directory: {scp.getcwd()}')
+#             print(f'Current directory: {scp.getcwd()}')
 
             try:
                 response = ssm_client.send_command(
@@ -152,8 +152,8 @@ try:
     print('Docker Compose files are successfully deployed on EC2 instances.')
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print("Elapsed: {:.5f}s".format(elapsed_time))
-    print(datetime.now())
+    print('Elapsed: {:.1f}s'.format(elapsed_time))
+    print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 
 except Exception as e:
