@@ -36,9 +36,11 @@ RUN npm ci --only=prod && \
 USER node
 
 FROM node:18-alpine As prod
+
 # Copy the bundled code from the build stage to the production image
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/public ./public
 
 EXPOSE 3000
 
