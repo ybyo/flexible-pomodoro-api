@@ -1,0 +1,57 @@
+version: '3.8'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  backend:
+    image: backend:${NODE_ENV}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    env_file:
+      - env/.${NODE_ENV}.env
+    container_name: backend-${NODE_ENV}
+    ports:
+      - ${API_PORT}:${API_PORT}
+    volumes:
+      - ./certs/:/certs:ro
+    networks:
+      - app-tier
+    restart: always
+
+  nginx:
+    image: nginx:${NODE_ENV}
+    tty: true
+    build:
+      context: ../flexible-pomodoro-front
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    env_file:
+      - ../flexible-pomodoro-front/env/.${NODE_ENV}.env
+    environment:
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+    container_name: frontend-${NODE_ENV}
+    ports:
+      - '80:80'
+      - ${FRONT_PORT}:${FRONT_PORT}
+    restart: always
+    volumes:
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/letsencrypt/:ro
+      - ./public:/public:ro
+    networks:
+      - app-tier
+
+  certbot:
+    image: certbot/certbot
+    tty: true
+    container_name: certbot_service
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    command: certonly --webroot --webroot-path /var/www/certbot/ --agree-tos -m ybyo@yibyeongyong.com -d pomo.yibyeongyong.com

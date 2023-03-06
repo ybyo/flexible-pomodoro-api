@@ -1,6 +1,9 @@
 # Secret
 *.env
 
+# Python venv
+.venv
+
 # compiled output
 /dist
 /node_modules

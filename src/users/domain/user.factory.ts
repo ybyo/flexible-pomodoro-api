@@ -7,8 +7,8 @@ import { User } from './user.model';
 export class UserFactory {
   constructor(private eventBus: EventBus) {}
 
-  create(user: User): User {
-    this.eventBus.publish(
+  async create(user: User): Promise<User> {
+    await this.eventBus.publish(
       new UserCreatedEvent(user.email, user.signupVerifyToken),
     );
 

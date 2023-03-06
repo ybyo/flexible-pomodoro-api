@@ -6,7 +6,6 @@ import {
   LoggerService,
   Query,
   Req,
-  Res,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
 import { CommandBus } from '@nestjs/cqrs';
@@ -21,22 +20,13 @@ export class UsersController {
   ) {}
 
   @Get('verify-email')
-  async verifyEmail(
-    @Req() req,
-    @Query() query,
-    @Res({ passthrough: true }) res,
-  ): Promise<string> {
+  async verifyEmail(@Req() req, @Query() query): Promise<string> {
     const { signupVerifyToken } = query;
 
     const command = new VerifyEmailCommand(signupVerifyToken);
 
     const result = await this.commandBus.execute(command);
 
-    // if ('success' in result && result.success === false) {
-    //   return result;
-    // } else {
-    //   return result;
-    // }
     return result;
   }
 }

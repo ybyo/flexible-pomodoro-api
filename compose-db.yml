@@ -1,0 +1,32 @@
+version: '3'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8
+    env_file:
+      - env/.${NODE_ENV}.env
+    container_name: ${DATABASE_CONTAINER_NAME}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
+    volumes:
+      - /opt/mysql_data:/var/lib/mysql
+    networks:
+      - app-tier
+
+  redis:
+    image: bitnami/redis:latest
+    env_file:
+      - env/.${NODE_ENV}.env
+    environment:
+      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
+    container_name: ${REDIS_CONTAINER_NAME}
+    ports:
+      - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+    networks:
+      - app-tier

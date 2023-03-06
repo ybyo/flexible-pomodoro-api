@@ -12,10 +12,14 @@ import {
 import * as fs from 'fs';
 import helmet from 'helmet';
 
-const httpsOptions = {
-  key: fs.readFileSync(path.resolve(__dirname, '../certs/local-key.pem')),
-  cert: fs.readFileSync(path.resolve(__dirname, '../certs/local-cert.pem')),
-};
+let httpsOptions;
+if (process.env.NODE_ENV === 'dev') {
+  httpsOptions = {
+    key: fs.readFileSync(path.resolve(__dirname, '../certs/local-key.pem')),
+    cert: fs.readFileSync(path.resolve(__dirname, '../certs/local-cert.pem')),
+  };
+}
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
@@ -46,6 +50,11 @@ async function bootstrap() {
       'https://127.0.0.1',
       'https://localhost:4000',
       'https://localhost',
+      'https://ec2-3-38-208-7.ap-northeast-2.compute.amazonaws.com',
+      'https://pomo.yibyeongyong.com:4000',
+      'https://pomo.yibyeongyong.com',
+      'https://api.yibyeongyong.com:3000',
+      'https://api.yibyeongyong.com',
     ],
     credentials: true,
     optionsSuccessStatus: 200,

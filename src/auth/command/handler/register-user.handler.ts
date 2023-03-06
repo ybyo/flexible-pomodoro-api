@@ -1,5 +1,10 @@
 import { ulid } from 'ulid';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { User } from '@/users/domain/user.model';
 import { UserFactory } from '@/users/domain/user.factory';
@@ -31,9 +36,11 @@ export class RegisterUserHandler
       signupVerifyToken: ulid(),
     });
 
-    await this.userRepository.saveUser(newUser);
+    await this.userRepository.saveUser(newUser).catch(() => {
+      throw new InternalServerErrorException('Cannot save user');
+    });
 
-    this.userFactory.create(newUser);
+    await this.userFactory.create(newUser);
 
     return {
       id: newUser.id,

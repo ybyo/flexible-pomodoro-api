@@ -4,7 +4,7 @@ import { User } from '@/users/domain/user.model';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, LessThan, MoreThan, Repository } from "typeorm";
+import { DataSource, Repository } from 'typeorm';
 import { InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -85,14 +85,31 @@ export class UserRepository implements IUserRepository {
     });
   }
 
+  // TODO: 시간 계산 수정
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     this.logger.log('Deleted unverified accounts');
 
-    const duration = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    await this.userRepository.delete({
-      createdAt: LessThan(duration),
-      isVerified: false,
-    });
+    const deadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.email', 'user.username'])
+      .where('isVerified = :isVerified', { isVerified: 0 })
+      .andWhere('createdAt <= :deadline', { deadline })
+      .getRawMany();
+
+    if (users.length !== 0) {
+      console.log(
+        `Account deleted because validation deadline is over ${users}`,
+      );
+    }
+
+    await this.userRepository
+      .createQueryBuilder('user')
+      .delete()
+      .where('isVerified = :isVerified', { isVerified: 0 })
+      .andWhere('createdAt <= :deadline', { deadline })
+      .execute();
   }
 }

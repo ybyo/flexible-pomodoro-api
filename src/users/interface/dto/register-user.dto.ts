@@ -37,7 +37,7 @@ export class RegisterUserDto {
   @IsString()
   @MinLength(8)
   @MaxLength(32)
-  @Matches(/^[A-Za-z\d!@#$%^&*()]{8,32}$/)
+  @Matches(/^.{8,32}$/)
   readonly password: string;
 
   // TODO: Test 추가

@@ -24,6 +24,7 @@ const ormConfig = new DataSource({
   entities: ['dist/**/*.entity{.ts,.js}'],
   synchronize: Boolean(process.env.DATABASE_SYNCHRONIZE),
   migrations: ['dist/migration/*{.ts,.js}'],
+  timezone: 'Z',
 });
 
 export default ormConfig;
