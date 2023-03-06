@@ -23,8 +23,9 @@ services:
       - app-tier
     restart: always
 
-  frontend:
-    image: frontend:${NODE_ENV}
+  nginx:
+    image: nginx:${NODE_ENV}
+    tty: true
     build:
       context: ../flexible-pomodoro-front
       dockerfile: ./Dockerfile
@@ -32,11 +33,25 @@ services:
         NODE_ENV: ${NODE_ENV}
     env_file:
       - ../flexible-pomodoro-front/env/.${NODE_ENV}.env
+    environment:
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend-${NODE_ENV}
     ports:
       - '80:80'
       - ${FRONT_PORT}:${FRONT_PORT}
+    restart: always
     volumes:
-      - ./certs/:/etc/nginx/certs
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/letsencrypt/:ro
+      - ./public:/public:ro
     networks:
-      - flex-net
+      - app-tier
+
+  certbot:
+    image: certbot/certbot
+    tty: true
+    container_name: certbot_service
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    command: certonly --webroot --webroot-path /var/www/certbot/ --agree-tos -m ybyo@yibyeongyong.com -d pomo.yibyeongyong.com
