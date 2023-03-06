@@ -5,8 +5,6 @@ interface IEmailConfig {
   api_port: number;
   front_port: number;
   auth: {
-    user?: string;
-    pass?: string;
     sgMailApi?: string;
   };
   service?: string;
@@ -15,17 +13,11 @@ interface IEmailConfig {
 
 export default registerAs('email', (): IEmailConfig => {
   const emailConfig: IEmailConfig = {
-    host: process.env.BASE_URL,
+    host: process.env.FRONT_URL,
     api_port: parseInt(process.env.API_PORT, 10),
     front_port: parseInt(process.env.FRONT_PORT, 10),
     auth: {},
   };
-  if (process.env.NODE_ENV === 'dev') {
-    emailConfig.service = process.env.EMAIL_SERVICE;
-    emailConfig.auth.user = process.env.EMAIL_AUTH_USER;
-    emailConfig.auth.pass = process.env.EMAIL_AUTH_PASSWORD;
-  } else if (process.env.NODE_ENV === 'prod') {
-    emailConfig.auth.sgMailApi = process.env.SENDGRID_API_KEY;
-  }
+  emailConfig.auth.sgMailApi = process.env.SENDGRID_API_KEY;
   return emailConfig;
 });
