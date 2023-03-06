@@ -40,6 +40,7 @@ ssm_client = boto3.client('ssm', region_name=region_name, aws_access_key_id=acce
                           aws_secret_access_key=secret_access_key)
 
 try:
+    os.system(f"docker system prune -af --volumes")
     # Build Docker Compose files in local
     os.system(
         f"docker compose -f compose-web.yml --env-file ./env/.{docker_tag}.env build --no-cache")
@@ -53,8 +54,16 @@ try:
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-front/certs',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/env',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/certs',
+                'docker stop $(docker ps -a -q)',
+                'docker rm $(docker ps -a -q)',
+                'docker rmi $(docker images -q)',
             ]},
         )
+
+        if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
+            print(f'Cleaning frontend...')
+        else:
+            print(f'Cleaning backend...')
 
         # Connect to EC2 instance
         ssh = paramiko.SSHClient()
@@ -80,9 +89,9 @@ try:
             scp.put(local_file_abs, remote_file_path2)
 
         if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
-            print(f'\nTransferring the built Docker image to Frontend...\n')
+            print(f'Transferring the built Docker image to Frontend...')
         else:
-            print(f'\nTransferring the built Docker image to Backend...\n')
+            print(f'Transferring the built Docker image to Backend...')
 
         commands = []
         if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
@@ -97,7 +106,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build nginx certbot',
+                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build --remove-orphans --force-recreate nginx certbot',
             ]
 
         elif instance_id == os.environ['INSTANCE_BACKEND_ID']:
@@ -112,7 +121,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'sudo -u ubuntu NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build backend',
+                f'sudo -u ubuntu NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --remove-orphans --force-recreate --no-build backend',
             ]
 
         # Run Docker Compose in EC2
@@ -120,11 +129,7 @@ try:
             if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
                 print(f'Starting Docker image in Frontend...')
             else:
-                print(f'Starting Docker image in Backend...')
-
-            scp.chdir(f'{remote_project_dir}/flexible-pomodoro-api')
-
-#             print(f'Current directory: {scp.getcwd()}')
+                print(f'Starting Docker image in Backend...\n')
 
             try:
                 response = ssm_client.send_command(
@@ -154,7 +159,6 @@ try:
     elapsed_time = end_time - start_time
     print('Elapsed: {:.1f}s'.format(elapsed_time))
     print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-
 
 except Exception as e:
     print(f'Error occurred: {e}')
