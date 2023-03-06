@@ -23,6 +23,7 @@ WORKDIR /app
 COPY --chown=node:node package*.json ./
 # We can copy over the node_modules directory from the development image
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
+COPY --chown=node:node --from=dev /app/public ./public
 COPY --chown=node:node . .
 
 RUN NODE_ENV=$ENV_NAME npm run build
