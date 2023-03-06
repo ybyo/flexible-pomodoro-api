@@ -1,7 +1,7 @@
 version: '3.8'
 
 networks:
-  flex-net:
+  app-tier:
     driver: bridge
 
 services:
@@ -20,7 +20,8 @@ services:
     volumes:
       - ./certs/:/certs
     networks:
-      - flex-net
+      - app-tier
+    restart: always
 
   frontend:
     image: frontend:${NODE_ENV}
