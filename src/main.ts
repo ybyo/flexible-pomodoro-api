@@ -13,10 +13,12 @@ import * as fs from 'fs';
 import helmet from 'helmet';
 
 let httpsOptions;
-if (process.env.NODE_ENV === 'dev') {
+if (process.env.NODE_ENV === 'development') {
   httpsOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, '../certs/local-key.pem')),
-    cert: fs.readFileSync(path.resolve(__dirname, '../certs/local-cert.pem')),
+    key: fs.readFileSync(path.resolve(__dirname, '../certs/127.0.0.1-key.pem')),
+    cert: fs.readFileSync(
+      path.resolve(__dirname, '../certs/127.0.0.1-cert.pem'),
+    ),
   };
 }
 
@@ -25,7 +27,7 @@ async function bootstrap() {
     logger: WinstonModule.createLogger({
       transports: [
         new winston.transports.Console({
-          level: process.env.NODE_ENV === 'prod' ? 'info' : 'silly',
+          level: process.env.NODE_ENV === 'staging' ? 'info' : 'silly',
           format: winston.format.combine(
             winston.format.timestamp(),
             nestWinstonModuleUtilities.format.nestLike(process.env.NODE_ENV, {

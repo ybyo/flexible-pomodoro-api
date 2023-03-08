@@ -85,7 +85,6 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  // TODO: 시간 계산 수정
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     this.logger.log('Deleted unverified accounts');
@@ -94,22 +93,18 @@ export class UserRepository implements IUserRepository {
 
     const users = await this.userRepository
       .createQueryBuilder('user')
-      .select(['user.email', 'user.username'])
       .where('isVerified = :isVerified', { isVerified: 0 })
       .andWhere('createdAt <= :deadline', { deadline })
       .getRawMany();
 
     if (users.length !== 0) {
-      console.log(
-        `Account deleted because validation deadline is over ${users}`,
-      );
+      for (const user of users) {
+        const userId = user['user_id'];
+        await this.userRepository.delete(userId);
+        console.log(
+          `Account deleted because validation deadline is over ${user['user_email']}`,
+        );
+      }
     }
-
-    await this.userRepository
-      .createQueryBuilder('user')
-      .delete()
-      .where('isVerified = :isVerified', { isVerified: 0 })
-      .andWhere('createdAt <= :deadline', { deadline })
-      .execute();
   }
 }

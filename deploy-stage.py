@@ -31,7 +31,6 @@ instance_domain = [os.environ['INSTANCE_FRONTEND_DOMAIN'], os.environ['INSTANCE_
 # Paths
 remote_project_dir = os.environ['REMOTE_PROJECT_DIR']
 compose_file_path = os.environ['COMPOSE_FILE_PATH']
-env_file_path = os.environ['ENV_FILE_PATH']
 
 # Host username
 cmd_username = os.environ['CMD_USERNAME']
@@ -46,7 +45,7 @@ try:
         f"docker compose -f compose-web.yml --env-file ./env/.{docker_tag}.env build --no-cache")
 
     for idx, instance_id in enumerate(instance_ids):
-        ssm_client.send_command(
+        response = ssm_client.send_command(
             InstanceIds=[instance_id],
             DocumentName='AWS-RunShellScript',
             Parameters={'commands': [
@@ -54,11 +53,19 @@ try:
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-front/certs',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/env',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/certs',
-                'docker stop $(docker ps -a -q)',
-                'docker rm $(docker ps -a -q)',
-                'docker rmi $(docker images -q)',
+                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env down',
+                f'sudo -u {cmd_username} docker system prune -af --volumes',
             ]},
         )
+
+        command_id = response['Command']['CommandId']
+        time.sleep(3)
+        output = ssm_client.get_command_invocation(
+            CommandId=command_id,
+            InstanceId=instance_id,
+        )
+        print(f"{output['StandardErrorContent']}")
+        time.sleep(15)
 
         if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
             print(f'Cleaning frontend...')
@@ -73,8 +80,8 @@ try:
 
         local_files = ['compose-web.yml',
                        f'env/.{docker_tag}.env',
-                       f'certs/local-cert.pem',
-                       f'certs/local-key.pem',
+                       f'certs/127.0.0.1-cert.pem',
+                       f'certs/127.0.0.1-key.pem',
                        f'../flexible-pomodoro-front/env/.{docker_tag}.env']
 
         for local_file in local_files:
@@ -106,7 +113,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build --remove-orphans --force-recreate nginx certbot',
+                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build --remove-orphans nginx certbot',
             ]
 
         elif instance_id == os.environ['INSTANCE_BACKEND_ID']:
@@ -121,7 +128,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'sudo -u ubuntu NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --remove-orphans --force-recreate --no-build backend',
+                f'sudo -u ubuntu NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --remove-orphans --no-build backend',
             ]
 
         # Run Docker Compose in EC2
