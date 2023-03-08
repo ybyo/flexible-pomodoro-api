@@ -6,11 +6,11 @@ dotenv.config({
   path: path.join(
     process.cwd(),
     'env',
-    process.env.NODE_ENV === 'prod'
-      ? '.prod.env'
-      : process.env.NODE_ENV === 'stage'
-      ? '.stage.env'
-      : '.dev.env',
+    process.env.NODE_ENV === 'production'
+      ? '.production.env'
+      : process.env.NODE_ENV === 'staging'
+      ? '.staging.env'
+      : '.development.env',
   ),
 });
 
