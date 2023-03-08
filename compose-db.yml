@@ -11,6 +11,7 @@ services:
       - env/.${NODE_ENV}.env
     container_name: ${DATABASE_CONTAINER_NAME}
     environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
       MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
