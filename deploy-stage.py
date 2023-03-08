@@ -80,8 +80,8 @@ try:
 
         local_files = ['compose-web.yml',
                        f'env/.{docker_tag}.env',
-                       f'certs/local-cert.pem',
-                       f'certs/local-key.pem',
+                       f'certs/127.0.0.1-cert.pem',
+                       f'certs/127.0.0.1-key.pem',
                        f'../flexible-pomodoro-front/env/.{docker_tag}.env']
 
         for local_file in local_files:
