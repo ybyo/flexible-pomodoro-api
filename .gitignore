@@ -1,5 +1,5 @@
 # Secret
-*.env
+*env
 
 # Python venv
 .venv
