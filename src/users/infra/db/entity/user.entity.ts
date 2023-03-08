@@ -59,14 +59,10 @@ export class UserEntity extends BaseEntity {
   }
 
   @AutoMap(() => [Frag])
-  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user, {
-    cascade: true,
-  })
+  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user)
   frag: Frag[];
 
   @AutoMap(() => [Stacks])
-  @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user, {
-    cascade: true,
-  })
+  @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user)
   stacks: Stacks[];
 }
