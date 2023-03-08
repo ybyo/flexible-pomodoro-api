@@ -38,7 +38,9 @@ export class FragEntity extends BaseEntity {
   @UpdateDateColumn({ select: false })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag)
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag, {
+    onDelete: 'CASCADE',
+  })
   user: UserEntity;
 
   @RelationId((fragEntity: FragEntity) => fragEntity.user)

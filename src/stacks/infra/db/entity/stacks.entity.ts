@@ -28,7 +28,9 @@ export class StacksEntity extends BaseEntity {
   @CreateDateColumn({ select: false })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.stacks)
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.stacks, {
+    onDelete: 'CASCADE',
+  })
   user: UserEntity;
 
   @RelationId((stacksEntity: StacksEntity) => stacksEntity.user)
