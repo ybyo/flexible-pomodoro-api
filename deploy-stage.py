@@ -54,9 +54,8 @@ try:
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-front/certs',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/env',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/certs',
-                'docker stop $(docker ps -a -q)',
-                'docker rm $(docker ps -a -q)',
-                'docker rmi $(docker images -q)',
+                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env down',
+                f'sudo -u {cmd_username} docker system prune -af --volumes',
             ]},
         )
 
