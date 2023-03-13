@@ -29,7 +29,7 @@ export const entityFormatter = <T>(
         } else {
           newItem[newKey] = item[key];
         }
-        if (key === 'fragId') {
+        if (key === 'timerId') {
           ids.push(newItem[newKey]);
         }
       }

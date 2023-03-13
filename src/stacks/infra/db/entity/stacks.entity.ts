@@ -9,7 +9,7 @@ import {
   RelationId,
 } from 'typeorm';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
-import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
+import { StacksToTimerEntity } from '@/stacks/infra/db/entity/stacks-to-timer.entity';
 
 @Entity('Stacks')
 export class StacksEntity extends BaseEntity {
@@ -37,8 +37,12 @@ export class StacksEntity extends BaseEntity {
   @Column({ nullable: true, select: false })
   userId: string;
 
-  @OneToMany(() => StacksToFragEntity, (stacksToFrag) => stacksToFrag.stacks, {
-    cascade: true,
-  })
-  stacksToFrag: StacksToFragEntity[];
+  @OneToMany(
+    () => StacksToTimerEntity,
+    (stacksToTimer) => stacksToTimer.stacks,
+    {
+      cascade: true,
+    },
+  )
+  stacksToTimer: StacksToTimerEntity[];
 }

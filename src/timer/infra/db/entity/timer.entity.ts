@@ -10,12 +10,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
-import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
+import { StacksToTimerEntity } from '@/stacks/infra/db/entity/stacks-to-timer.entity';
 
-@Entity('Frag')
-export class FragEntity extends BaseEntity {
+@Entity('Timer')
+export class TimerEntity extends BaseEntity {
   @PrimaryColumn()
-  fragId: string;
+  timerId: string;
 
   @Column()
   name: string;
@@ -38,17 +38,21 @@ export class FragEntity extends BaseEntity {
   @UpdateDateColumn({ select: false })
   updatedAt: Date;
 
-  @ManyToOne(() => UserEntity, (userEntity) => userEntity.frag, {
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.timer, {
     onDelete: 'CASCADE',
   })
   user: UserEntity;
 
-  @RelationId((fragEntity: FragEntity) => fragEntity.user)
+  @RelationId((timerEntity: TimerEntity) => timerEntity.user)
   @Column({ nullable: true, select: false })
   userId: string;
 
-  @OneToMany(() => StacksToFragEntity, (stacksToFrag) => stacksToFrag.frag, {
-    cascade: true,
-  })
-  stacksToFrag: StacksToFragEntity[];
+  @OneToMany(
+    () => StacksToTimerEntity,
+    (stacksToTimer) => stacksToTimer.timer,
+    {
+      cascade: true,
+    },
+  )
+  stacksToTimer: StacksToTimerEntity[];
 }

@@ -1,18 +1,18 @@
 import { plainToClass } from 'class-transformer';
 
-export class Frag {
-  fragId: string;
+export class Timer {
+  timerId: string;
   name: string;
   duration: number;
   count: number;
   order: number;
   color: string;
 
-  constructor(frag: Partial<Frag>) {
-    if (frag) {
+  constructor(timer: Partial<Timer>) {
+    if (timer) {
       Object.assign(
         this,
-        plainToClass(Frag, frag, {
+        plainToClass(Timer, timer, {
           excludeExtraneousValues: false,
         }),
       );

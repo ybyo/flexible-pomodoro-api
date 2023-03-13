@@ -5,12 +5,12 @@ import {
   Mapper,
   namingConventions,
 } from '@automapper/core';
-import { Injectable } from '@nestjs/common';
-import { FragEntity } from '@/frags/infra/db/entity/frag.entity';
-import { Frag } from '@/frags/domain/frag.model';
+import { Injectable }  from '@nestjs/common';
+import { TimerEntity } from '@/timer/infra/db/entity/timer.entity';
+import { Timer }       from '@/timer/domain/timer.model';
 
 @Injectable()
-export class FragProfile extends AutomapperProfile {
+export class TimerProfile extends AutomapperProfile {
   constructor(@InjectMapper() mapper: Mapper) {
     super(mapper);
   }
@@ -19,8 +19,8 @@ export class FragProfile extends AutomapperProfile {
     return (mapper) => {
       createMap(
         mapper,
-        FragEntity,
-        Frag,
+        TimerEntity,
+        Timer,
         namingConventions(new CamelCaseNamingConvention()),
       );
     };

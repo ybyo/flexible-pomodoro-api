@@ -1,4 +1,4 @@
-export const fragDivider = (stacks) => {
+export const timerDivider = (stacks) => {
   const result = [];
   if (stacks[0].data) {
     const data = stacks[0].data;

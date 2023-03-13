@@ -8,10 +8,10 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as argon2 from 'argon2';
-import { FragEntity } from '@/frags/infra/db/entity/frag.entity';
-import { Frag } from '@/frags/domain/frag.model';
-import { Stacks } from '@/stacks/domain/stacks.model';
+import * as argon2     from 'argon2';
+import { TimerEntity } from '@/timer/infra/db/entity/timer.entity';
+import { Timer }       from '@/timer/domain/timer.model';
+import { Stacks }      from '@/stacks/domain/stacks.model';
 import { AutoMap } from '@automapper/classes';
 import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
 
@@ -58,9 +58,9 @@ export class UserEntity extends BaseEntity {
     this.password = await argon2.hash(this.password);
   }
 
-  @AutoMap(() => [Frag])
-  @OneToMany(() => FragEntity, (fragEntity) => fragEntity.user)
-  frag: Frag[];
+  @AutoMap(() => [Timer])
+  @OneToMany(() => TimerEntity, (timerEntity) => timerEntity.user)
+  timer: Timer[];
 
   @AutoMap(() => [Stacks])
   @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user)

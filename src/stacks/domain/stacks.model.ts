@@ -1,11 +1,11 @@
-import { Frag } from '@/frags/domain/frag.model';
+import { Timer } from '@/timer/domain/timer.model';
 import { plainToClass } from 'class-transformer';
 
 export class Stacks {
   id: string;
   name: string;
   count: number;
-  data: Frag[];
+  data: Timer[];
   isEditing: boolean;
 
   constructor(stacks: Partial<Stacks>) {

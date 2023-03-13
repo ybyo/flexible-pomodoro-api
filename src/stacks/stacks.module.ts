@@ -8,8 +8,8 @@ import { PassportModule } from '@nestjs/passport';
 import { Logger, Module } from '@nestjs/common';
 import { StacksProfile } from '@/stacks/common/mapper/stacks.profile';
 import { SaveStacksHandler } from '@/stacks/application/command/handler/save-stacks.handler';
-import { GetStacksHandler } from '@/stacks/application/command/handler/get-stacks.handler';
-import { StacksToFragEntity } from '@/stacks/infra/db/entity/stacks-to-frag.entity';
+import { GetStacksHandler }    from '@/stacks/application/command/handler/get-stacks.handler';
+import { StacksToTimerEntity } from '@/stacks/infra/db/entity/stacks-to-timer.entity';
 import { RemoveStacksHandler } from '@/stacks/application/command/handler/remove-stacks.handler';
 
 const commandHandlers = [
@@ -29,7 +29,7 @@ const repositories = [
   imports: [
     AuthModule,
     CqrsModule,
-    TypeOrmModule.forFeature([StacksEntity, StacksToFragEntity]),
+    TypeOrmModule.forFeature([StacksEntity, StacksToTimerEntity]),
     PassportModule.register({
       session: true,
     }),

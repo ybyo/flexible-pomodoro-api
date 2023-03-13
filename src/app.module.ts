@@ -19,7 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
-import { FragModule } from './frags/frag.module';
+import { TimerModule } from './timer/timer.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { StacksModule } from '@/stacks/stacks.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -61,7 +61,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     LoggingModule,
     TerminusModule,
     ExceptionModule,
-    FragModule,
+    TimerModule,
     StacksModule,
   ],
   controllers: [HealthCheckController],

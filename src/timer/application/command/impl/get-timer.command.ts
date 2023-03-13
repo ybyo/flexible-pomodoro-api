@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
 
-export class GetFragsCommand implements ICommand {
+export class GetTimerCommand implements ICommand {
   constructor(readonly id: string) {}
 }
