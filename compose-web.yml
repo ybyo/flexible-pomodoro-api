@@ -27,7 +27,6 @@ services:
 
   nginx:
     image: nginx:${NODE_ENV}
-    tty: true
     build:
       context: ../flexible-pomodoro-front
       dockerfile: ./Dockerfile
@@ -54,9 +53,8 @@ services:
 
   certbot:
     image: certbot/certbot
-    tty: true
     container_name: certbot_service
     volumes:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
-    command: certonly --webroot --webroot-path /var/www/certbot/ --agree-tos -m ybyo@yibyeongyong.com -d pomo.yibyeongyong.com
+#    command: certonly --webroot --webroot-path /var/www/certbot/ --agree-tos -m ybyo@yibyeongyong.com -d pomo.yibyeongyong.com
