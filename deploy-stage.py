@@ -2,11 +2,11 @@ import os
 from os.path import join, dirname
 from pathlib import PureWindowsPath
 import time
-import subprocess
 import boto3
 import paramiko
 from dotenv import load_dotenv
 from datetime import datetime
+import subprocess
 
 start_time = time.time()
 
@@ -39,7 +39,7 @@ ssm_client = boto3.client('ssm', region_name=region_name, aws_access_key_id=acce
                           aws_secret_access_key=secret_access_key)
 
 try:
-    os.system(f"docker system prune -af --volumes")
+#     os.system(f"docker system prune -af --volumes")
     # Build Docker Compose files in local
     os.system(
         f"docker compose -f compose-web.yml --env-file ./env/.{docker_tag}.env build --no-cache")
@@ -53,19 +53,20 @@ try:
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-front/certs',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/env',
                 f'sudo -u {cmd_username} mkdir -p {remote_project_dir}/flexible-pomodoro-api/certs',
-                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env down',
+                f'sudo -u {cmd_username} NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env down',
                 f'sudo -u {cmd_username} docker system prune -af --volumes',
             ]},
         )
 
         command_id = response['Command']['CommandId']
-        time.sleep(3)
+
+        time.sleep(10)
+
         output = ssm_client.get_command_invocation(
             CommandId=command_id,
             InstanceId=instance_id,
         )
         print(f"{output['StandardErrorContent']}")
-        time.sleep(15)
 
         if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
             print(f'Cleaning frontend...')
@@ -82,7 +83,8 @@ try:
                        f'env/.{docker_tag}.env',
                        f'certs/127.0.0.1-cert.pem',
                        f'certs/127.0.0.1-key.pem',
-                       f'../flexible-pomodoro-front/env/.{docker_tag}.env']
+                       f'../flexible-pomodoro-front/env/.{docker_tag}.env',
+                       ]
 
         for local_file in local_files:
             local_file_abs = join(os.getcwd(), local_file)
@@ -113,7 +115,7 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'NODE_ENV={docker_tag} sudo -u ubuntu docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --no-build --remove-orphans nginx certbot',
+                f'sudo -u {cmd_username} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up --no-build nginx',
             ]
 
         elif instance_id == os.environ['INSTANCE_BACKEND_ID']:
@@ -128,34 +130,21 @@ try:
                 out, err = proc.communicate()
 
             commands = [
-                f'sudo -u ubuntu NODE_ENV={docker_tag} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up -d --remove-orphans --no-build backend',
+                f'sudo -u {cmd_username} docker compose -f {remote_project_dir}/flexible-pomodoro-api/compose-web.yml --env-file {remote_project_dir}/flexible-pomodoro-api/env/.{docker_tag}.env up --no-build backend',
             ]
 
         # Run Docker Compose in EC2
+        if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
+            print(f'Starting Docker image in Frontend...')
+        else:
+            print(f'Starting Docker image in Backend...\n')
+
         try:
-            if instance_id == os.environ['INSTANCE_FRONTEND_ID']:
-                print(f'Starting Docker image in Frontend...')
-            else:
-                print(f'Starting Docker image in Backend...\n')
-
-            try:
-                response = ssm_client.send_command(
-                    InstanceIds=[instance_id],
-                    DocumentName='AWS-RunShellScript',
-                    Parameters={'commands': commands},
-                )
-                command_id = response['Command']['CommandId']
-
-                time.sleep(3)
-
-                output = ssm_client.get_command_invocation(
-                    CommandId=command_id,
-                    InstanceId=instance_id,
-                )
-                print(f"{output['StandardErrorContent']}")
-
-            except Exception as e:
-                print(f'Error occurred: {e}')
+            response = ssm_client.send_command(
+                InstanceIds=[instance_id],
+                DocumentName='AWS-RunShellScript',
+                Parameters={'commands': commands},
+            )
 
         except Exception as e:
             print(f'Error occurred: {e}')

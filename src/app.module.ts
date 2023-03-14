@@ -19,9 +19,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
-import { FragModule } from './frags/frag.module';
+import { TimerModule } from './timers/timer.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
-import { StacksModule } from '@/stacks/stacks.module';
+import { RoutineModule } from '@/routines/routine.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import emailConfig from '@/config/email.config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -61,8 +61,8 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     LoggingModule,
     TerminusModule,
     ExceptionModule,
-    FragModule,
-    StacksModule,
+    TimerModule,
+    RoutineModule,
   ],
   controllers: [HealthCheckController],
   providers: [
