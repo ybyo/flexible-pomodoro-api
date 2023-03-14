@@ -8,12 +8,12 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as argon2     from 'argon2';
-import { TimerEntity } from '@/timer/infra/db/entity/timer.entity';
-import { Timer }       from '@/timer/domain/timer.model';
-import { Stacks }      from '@/stacks/domain/stacks.model';
+import * as argon2 from 'argon2';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
+import { Timer } from '@/timers/domain/timer.model';
+import { Routine } from '@/routines/domain/routine.model';
 import { AutoMap } from '@automapper/classes';
-import { StacksEntity } from '@/stacks/infra/db/entity/stacks.entity';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {
@@ -62,7 +62,7 @@ export class UserEntity extends BaseEntity {
   @OneToMany(() => TimerEntity, (timerEntity) => timerEntity.user)
   timer: Timer[];
 
-  @AutoMap(() => [Stacks])
-  @OneToMany(() => StacksEntity, (stacksEntity) => stacksEntity.user)
-  stacks: Stacks[];
+  @AutoMap(() => [Routine])
+  @OneToMany(() => RoutineEntity, (routineEntity) => routineEntity.user)
+  routine: Routine[];
 }
