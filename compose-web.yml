@@ -45,6 +45,7 @@ services:
       - ${FRONT_PORT}:${FRONT_PORT}
     restart: always
     volumes:
+      - ./certs/:/etc/nginx/certs/:ro
       - ./certbot/www:/var/www/certbot/:ro
       - ./certbot/conf/:/etc/letsencrypt/:ro
       - ./public:/public:ro
