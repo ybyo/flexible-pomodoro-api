@@ -36,9 +36,11 @@ export class RegisterUserHandler
       signupVerifyToken: ulid(),
     });
 
-    await this.userRepository.saveUser(newUser).catch(() => {
-      throw new InternalServerErrorException('Cannot save user');
-    });
+    try {
+      await this.userRepository.saveUser(newUser);
+    } catch (err) {
+      throw new InternalServerErrorException('Failed to save user', err);
+    }
 
     await this.userFactory.create(newUser);
 
