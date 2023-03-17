@@ -48,7 +48,7 @@ export class EmailService {
     ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
       if (err) {
         throw new InternalServerErrorException(
-          'Cannot render email template. Account creation reverted.',
+          `Cannot render email template. Account creation reverted.\n${err}`,
         );
       } else {
         renderedTemplate = data;
