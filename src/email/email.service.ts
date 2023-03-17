@@ -27,9 +27,9 @@ export class EmailService {
     signupVerifyToken: string,
   ) {
     const url =
-      process.env.NODE_ENV === 'staging'
-        ? `${this.config.host}`
-        : `${this.config.host}:4000`;
+      process.env.NODE_ENV === 'development'
+        ? '127.0.0.1:4000'
+        : `${this.config.host}`;
 
     const verificationUrl = `https://${url}/user/verify-email?signupVerifyToken=${signupVerifyToken}`;
 
