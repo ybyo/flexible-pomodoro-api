@@ -12,12 +12,8 @@ import { CommandBus } from '@nestjs/cqrs';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 
 @Controller('user')
-export class UsersController {
-  constructor(
-    @Inject(Logger) private readonly logger: LoggerService,
-    private authService: AuthService,
-    private commandBus: CommandBus,
-  ) {}
+export class UserController {
+  constructor(private commandBus: CommandBus) {}
 
   @Get('verify-email')
   async verifyEmail(@Req() req, @Query() query): Promise<string> {
