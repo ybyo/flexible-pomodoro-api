@@ -1,3 +1,12 @@
+import { AuthService } from '@/auth/auth.service';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { LocalGuard } from '@/auth/guard/local.guard';
+import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
+import { IUser } from '@/type-defs/message.interface';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import {
   Body,
   Controller,
@@ -11,17 +20,8 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { AuthService } from '@/auth/auth.service';
 import { ConfigType } from '@nestjs/config';
-import { IUser } from '@/type-defs/message.interface';
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { LocalGuard } from '@/auth/guard/local.guard';
-import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
-import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { Request, Response } from 'express';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -84,16 +84,11 @@ export class AuthController {
   }
 
   @Post('check-email')
-  async checkEmail(
-    @Body() dto: CheckEmailDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const result = await this.authService.checkEmail(dto);
-
+  async checkEmail(@Body() dto: CheckEmailDto) {
     // const uniqueEmailToken = await this.authService.issueToken(dto);
 
     // TODO: 아무런 응답도 전송하지 않으면 왜 201로 응답하는지 확인
     // res.cookie('uniqueEmailToken', uniqueEmailToken, { ...this.accessConf });
-    return result;
+    return await this.authService.checkEmail(dto);
   }
 }

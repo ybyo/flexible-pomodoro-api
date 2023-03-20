@@ -8,7 +8,7 @@ import { UserEntity } from './infra/db/entity/user.entity';
 import { UserEventsHandler } from './application/event/user-events.handler';
 import { UserFactory } from './domain/user.factory';
 import { UserRepository } from './infra/db/repository/UserRepository';
-import { UsersController } from './interface/users.controller';
+import { UserController } from './interface/user.controller';
 import { UserProfile } from '@/users/common/mapper/user.profile';
 import { VerifyEmailHandler } from '@/users/application/command/handler/verify-email.handler';
 import { PassportModule } from '@nestjs/passport';
@@ -33,7 +33,7 @@ const repositories = [
       session: true,
     }),
   ],
-  controllers: [UsersController],
+  controllers: [UserController],
   providers: [
     Logger,
     UserProfile,
@@ -44,4 +44,4 @@ const repositories = [
     ...repositories,
   ],
 })
-export class UsersModule {}
+export class UserModule {}

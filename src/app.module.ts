@@ -16,7 +16,7 @@ import { REDIS, RedisModule } from '@/redis';
 import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
 import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './users/user.module';
 import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
 import { TimerModule } from './timers/timer.module';
@@ -54,7 +54,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
       ttl: 60,
       limit: 20,
     }),
-    UsersModule,
+    UserModule,
     AuthModule,
     RedisModule,
     HttpModule,
