@@ -1,28 +1,16 @@
-import {
-  Controller,
-  Get,
-  Inject,
-  Logger,
-  LoggerService,
-  Query,
-  Req,
-} from '@nestjs/common';
-import { AuthService } from '@/auth/auth.service';
-import { CommandBus } from '@nestjs/cqrs';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
+import { Controller, Get, Query } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 
 @Controller('user')
 export class UserController {
   constructor(private commandBus: CommandBus) {}
 
   @Get('verify-email')
-  async verifyEmail(@Req() req, @Query() query): Promise<string> {
+  async verifyEmail(@Query() query): Promise<string> {
     const { signupVerifyToken } = query;
-
     const command = new VerifyEmailCommand(signupVerifyToken);
 
-    const result = await this.commandBus.execute(command);
-
-    return result;
+    return await this.commandBus.execute(command);
   }
 }
