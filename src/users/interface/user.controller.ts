@@ -2,7 +2,7 @@ import { VerifyEmailCommand } from '@/users/application/command/impl/verify-emai
 import { Controller, Get, Query } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private commandBus: CommandBus) {}
 

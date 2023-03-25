@@ -31,7 +31,7 @@ export class EmailService {
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    const verificationUrl = `https://${url}/user/verify-email?signupVerifyToken=${signupVerifyToken}`;
+    const verificationUrl = `https://${url}/users/verify-email?signupVerifyToken=${signupVerifyToken}`;
 
     let renderedTemplate;
 
