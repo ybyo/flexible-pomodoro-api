@@ -4,10 +4,11 @@ import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { IUser } from '@/type-defs/message.interface';
+import { IRes, IUser } from '@/type-defs/message.interface';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -88,10 +89,14 @@ export class AuthController {
     @Body() dto: CheckEmailDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // const uniqueEmailToken = await this.authService.issueToken(dto);
+    const response: IRes<any> = await this.authService.checkEmail(dto);
+
+    if (response.success === false) {
+      throw new BadRequestException('Duplicate email');
+    }
 
     // TODO: 아무런 응답도 전송하지 않으면 왜 201로 응답하는지 확인
     // res.cookie('uniqueEmailToken', uniqueEmailToken, { ...this.accessConf });
-    return await this.authService.checkEmail(dto);
+    return response;
   }
 }
