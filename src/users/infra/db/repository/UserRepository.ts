@@ -64,6 +64,21 @@ export class UserRepository implements IUserRepository {
     return this.userFactory.reconstitute(newEntity);
   }
 
+  async findByResetPasswordVerifyToken(
+    resetPasswordVerifyToken: string,
+  ): Promise<User | null> {
+    const userEntity = await this.userRepository.findOneBy({
+      resetPasswordToken: resetPasswordVerifyToken,
+    });
+    if (!userEntity) {
+      return null;
+    }
+
+    const newEntity = this.mapper.map(userEntity, UserEntity, User);
+
+    return this.userFactory.reconstitute(newEntity);
+  }
+
   async saveUser(user: User): Promise<void> {
     await this.datasource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });

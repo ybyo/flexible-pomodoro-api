@@ -64,4 +64,26 @@ export class UserController {
 
     return null;
   }
+
+  @Get('verify-reset-password')
+  async verifyResetPassword(
+    @Query() query,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<IRes<IUser>> {
+    const { resetPasswordVerifyToken } = query;
+    const command = new VerifyResetPasswordTokenCommand(
+      resetPasswordVerifyToken,
+    );
+
+    const result: IRes<IUser> = await this.commandBus.execute(command);
+    const user = result.data;
+
+    if (user !== null) {
+      const accessToken = await this.authService.issueToken(user as IUser);
+
+      res.cookie('resetPasswordToken', accessToken, this.accessConf);
+    }
+
+    return result;
+  }
 }
