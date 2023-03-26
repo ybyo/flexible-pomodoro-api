@@ -13,4 +13,33 @@ export class UserController {
 
     return await this.commandBus.execute(command);
   }
+
+  @Post('reset-password')
+  async resetPass(@Body() data): Promise<IRes<any>> {
+    const { email } = data;
+    const command = new CheckEmailCommand(email);
+
+    const response = await this.commandBus.execute(command);
+
+    // Email exists, sending email
+    if (response.success === false) {
+      const res = {} as IRes<any>;
+      try {
+        await this.emailService.sendPasswordResetVerification(email, ulid());
+
+        res.success = true;
+        res.message = 'Reset password verification email sent successfully.';
+
+        return res;
+      } catch (err) {
+        // res.success = false;
+        // res.message = err;
+        console.log(err);
+
+        return null;
+      }
+    }
+
+    return null;
+  }
 }
