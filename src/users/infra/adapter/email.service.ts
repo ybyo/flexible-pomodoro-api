@@ -15,4 +15,14 @@ export class EmailService implements IEmailService {
       signupVerifyToken,
     );
   }
+
+  async sendPasswordResetVerification(
+    email: string,
+    signupVerifyToken: string,
+  ): Promise<void> {
+    await this.emailService.sendPasswordResetVerification(
+      email,
+      signupVerifyToken,
+    );
+  }
 }

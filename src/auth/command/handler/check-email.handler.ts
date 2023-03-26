@@ -19,7 +19,10 @@ export class CheckEmailHandler implements ICommandHandler<CheckEmailCommand> {
     )) || { email: 'dummy' };
 
     if (foundEmail !== 'dummy') {
-      throw new BadRequestException('Duplicate email');
+      const response = {} as IRes<any>;
+      response.success = false;
+
+      return response;
     }
 
     const response = {} as IRes<any>;

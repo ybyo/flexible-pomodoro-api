@@ -32,9 +32,6 @@ export class UserEntity extends BaseEntity {
   @Column()
   signupVerifyToken: string;
 
-  @Column({ type: 'text', default: null })
-  refreshToken: string;
-
   @Column({ default: null })
   resetPasswordToken: string;
 

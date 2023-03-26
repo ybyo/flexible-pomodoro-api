@@ -1,10 +1,20 @@
+import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { IRes } from '@/type-defs/message.interface';
+import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
-import { Controller, Get, Query } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
+import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { ulid } from 'ulid';
 
 @Controller('users')
 export class UserController {
-  constructor(private commandBus: CommandBus) {}
+  constructor(
+    private commandBus: CommandBus,
+    private eventBus: EventBus,
+    @Inject('EmailService') private emailService: IEmailService,
+  ) {}
 
   @Get('verify-email')
   async verifyEmail(@Query() query): Promise<string> {
@@ -24,8 +34,20 @@ export class UserController {
     // Email exists, sending email
     if (response.success === false) {
       const res = {} as IRes<any>;
+
       try {
-        await this.emailService.sendPasswordResetVerification(email, ulid());
+        const resetPasswordVerifyToken = ulid();
+        await this.emailService.sendPasswordResetVerification(
+          email,
+          resetPasswordVerifyToken,
+        );
+
+        const command = new AddResetTokenCommand(
+          email,
+          resetPasswordVerifyToken,
+        );
+
+        const response = await this.commandBus.execute(command);
 
         res.success = true;
         res.message = 'Reset password verification email sent successfully.';
