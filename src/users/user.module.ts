@@ -1,6 +1,8 @@
 import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
 import { AddResetTokenHandler } from '@/users/application/command/handler/add-reset-token.handler';
+import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handler/verify-reset-password-token.handler';
+import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
 import { Logger, Module } from '@nestjs/common';
 import { AuthModule } from 'src/auth/auth.module';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -21,10 +23,13 @@ const commandHandlers = [
   CheckEmailHandler,
   VerifyResetPasswordTokenHandler,
   AddResetTokenHandler,
+  UpdatePasswordHandler,
 ];
 const queryHandlers = [];
 const eventHandlers = [UserRegisterEventHandler];
 const factories = [UserFactory];
+
+const strategies = [PasswordResetStrategy];
 
 const repositories = [
   { provide: 'UserRepository', useClass: UserRepository },
@@ -43,13 +48,14 @@ const repositories = [
   ],
   controllers: [UserController],
   providers: [
-    Logger,
-    UserProfile,
     ...commandHandlers,
-    ...queryHandlers,
     ...eventHandlers,
     ...factories,
+    ...queryHandlers,
     ...repositories,
+    ...strategies,
+    Logger,
+    UserProfile,
   ],
 })
 export class UserModule {}
