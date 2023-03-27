@@ -1,11 +1,28 @@
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
-import { IRes } from '@/type-defs/message.interface';
-import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
+import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import accessTokenConfig from '@/config/accessTokenConfig';
 import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
+import { AuthService } from '@/auth/auth.service';
+import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { ConfigType } from '@nestjs/config';
+import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { IRes, IUser } from '@/type-defs/message.interface';
+import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
+import { Request, Response } from 'express';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
-import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { ulid } from 'ulid';
 
 @Controller('users')
@@ -13,7 +30,10 @@ export class UserController {
   constructor(
     private commandBus: CommandBus,
     private eventBus: EventBus,
+    private authService: AuthService,
     @Inject('EmailService') private emailService: IEmailService,
+    @Inject(accessTokenConfig.KEY)
+    private accessConf: ConfigType<typeof accessTokenConfig>,
   ) {}
 
   @Get('verify-email')
@@ -85,5 +105,33 @@ export class UserController {
     }
 
     return result;
+  }
+
+  @UseGuards(PasswordResetGuard)
+  @Post('post-password-reset')
+  async resetPassword(
+    @Req() req: Request,
+    @Body() body: PasswordResetDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const newPassword = body.password;
+    let resetPasswordToken;
+
+    if ('resetPasswordToken' in req.cookies) {
+      resetPasswordToken = req.cookies.resetPasswordToken;
+    }
+
+    let response = {} as IRes<void>;
+
+    const user = await this.authService.verifyJwt(resetPasswordToken);
+
+    const command = new UpdatePasswordCommand(user.data.email, newPassword);
+    response = await this.commandBus.execute(command);
+
+    if (response.success === true) {
+      res.cookie('resetPasswordToken', null, { ...this.accessConf, maxAge: 1 });
+    }
+
+    return response;
   }
 }
