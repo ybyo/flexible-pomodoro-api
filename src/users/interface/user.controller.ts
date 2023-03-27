@@ -91,11 +91,12 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
     const { resetPasswordVerifyToken } = query;
+
     const command = new VerifyResetPasswordTokenCommand(
       resetPasswordVerifyToken,
     );
-
     const result: IRes<IUser> = await this.commandBus.execute(command);
+
     const user = result.data;
 
     if (user !== null) {
@@ -130,6 +131,13 @@ export class UserController {
 
     if (response.success === true) {
       res.cookie('resetPasswordToken', null, { ...this.accessConf, maxAge: 1 });
+      const command = new AddResetTokenCommand(user.data.email, null);
+
+      try {
+        await this.commandBus.execute(command);
+      } catch (err) {
+        console.log(err);
+      }
     }
 
     return response;
