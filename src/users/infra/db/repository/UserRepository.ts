@@ -1,3 +1,4 @@
+import * as argon2 from 'argon2';
 import { UserFactory } from 'src/users/domain/user.factory';
 import { UserEntity } from '../entity/user.entity';
 import { User } from '@/users/domain/user.model';
@@ -95,6 +96,11 @@ export class UserRepository implements IUserRepository {
       if (!user) {
         return null;
       } else {
+        if ('password' in partialEntity) {
+          partialEntity.password = await argon2.hash(
+            partialEntity.password as string,
+          );
+        }
         await manager.update(UserEntity, criteria, partialEntity);
       }
     });
