@@ -16,7 +16,7 @@ services:
     ports:
       - ${DATABASE_HOST_PORT}:${DATABASE_CONTAINER_PORT}
     volumes:
-      - /opt/mysql_data:/var/lib/mysql
+      - ./mysql:/var/lib/mysql
     networks:
       - app-tier
 
