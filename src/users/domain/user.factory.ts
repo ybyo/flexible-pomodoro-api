@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventBus } from '@nestjs/cqrs';
-import { UserCreatedEvent } from './user-created.event';
+import { UserRegisterEvent } from './user-register.event';
 import { User } from './user.model';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class UserFactory {
 
   async create(user: User): Promise<User> {
     await this.eventBus.publish(
-      new UserCreatedEvent(user.email, user.signupVerifyToken),
+      new UserRegisterEvent(user.email, user.signupVerifyToken),
     );
 
     return user;
