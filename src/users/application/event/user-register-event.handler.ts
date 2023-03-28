@@ -1,17 +1,19 @@
 import { Inject } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { UserCreatedEvent } from 'src/users/domain/user-created.event';
+import { UserRegisterEvent } from '@/users/domain/user-register.event';
 import { IEmailService } from '../adapter/iemail.service';
 
-@EventsHandler(UserCreatedEvent)
-export class UserEventsHandler implements IEventHandler<UserCreatedEvent> {
+@EventsHandler(UserRegisterEvent)
+export class UserRegisterEventHandler
+  implements IEventHandler<UserRegisterEvent>
+{
   constructor(@Inject('EmailService') private emailService: IEmailService) {}
 
-  async handle(event: UserCreatedEvent) {
+  async handle(event: UserRegisterEvent) {
     switch (event.name) {
-      case UserCreatedEvent.name: {
+      case UserRegisterEvent.name: {
         console.log('Event: User created');
-        const { email, signupVerifyToken } = event as UserCreatedEvent;
+        const { email, signupVerifyToken } = event as UserRegisterEvent;
         await this.emailService.sendUserSignupVerification(
           email,
           signupVerifyToken,
