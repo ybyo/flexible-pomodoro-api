@@ -3,7 +3,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { IRes, IUser } from '@/type-defs/message.interface';
-import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 @CommandHandler(VerifyResetPasswordTokenCommand)
