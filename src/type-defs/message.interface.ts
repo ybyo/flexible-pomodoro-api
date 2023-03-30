@@ -4,7 +4,7 @@ export interface IUser {
   email: string;
 }
 
-export interface IRes<T> {
+export interface IRes<T = void> {
   success: boolean;
   data?: T;
   message?: string;

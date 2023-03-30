@@ -1,3 +1,4 @@
+import { IRes } from '@/type-defs/message.interface';
 import {
   Inject,
   Injectable,
@@ -98,7 +99,7 @@ export class EmailService {
     ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
       if (err) {
         throw new InternalServerErrorException(
-          `Cannot render email template. Account creation reverted.\n${err}`,
+          `Cannot render email template. Reset password reverted.\n${err}`,
         );
       } else {
         renderedTemplate = data;
@@ -120,5 +121,61 @@ export class EmailService {
       .catch((err) => {
         console.log(err);
       });
+  }
+
+  async sendChangeEmailVerification(
+    newEmail: string,
+    changeEmailVerifyToken: string,
+  ) {
+    const url =
+      process.env.NODE_ENV === 'development'
+        ? '127.0.0.1:4000'
+        : `${this.config.host}`;
+
+    const verificationUrl = `https://${url}/users/change-email?changeEmailVerifyToken=${changeEmailVerifyToken}`;
+
+    let renderedTemplate;
+
+    const emailTemplateStr = path.join(
+      __dirname,
+      '../../public/signup-email-inlined.ejs',
+    );
+
+    const dataMap = {
+      app_name: 'Pipe Timer - 이메일 변경 인증',
+      verification_url: verificationUrl,
+    };
+
+    ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
+      if (err) {
+        throw new InternalServerErrorException(
+          `Cannot render email template. Change email reverted.\n${err}`,
+        );
+      } else {
+        renderedTemplate = data;
+      }
+    });
+
+    const mailOptions: MailDataRequired = {
+      to: newEmail,
+      subject: 'Pipe Timer - 이메일 변경 인증',
+      from: 'no-reply@pipetimer.com',
+      html: renderedTemplate,
+    };
+
+    const res = {} as IRes;
+
+    await sgMail
+      .send(mailOptions)
+      .then(() => {
+        console.log('Verification email was sent successfully.');
+        res.success = true;
+      })
+      .catch((err) => {
+        console.log(err);
+        res.success = false;
+      });
+
+    return res;
   }
 }
