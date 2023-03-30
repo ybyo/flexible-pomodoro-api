@@ -142,4 +142,21 @@ export class UserController {
 
     return response;
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-email')
+  async changeEmail(
+    @Req() req: Request,
+    @Body() body: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    let oldEmail;
+    if ('email' in req.user) {
+      oldEmail = req.user.email;
+    }
+    const newEmail = body.email;
+    const changeEmailVerifyToken = ulid();
+    const command = new ChangeEmailCommand(oldEmail, changeEmailVerifyToken);
+    const response = await this.commandBus.execute(command);
+  }
 }
