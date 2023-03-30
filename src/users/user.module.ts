@@ -1,6 +1,7 @@
 import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
 import { AddResetTokenHandler } from '@/users/application/command/handler/add-reset-token.handler';
 import { ChangeEmailHandler } from '@/users/application/command/handler/change-email.handler';
+import { CreateTimestampHandler } from '@/users/application/command/handler/create-timestamp.handler';
 import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handler/verify-reset-password-token.handler';
 import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
@@ -26,6 +27,7 @@ const commandHandlers = [
   AddResetTokenHandler,
   UpdatePasswordHandler,
   ChangeEmailHandler,
+  CreateTimestampHandler,
 ];
 const queryHandlers = [];
 const eventHandlers = [UserRegisterEventHandler];

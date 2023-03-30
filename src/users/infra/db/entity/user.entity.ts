@@ -38,6 +38,9 @@ export class UserEntity extends BaseEntity {
   @Column({ default: null })
   changeEmailToken: string;
 
+  @Column({ default: null })
+  changeEmailTokenCreated: Date;
+
   @Column({ default: false })
   isVerified: boolean;
 
