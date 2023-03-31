@@ -39,6 +39,9 @@ export class UserEntity extends BaseEntity {
   changeEmailToken: string;
 
   @Column({ default: null })
+  newEmail: string;
+
+  @Column({ default: null })
   changeEmailTokenCreated: Date;
 
   @Column({ default: false })

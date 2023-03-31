@@ -147,6 +147,7 @@ export class UserRepository implements IUserRepository {
       for (const user of emailUsers) {
         user.changeEmailToken = null;
         user.changeEmailTokenCreated = null;
+        user.newEmail = null;
 
         await this.userRepository.save(user);
         console.log(

@@ -161,7 +161,11 @@ export class UserController {
     }
     const newEmail = body.email;
     const changeEmailVerifyToken = ulid();
-    const command = new ChangeEmailCommand(oldEmail, changeEmailVerifyToken);
+    const command = new ChangeEmailCommand(
+      oldEmail,
+      newEmail,
+      changeEmailVerifyToken,
+    );
     const response = await this.commandBus.execute(command);
 
     if (response.success === true) {
