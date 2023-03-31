@@ -80,6 +80,17 @@ export class UserRepository implements IUserRepository {
     return this.userFactory.reconstitute(newEntity);
   }
 
+  async findByChangeEmailToken(changeEmailVerifyToken: string) {
+    const userEntity = await this.userRepository.findOneBy({
+      changeEmailToken: changeEmailVerifyToken,
+    });
+    if (!userEntity) {
+      return null;
+    }
+
+    return userEntity;
+  }
+
   async saveUser(user: User): Promise<void> {
     await this.datasource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });
