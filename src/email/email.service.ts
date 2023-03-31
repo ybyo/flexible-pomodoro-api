@@ -138,7 +138,7 @@ export class EmailService {
 
     const emailTemplateStr = path.join(
       __dirname,
-      '../../public/signup-email-inlined.ejs',
+      '../../public/change-email-inlined.ejs',
     );
 
     const dataMap = {
