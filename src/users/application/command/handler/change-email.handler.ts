@@ -14,7 +14,7 @@ export class ChangeEmailHandler implements ICommandHandler<ChangeEmailCommand> {
   ) {}
 
   async execute(command: ChangeEmailCommand) {
-    const { oldEmail, changeEmailVerifyToken } = command;
+    const { oldEmail, newEmail, changeEmailVerifyToken } = command;
 
     const user = await this.userRepository.findByEmail(oldEmail);
 
@@ -27,7 +27,7 @@ export class ChangeEmailHandler implements ICommandHandler<ChangeEmailCommand> {
     } else {
       await this.userRepository.updateUser(
         { email: oldEmail },
-        { changeEmailToken: changeEmailVerifyToken },
+        { changeEmailToken: changeEmailVerifyToken, newEmail },
       );
     }
 
