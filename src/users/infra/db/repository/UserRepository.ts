@@ -123,7 +123,34 @@ export class UserRepository implements IUserRepository {
         const userId = user['user_id'];
         await this.userRepository.delete(userId);
         console.log(
-          `Account deleted because validation deadline is over ${user['user_email']}`,
+          `Account deleted because validation deadline is over: ${user['email']}`,
+        );
+      }
+    }
+
+    // Deletes unchanged emails
+    const changeEmailDeadline = new Date(
+      new Date().getTime() - 1 * 60 * 60 * 1000,
+    );
+
+    const emailUsers = await this.userRepository
+      .createQueryBuilder('user')
+      .where('changeEmailToken != :changeEmailToken', {
+        changeEmailToken: '',
+      })
+      .andWhere('changeEmailTokenCreated <= :deadline', {
+        deadline: changeEmailDeadline,
+      })
+      .getMany();
+
+    if (emailUsers.length !== 0) {
+      for (const user of emailUsers) {
+        user.changeEmailToken = null;
+        user.changeEmailTokenCreated = null;
+
+        await this.userRepository.save(user);
+        console.log(
+          `Change email token, timestamp deleted because email not changed: ${user['email']}`,
         );
       }
     }
