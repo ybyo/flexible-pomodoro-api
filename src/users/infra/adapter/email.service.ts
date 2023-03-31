@@ -25,4 +25,14 @@ export class EmailService implements IEmailService {
       signupVerifyToken,
     );
   }
+
+  async sendChangeEmailVerification(
+    email: string,
+    changeEmailVerifyToken: string,
+  ): Promise<void> {
+    await this.emailService.sendChangeEmailVerification(
+      email,
+      changeEmailVerifyToken,
+    );
+  }
 }

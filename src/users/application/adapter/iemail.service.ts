@@ -4,4 +4,5 @@ export interface IEmailService {
     email,
     resetPasswordVerifyToken,
   ) => Promise<void>;
+  sendChangeEmailVerification: (email, changeEmailVerifyToken) => Promise<void>;
 }

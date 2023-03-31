@@ -1,3 +1,6 @@
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
+import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
@@ -141,5 +144,46 @@ export class UserController {
     }
 
     return response;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-email')
+  async changeEmail(
+    @Req() req: Request,
+    @Body() body: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    let oldEmail;
+    let uid;
+    if ('email' in req.user && 'id' in req.user) {
+      oldEmail = req.user.email;
+      uid = req.user.id;
+    }
+    const newEmail = body.email;
+    const changeEmailVerifyToken = ulid();
+    const command = new ChangeEmailCommand(oldEmail, changeEmailVerifyToken);
+    const response = await this.commandBus.execute(command);
+
+    if (response.success === true) {
+      try {
+        await this.emailService.sendChangeEmailVerification(
+          newEmail,
+          changeEmailVerifyToken,
+        );
+
+        const command = new CreateTimestampCommand(
+          uid,
+          `changeEmailTokenCreated`,
+        );
+        const response = await this.commandBus.execute(command);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Change email verification email sent successfully.',
+    };
   }
 }
