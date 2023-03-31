@@ -119,15 +119,16 @@ export class UserRepository implements IUserRepository {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
+    // Deletes unverified accounts
     this.logger.log('Deleted unverified accounts');
 
-    const deadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+    const signupDeadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
 
     const users = await this.userRepository
       .createQueryBuilder('user')
       .where('isVerified = :isVerified', { isVerified: 0 })
-      .andWhere('createdAt <= :deadline', { deadline })
-      .getRawMany();
+      .andWhere('createdAt <= :deadline', { deadline: signupDeadline })
+      .getMany();
 
     if (users.length !== 0) {
       for (const user of users) {

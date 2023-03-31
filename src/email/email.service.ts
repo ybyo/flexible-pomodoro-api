@@ -132,7 +132,7 @@ export class EmailService {
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    const verificationUrl = `https://${url}/users/change-email?changeEmailVerifyToken=${changeEmailVerifyToken}`;
+    const verificationUrl = `https://${url}/users/verify-change-email?changeEmailVerifyToken=${changeEmailVerifyToken}`;
 
     let renderedTemplate;
 
