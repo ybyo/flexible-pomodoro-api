@@ -2,8 +2,10 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
+import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -189,5 +191,34 @@ export class UserController {
       success: true,
       message: 'Change email verification email sent successfully.',
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('verify-change-email')
+  async verifyChangeEmail(
+    @Req() req: Request,
+    @Query() query: any,
+    @Res({ passthrough: true }) res,
+  ) {
+    let changeEmailVerifyToken;
+    if ('changeEmailVerifyToken' in query) {
+      changeEmailVerifyToken = query.changeEmailVerifyToken;
+    }
+    let response = {} as IRes<IUser>;
+    response.success = false;
+    const command = new VerifyChangeEmailCommand(changeEmailVerifyToken);
+    response = await this.commandBus.execute(command);
+
+    if (response.success === true) {
+      const newUser: IUser = response.data;
+      const accessToken = await this.authService.issueToken(newUser);
+      res.cookie('accessToken', accessToken, this.accessConf);
+
+      return response;
+    } else {
+      throw new BadRequestException(
+        'Something went wrong. Change email reverted',
+      );
+    }
   }
 }

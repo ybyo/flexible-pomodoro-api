@@ -3,6 +3,8 @@ import { AddResetTokenHandler } from '@/users/application/command/handler/add-re
 import { ChangeEmailHandler } from '@/users/application/command/handler/change-email.handler';
 import { CreateTimestampHandler } from '@/users/application/command/handler/create-timestamp.handler';
 import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
+import { VerifyChangeEmailHandler } from '@/users/application/command/handler/verify-change-email.handler';
+
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handler/verify-reset-password-token.handler';
 import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
 import { Logger, Module } from '@nestjs/common';
@@ -28,6 +30,7 @@ const commandHandlers = [
   UpdatePasswordHandler,
   ChangeEmailHandler,
   CreateTimestampHandler,
+  VerifyChangeEmailHandler,
 ];
 const queryHandlers = [];
 const eventHandlers = [UserRegisterEventHandler];
