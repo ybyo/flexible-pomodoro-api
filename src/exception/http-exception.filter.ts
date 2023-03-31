@@ -23,6 +23,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const response = (exception as HttpException).getResponse();
+    if (response === 'User not found') {
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+    }
 
     const log = {
       timestamp: new Date(),

@@ -38,9 +38,6 @@ export class AuthService {
     const command = new GetUserByUserIdQuery(id);
     const user = await this.queryBus.execute(command);
 
-    if (!user) {
-      throw new BadRequestException(`No user found with id ${id}`);
-    }
     return user;
   }
 
@@ -63,11 +60,10 @@ export class AuthService {
     let payload = null;
     const user = {} as IUser;
     try {
-      payload = jwt.verify(jwtString, this.jwtConf.jwtSecret) as (
-        | jwt.JwtPayload
-        | string
-      ) &
-        IUser;
+      payload = jwt.verify(
+        jwtString,
+        this.jwtConf.jwtSecret,
+      ) as jwt.JwtPayload & IUser;
 
       user.id = payload.id;
       user.userName = payload.userName;

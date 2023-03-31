@@ -1,5 +1,5 @@
 import { AuthService } from '@/auth/auth.service';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
 import { IUser } from '@/type-defs/message.interface';
 
@@ -27,6 +27,9 @@ export class AuthSerializer extends PassportSerializer {
     done: (err: Error, user: Omit<IUser, 'password'>) => void,
   ) {
     const user = await this.authService.findByUserId(payload.id);
+    if (user.id === null) {
+      done(new HttpException('User not found', 404), null);
+    }
     done(null, user);
   }
 }
