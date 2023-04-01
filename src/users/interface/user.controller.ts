@@ -1,8 +1,10 @@
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
+import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
+import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
   BadRequestException,
@@ -226,11 +228,23 @@ export class UserController {
   @Post('change-name')
   async changeName(
     @Req() req: Request,
-    @Body() body: any,
+    @Body() body: ChangeUsernameDto,
     @Res({ passthrough: true }) res,
-  ) {
-    const newName = body.userName;
+  ): Promise<IRes> {
+    console.log(body);
+    const { newName } = body;
+    const { email } = req.user as IUser;
 
-    return null;
+    const command = new ChangeNameCommand(email, newName);
+    const response = await this.commandBus.execute(command);
+    if (response.success === true) {
+      const newUser: IUser = response.data;
+      const accessToken = await this.authService.issueToken(newUser);
+      res.cookie('accessToken', accessToken, this.accessConf);
+
+      return response;
+    }
+
+    return response;
   }
 }
