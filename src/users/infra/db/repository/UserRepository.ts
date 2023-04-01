@@ -91,6 +91,12 @@ export class UserRepository implements IUserRepository {
     return userEntity;
   }
 
+  async findByUsername(userName: string): Promise<UserEntity> {
+    const result = await this.userRepository.findOneBy({ userName });
+
+    return result;
+  }
+
   async saveUser(user: User): Promise<void> {
     await this.datasource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });
