@@ -221,4 +221,16 @@ export class UserController {
       );
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-name')
+  async changeName(
+    @Req() req: Request,
+    @Body() body: any,
+    @Res({ passthrough: true }) res,
+  ) {
+    const newName = body.userName;
+
+    return null;
+  }
 }
