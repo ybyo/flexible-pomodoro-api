@@ -13,4 +13,5 @@ export interface IUserRepository {
   saveUser: (user: User) => Promise<void>;
   // TODO: 파라메터 범위 좁히기
   updateUser: (criteria: object, partialEntity: object) => Promise<void>;
+  deleteUser: (email: string) => Promise<void>;
 }

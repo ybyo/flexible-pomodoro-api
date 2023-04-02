@@ -1,11 +1,20 @@
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import * as argon2 from 'argon2';
 import { UserFactory } from 'src/users/domain/user.factory';
 import { UserEntity } from '../entity/user.entity';
 import { User } from '@/users/domain/user.model';
-import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -17,6 +26,10 @@ export class UserRepository implements IUserRepository {
     private datasource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+    @InjectRepository(RoutineEntity)
+    private routineRepository: Repository<RoutineEntity>,
+    @InjectRepository(RoutineToTimerEntity)
+    private routineToTimerRepository: Repository<RoutineToTimerEntity>,
     private userFactory: UserFactory,
     @Inject(Logger) private readonly logger: LoggerService,
   ) {}
@@ -121,6 +134,37 @@ export class UserRepository implements IUserRepository {
         await manager.update(UserEntity, criteria, partialEntity);
       }
     });
+  }
+
+  async deleteUser(email: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException(`Cannot find user with email ${email}`);
+    }
+    await this.datasource
+      .transaction(async (manager) => {
+        const routines = await this.routineRepository.find({
+          where: { userId: user.id },
+        });
+        const routineIds = routines.map((routine) => routine.id);
+        if (routineIds.length !== 0) {
+          await this.routineToTimerRepository.delete({
+            routineId: In(routineIds),
+          });
+        }
+        await this.userRepository.delete(user.id);
+      })
+      .then(() => {
+        return {
+          success: true,
+          message: 'User deleted successfully',
+        };
+      })
+      .catch(() => {
+        throw new BadRequestException(
+          `Something went wrong while delete account`,
+        );
+      });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

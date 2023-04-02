@@ -1,5 +1,8 @@
 import { AuthController } from '@/auth/auth.controller';
 import { AuthSerializer } from '@/auth/serialization.provider';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
 import { AuthService } from './auth.service';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';
@@ -25,7 +28,11 @@ const CommandHandlers = [
 const QueryHandlers = [GetUserByUserIdHandler];
 const EventHandlers = [];
 
-const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
+const repositories = [
+  { provide: 'UserRepository', useClass: UserRepository },
+  { provide: 'UserRepository', useClass: UserRepository },
+  { provide: 'RoutineRepository', useClass: RoutineRepository },
+];
 const factories = [UserFactory];
 
 const strategies = [LocalStrategy, JwtStrategy];
@@ -38,7 +45,7 @@ const strategies = [LocalStrategy, JwtStrategy];
       secret: process.env.JWT_SECRET,
       signOptions: jwtExpConfig,
     }),
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
   ],
   controllers: [AuthController],
   providers: [
