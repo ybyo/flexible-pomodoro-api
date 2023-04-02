@@ -2,8 +2,10 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
+import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
@@ -246,5 +248,28 @@ export class UserController {
     }
 
     return response;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('delete-account')
+  async deleteAccount(
+    @Req() req: Request,
+    @Body() body: DeleteAccountDto,
+    @Res({ passthrough: true }) res,
+  ): Promise<IRes> {
+    let email: string | null;
+    if ('email' in req.user) {
+      email = req.user.email as string;
+    }
+
+    if (email !== null) {
+      const command = new DeleteAccountCommand(email);
+      return await this.commandBus.execute(command);
+    }
+
+    return {
+      success: false,
+      message: 'Cannot delete account. Please try again.',
+    };
   }
 }

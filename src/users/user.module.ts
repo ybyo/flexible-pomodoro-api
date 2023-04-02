@@ -1,8 +1,12 @@
 import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
 import { AddResetTokenHandler } from '@/users/application/command/handler/add-reset-token.handler';
 import { ChangeEmailHandler } from '@/users/application/command/handler/change-email.handler';
 import { ChangeNameHandler } from '@/users/application/command/handler/change-name.handler';
 import { CreateTimestampHandler } from '@/users/application/command/handler/create-timestamp.handler';
+import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
 import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
 import { VerifyChangeEmailHandler } from '@/users/application/command/handler/verify-change-email.handler';
 
@@ -33,6 +37,7 @@ const commandHandlers = [
   CreateTimestampHandler,
   VerifyChangeEmailHandler,
   ChangeNameHandler,
+  DeleteAccountHandler,
 ];
 const queryHandlers = [];
 const eventHandlers = [UserRegisterEventHandler];
@@ -42,6 +47,7 @@ const strategies = [PasswordResetStrategy];
 
 const repositories = [
   { provide: 'UserRepository', useClass: UserRepository },
+  { provide: 'RoutineRepository', useClass: RoutineRepository },
   { provide: 'EmailService', useClass: EmailService },
 ];
 
@@ -50,7 +56,7 @@ const repositories = [
     AuthModule,
     CqrsModule,
     EmailModule,
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
     PassportModule.register({
       session: true,
     }),
