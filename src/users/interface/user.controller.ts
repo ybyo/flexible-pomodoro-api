@@ -4,6 +4,7 @@ import { ChangeNameCommand } from '@/users/application/command/impl/change-name.
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
+import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
@@ -246,5 +247,16 @@ export class UserController {
     }
 
     return response;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('delete-account')
+  async deleteAccount(
+    @Req() req: Request,
+    @Body() body: DeleteAccountDto,
+    @Res({ passthrough: true }) res,
+  ): Promise<IRes> {
+    console.log(body.validation);
+    return null;
   }
 }
