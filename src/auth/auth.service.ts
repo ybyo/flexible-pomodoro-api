@@ -1,17 +1,17 @@
 // TODO: nest 공식 지원 모듈로 변환
 import * as jwt from 'jsonwebtoken';
-import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import accessTokenConfig from '@/config/accessTokenConfig';
-import { ConfigType } from '@nestjs/config';
-import { IUser } from '@/type-defs/message.interface';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
-import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
-import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
+import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ConfigType } from '@nestjs/config';
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
+import { IUser } from '@/type-defs/message.interface';
+import { Inject, Injectable } from '@nestjs/common';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
+import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 
 @Injectable()
 export class AuthService {

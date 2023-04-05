@@ -1,26 +1,26 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
-import * as winston from 'winston';
-import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as winston from 'winston';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
 } from 'nest-winston';
-import * as fs from 'fs';
-import helmet from 'helmet';
 
-let httpsOptions;
-if (process.env.NODE_ENV === 'development') {
-  httpsOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, '../certs/127.0.0.1-key.pem')),
-    cert: fs.readFileSync(
-      path.resolve(__dirname, '../certs/127.0.0.1-cert.pem'),
-    ),
-  };
-}
+const certPath = path.join(__dirname, '../..', 'pipe-timer-cicd', 'certs');
+
+const httpsOptions =
+  process.env.NODE_ENV === 'development'
+    ? {
+        key: fs.readFileSync(`${certPath}/yidoyoon.com-key.pem`),
+        cert: fs.readFileSync(`${certPath}/yidoyoon.com.pem`),
+      }
+    : undefined;
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -48,15 +48,9 @@ async function bootstrap() {
 
   const corsOption = {
     origin: [
-      'https://127.0.0.1:4000',
-      'https://127.0.0.1',
-      'https://localhost:4000',
-      'https://localhost',
-      'https://ec2-3-38-208-7.ap-northeast-2.compute.amazonaws.com',
-      'https://pomo.yibyeongyong.com:4000',
-      'https://pomo.yibyeongyong.com',
-      'https://api.yibyeongyong.com:3000',
-      'https://api.yibyeongyong.com',
+      process.env.NODE_ENV === 'development'
+        ? 'https://127.0.0.1:4000'
+        : `https://${process.env.DOMAIN_URL}:4000`,
     ],
     credentials: true,
     optionsSuccessStatus: 200,
