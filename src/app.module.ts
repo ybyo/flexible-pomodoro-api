@@ -1,9 +1,15 @@
 import * as RedisStore from 'connect-redis';
+import * as passport from 'passport';
 import * as path from 'path';
 import * as session from 'express-session';
-import * as passport from 'passport';
+
+import accessTokenConfig from '@/config/accessTokenConfig';
+import emailConfig from '@/config/email.config';
+import { DataSource } from 'typeorm';
 import jwtConfig from './config/jwtConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
+
+import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from '@/auth/auth.module';
 import { AutomapperModule } from '@automapper/nestjs';
 import { ConfigModule, ConfigType } from '@nestjs/config';
@@ -14,18 +20,15 @@ import { Inject, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { LoggingModule } from './logging/logging.module';
 import { REDIS, RedisModule } from '@/redis';
 import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
+import { RoutineModule } from '@/routines/routine.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { TimerModule } from './timers/timer.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './users/user.module';
 import { classes } from '@automapper/classes';
 import { validationSchema } from './config/validationSchema';
-import { TimerModule } from './timers/timer.module';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import { RoutineModule } from '@/routines/routine.module';
-import { ScheduleModule } from '@nestjs/schedule';
-import emailConfig from '@/config/email.config';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
@@ -39,12 +42,11 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
       envFilePath: [envPath],
       load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
       isGlobal: true,
-      // TODO: validationSchema 항목 보완
       validationSchema,
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({}),
-      dataSourceFactory: async () => {
+      dataSourceFactory: async (): Promise<DataSource> => {
         const { default: ormConfig } = await import('./db/ormconfig');
         await ormConfig.initialize();
         return ormConfig;
@@ -78,7 +80,8 @@ export class AppModule implements NestModule {
     @Inject(refreshTokenConfig.KEY)
     private refreshTokenConf: ConfigType<typeof refreshTokenConfig>,
   ) {}
-  configure(consumer: MiddlewareConsumer) {
+
+  configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(
         session({
@@ -92,7 +95,6 @@ export class AppModule implements NestModule {
           secret: process.env.SESSION_SECRET,
           cookie: this.refreshTokenConf,
         }),
-        // `initialize()` must be called before `session()`
         passport.initialize(),
         passport.session(),
       )
