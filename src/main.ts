@@ -17,8 +17,8 @@ const certPath = path.join(__dirname, '../..', 'pipe-timer-cicd', 'certs');
 const httpsOptions =
   process.env.NODE_ENV === 'development'
     ? {
-        key: fs.readFileSync(`${certPath}/yidoyoon.com-key.pem`),
-        cert: fs.readFileSync(`${certPath}/yidoyoon.com.pem`),
+        key: fs.readFileSync(`${certPath}/key.pem`),
+        cert: fs.readFileSync(`${certPath}/pub.pem`),
       }
     : undefined;
 
