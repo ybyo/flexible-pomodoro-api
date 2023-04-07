@@ -1,13 +1,3 @@
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
-import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
-import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
-import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
-import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
-import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
-import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
-import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import {
   BadRequestException,
   Body,
@@ -23,13 +13,23 @@ import {
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
 import { AuthService } from '@/auth/auth.service';
+import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
+import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
+import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { ConfigType } from '@nestjs/config';
+import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { IRes, IUser } from '@/type-defs/message.interface';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { Request, Response } from 'express';
+import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
+import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
 import { ulid } from 'ulid';

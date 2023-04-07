@@ -3,7 +3,6 @@ import { BadRequestException } from '@nestjs/common';
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-// TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
 export class ChangeUsernameDto {
   @Transform(({ value }) => {
     if (filter.check(value.trim())) {

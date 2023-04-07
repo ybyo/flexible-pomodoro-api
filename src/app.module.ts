@@ -2,17 +2,15 @@ import * as RedisStore from 'connect-redis';
 import * as passport from 'passport';
 import * as path from 'path';
 import * as session from 'express-session';
-
 import accessTokenConfig from '@/config/accessTokenConfig';
 import emailConfig from '@/config/email.config';
-import { DataSource } from 'typeorm';
 import jwtConfig from './config/jwtConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
-
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from '@/auth/auth.module';
 import { AutomapperModule } from '@automapper/nestjs';
 import { ConfigModule, ConfigType } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 import { ExceptionModule } from './exception/exception-module';
 import { HealthCheckController } from './health-check/health-check.controller';
 import { HttpModule } from '@nestjs/axios';
