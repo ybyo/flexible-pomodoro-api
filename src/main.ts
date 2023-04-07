@@ -12,13 +12,13 @@ import {
   WinstonModule,
 } from 'nest-winston';
 
-const certPath = path.join(__dirname, '../..', 'pipe-timer-cicd', 'certs');
+const devCertPath = path.join(__dirname, '..', 'certs');
 
 const httpsOptions =
   process.env.NODE_ENV === 'development'
     ? {
-        key: fs.readFileSync(`${certPath}/key.pem`),
-        cert: fs.readFileSync(`${certPath}/pub.pem`),
+        key: fs.readFileSync(`${devCertPath}/dev-key.pem`),
+        cert: fs.readFileSync(`${devCertPath}/dev-cert.pem`),
       }
     : undefined;
 
@@ -58,10 +58,9 @@ async function bootstrap() {
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
+
   app.setViewEngine('ejs');
-
   app.use(cookieParser());
-
   app.enableCors(corsOption);
   app.use(helmet());
 

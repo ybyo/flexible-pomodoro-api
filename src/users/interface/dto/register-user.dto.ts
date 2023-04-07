@@ -10,7 +10,6 @@ import {
 import { NotIn } from '@/utils/decorators/not-in.decorator';
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 
-// TODO: 닉네임에 특수 문자 사용 금지 등 규칙 추가
 export class RegisterUserDto {
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {

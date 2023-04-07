@@ -21,7 +21,16 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
+import { AuthService } from '@/auth/auth.service';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { ConfigType } from '@nestjs/config';
+import { IRes, IUser } from '@/type-defs/message.interface';
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { LocalGuard } from '@/auth/guard/local.guard';
+import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { Request, Response } from 'express';
 
 @Controller('auth')
@@ -45,8 +54,7 @@ export class AuthController {
   async login(@Req() req, @Res({ passthrough: true }) res) {
     const user = req.session.passport.user;
 
-    // Refresh tokens are at App.module.ts
-    const accessToken = await this.authService.issueToken(user);
+    const accessToken: string = await this.authService.issueToken(user);
 
     res.cookie('accessToken', accessToken, this.accessConf);
 
