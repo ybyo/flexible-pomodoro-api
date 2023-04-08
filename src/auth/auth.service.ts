@@ -7,7 +7,7 @@ import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigType } from '@nestjs/config';
 import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
-import { IUser } from '@/type-defs/message.interface';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
