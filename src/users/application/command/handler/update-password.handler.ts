@@ -1,4 +1,4 @@
-import { IRes, IUser } from '@/type-defs/message.interface';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { Inject, Injectable } from '@nestjs/common';

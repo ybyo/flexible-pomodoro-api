@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Mapper } from '@automapper/core';
-import { IRes } from '@/type-defs/message.interface';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { entityFormatter } from '@/utils/entity-formatter.util';

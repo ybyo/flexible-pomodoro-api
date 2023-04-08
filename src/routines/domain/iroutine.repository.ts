@@ -1,4 +1,4 @@
-import { IRes } from '@/type-defs/message.interface';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { Routine } from '@/routines/domain/routine.model';
 
 export interface IRoutineRepository {

@@ -1,5 +1,5 @@
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { Timer } from '@/timers/domain/timer.model';
-import { IRes } from '@/type-defs/message.interface';
 
 export interface ITimerRepository {
   fetchTimer: (id: string) => Promise<Timer[]>;
