@@ -1,16 +1,17 @@
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 import * as fs from 'fs';
-import * as path from 'path';
-import * as winston from 'winston';
 import helmet from 'helmet';
-import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule,
 } from 'nest-winston';
+import * as path from 'path';
+import * as winston from 'winston';
+
+import { AppModule } from './app.module';
 
 const devCertPath = path.join(__dirname, '..', 'certs');
 

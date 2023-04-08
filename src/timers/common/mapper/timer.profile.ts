@@ -1,13 +1,14 @@
-import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import {
   CamelCaseNamingConvention,
   createMap,
   Mapper,
   namingConventions,
 } from '@automapper/core';
+import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
-import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
+
 import { Timer } from '@/timers/domain/timer.model';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Injectable()
 export class TimerProfile extends AutomapperProfile {

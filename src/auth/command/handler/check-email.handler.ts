@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { IRes } from '@/customTypes/interfaces/message.interface';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(CheckEmailCommand)

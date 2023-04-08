@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as Redis from 'redis';
-import * as dotenv from 'dotenv';
 
 import { REDIS } from './redis.constants';
 

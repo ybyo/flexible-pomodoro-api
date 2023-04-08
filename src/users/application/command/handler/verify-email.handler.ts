@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
 import { AuthService } from '@/auth/auth.service';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 
 @Injectable()
 @CommandHandler(VerifyEmailCommand)

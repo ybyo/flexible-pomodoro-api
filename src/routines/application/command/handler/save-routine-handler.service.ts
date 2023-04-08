@@ -1,6 +1,7 @@
-import { SaveRoutineCommand } from '@/routines/application/command/impl/save-routine.command';
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
+import { SaveRoutineCommand } from '@/routines/application/command/impl/save-routine.command';
 import { IRoutineRepository } from '@/routines/domain/iroutine.repository';
 
 @Injectable()

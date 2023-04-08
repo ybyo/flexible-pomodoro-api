@@ -1,5 +1,6 @@
 import { Logger, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+
 import { HttpExceptionFilter } from './http-exception.filter';
 
 @Module({

@@ -1,6 +1,6 @@
+import { Injectable } from '@nestjs/common';
 import { EmailService as ExternalEmailService } from 'src/email/email.service';
 import { IEmailService } from 'src/users/application/adapter/iemail.service';
-import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class EmailService implements IEmailService {

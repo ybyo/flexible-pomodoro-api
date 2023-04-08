@@ -1,9 +1,5 @@
-import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
-import * as argon2 from 'argon2';
-import { UserFactory } from 'src/users/domain/user.factory';
-import { UserEntity } from '../entity/user.entity';
-import { User } from '@/users/domain/user.model';
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import {
   BadRequestException,
   Inject,
@@ -12,12 +8,18 @@ import {
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { DataSource, In, Repository } from 'typeorm';
-import { InjectMapper } from '@automapper/nestjs';
-import { Mapper } from '@automapper/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as argon2 from 'argon2';
+import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
+import { UserFactory } from 'src/users/domain/user.factory';
+import { DataSource, In, Repository } from 'typeorm';
+
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { User } from '@/users/domain/user.model';
+
+import { UserEntity } from '../entity/user.entity';
 
 @Injectable()
 export class UserRepository implements IUserRepository {

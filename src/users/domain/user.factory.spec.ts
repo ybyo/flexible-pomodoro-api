@@ -1,9 +1,10 @@
+import { EventBus } from '@nestjs/cqrs';
+import { Test } from '@nestjs/testing';
+import { Chance } from 'chance';
+import * as ulid from 'ulid';
+
 import { UserFactory } from './user.factory';
 import { User } from './user.model';
-import { Test } from '@nestjs/testing';
-import { EventBus } from '@nestjs/cqrs';
-import * as ulid from 'ulid';
-import { Chance } from 'chance';
 
 const chance = new Chance();
 

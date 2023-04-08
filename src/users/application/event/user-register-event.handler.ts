@@ -1,6 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
+
 import { UserRegisterEvent } from '@/users/domain/user-register.event';
+
 import { IEmailService } from '../adapter/iemail.service';
 
 @EventsHandler(UserRegisterEvent)

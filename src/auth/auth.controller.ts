@@ -12,17 +12,18 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { AuthService } from '@/auth/auth.service';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { ConfigType } from '@nestjs/config';
-import { IRes, IUser } from '@/type-defs/message.interface';
+import { Request, Response } from 'express';
+
+import { AuthService } from '@/auth/auth.service';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
-import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {

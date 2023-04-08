@@ -1,8 +1,9 @@
-import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { IUser } from '@/customTypes/interfaces/message.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @QueryHandler(GetUserByUserIdQuery)

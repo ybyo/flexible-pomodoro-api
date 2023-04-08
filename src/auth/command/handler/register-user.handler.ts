@@ -1,4 +1,3 @@
-import { ulid } from 'ulid';
 import {
   BadRequestException,
   Inject,
@@ -6,10 +5,12 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { User } from '@/users/domain/user.model';
-import { UserFactory } from '@/users/domain/user.factory';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { ulid } from 'ulid';
+
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { UserFactory } from '@/users/domain/user.factory';
+import { User } from '@/users/domain/user.model';
 
 @Injectable()
 @CommandHandler(RegisterUserCommand)

@@ -1,17 +1,18 @@
 // TODO: nest 공식 지원 모듈로 변환
-import * as jwt from 'jsonwebtoken';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ConfigType } from '@nestjs/config';
-import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
-import { IUser } from '@/customTypes/interfaces/message.interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
+import { ConfigType } from '@nestjs/config';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import * as jwt from 'jsonwebtoken';
+
+import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
+import { IUser } from '@/customTypes/interfaces/message.interface';
+import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
