@@ -1,7 +1,7 @@
 import { AuthService } from '@/auth/auth.service';
 import { HttpException, Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
-import { IUser } from '@/type-defs/message.interface';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 
 @Injectable()
 export class AuthSerializer extends PassportSerializer {

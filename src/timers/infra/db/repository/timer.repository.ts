@@ -3,7 +3,7 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { ITimerRepository } from '@/timers/domain/itimer.repository';
 import { Timer } from '@/timers/domain/timer.model';
 import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
-import { IRes } from '@/type-defs/message.interface';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { entityFormatter } from '@/utils/entity-formatter.util';
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';

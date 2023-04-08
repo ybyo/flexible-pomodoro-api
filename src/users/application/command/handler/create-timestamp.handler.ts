@@ -1,5 +1,5 @@
 import { AuthService } from '@/auth/auth.service';
-import { IRes, IUser } from '@/type-defs/message.interface';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { Inject, Injectable } from '@nestjs/common';

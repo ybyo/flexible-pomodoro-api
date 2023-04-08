@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { IUser } from '@/type-defs/message.interface';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';

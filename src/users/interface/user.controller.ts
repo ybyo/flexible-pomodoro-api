@@ -23,7 +23,7 @@ import { CreateTimestampCommand } from '@/users/application/command/impl/create-
 import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { IRes, IUser } from '@/type-defs/message.interface';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';

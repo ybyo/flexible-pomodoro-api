@@ -9,8 +9,8 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Entity('Timer')
 export class TimerEntity extends BaseEntity {

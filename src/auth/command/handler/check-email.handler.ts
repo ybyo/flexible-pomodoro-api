@@ -1,8 +1,8 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { IRes } from '@/type-defs/message.interface';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 
 @Injectable()
 @CommandHandler(CheckEmailCommand)

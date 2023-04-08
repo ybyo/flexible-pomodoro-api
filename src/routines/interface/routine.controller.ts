@@ -2,7 +2,7 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { GetRoutineCommand } from '@/routines/application/command/impl/get-routine.command';
 import { RemoveRoutineCommand } from '@/routines/application/command/impl/remove-routine.command';
 import { SaveRoutineCommand } from '@/routines/application/command/impl/save-routine.command';
-import { IUser } from '@/type-defs/message.interface';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtPayload } from 'jsonwebtoken';
