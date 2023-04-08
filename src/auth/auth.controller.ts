@@ -1,12 +1,3 @@
-import { AuthService } from '@/auth/auth.service';
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { LocalGuard } from '@/auth/guard/local.guard';
-import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { IRes, IUser } from '@/type-defs/message.interface';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
-import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import {
   BadRequestException,
   Body,
@@ -81,30 +72,28 @@ export class AuthController {
 
   // TODO: 악의적인 유저로부터 강제로 로그아웃 되지 않도록 고려
   @Delete('logout')
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    req.logout(function (err) {
-      if (err) {
-        return err;
-      }
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      req.logout((err) => {
+        if (err) return reject(err);
+        resolve(res.clearCookie('accessToken'));
+      });
     });
-
-    res.cookie('accessToken', null, { ...this.accessConf, maxAge: 1 });
-    return req.session;
   }
 
   @Post('check-email')
   async checkEmail(
     @Body() dto: CheckEmailDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
-    const response: IRes<any> = await this.authService.checkEmail(dto);
-
-    if (response.success === false) {
+  ): Promise<IRes<any>> {
+    try {
+      const response: IRes<any> = await this.authService.checkEmail(dto);
+      return response;
+    } catch (error) {
       throw new BadRequestException('Duplicate email');
     }
-
-    // TODO: 아무런 응답도 전송하지 않으면 왜 201로 응답하는지 확인
-    // res.cookie('uniqueEmailToken', uniqueEmailToken, { ...this.accessConf });
-    return response;
   }
 }
