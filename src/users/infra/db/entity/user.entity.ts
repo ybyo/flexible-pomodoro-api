@@ -1,3 +1,5 @@
+import { AutoMap } from '@automapper/classes';
+import * as argon2 from 'argon2';
 import {
   BaseEntity,
   BeforeInsert,
@@ -8,12 +10,11 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as argon2 from 'argon2';
-import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
-import { Timer } from '@/timers/domain/timer.model';
+
 import { Routine } from '@/routines/domain/routine.model';
-import { AutoMap } from '@automapper/classes';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { Timer } from '@/timers/domain/timer.model';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {

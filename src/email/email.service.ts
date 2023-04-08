@@ -1,13 +1,14 @@
-import { IRes } from '@/customTypes/interfaces/message.interface';
 import {
   Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import emailConfig from '@/config/email.config';
-import * as path from 'path';
 import * as ejs from 'ejs';
+import * as path from 'path';
+
+import emailConfig from '@/config/email.config';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import nMail = require('nodemailer/lib/mailer');
 import sgMail = require('@sendgrid/mail');
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';

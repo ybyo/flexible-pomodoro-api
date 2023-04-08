@@ -1,9 +1,10 @@
-import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
-import { UserController } from '@/users/interface/user.controller';
 import { CommandBus } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
 import { Chance } from 'chance';
 import * as jwt from 'jsonwebtoken';
+
+import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
+import { UserController } from '@/users/interface/user.controller';
 
 const chance = new Chance();
 

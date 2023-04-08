@@ -1,7 +1,8 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { AuthService } from '@/auth/auth.service';
 import { JwtPayload } from 'jsonwebtoken';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+
+import { AuthService } from '@/auth/auth.service';
 import { IUser } from '@/customTypes/interfaces/message.interface';
 
 const cookieExtractor = (req) => {

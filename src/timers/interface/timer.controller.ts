@@ -8,11 +8,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
-import { IRes, IUser } from '@/type-defs/message.interface';
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { JwtPayload } from 'jsonwebtoken';
 import { Request } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
+
+import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
 import { SaveTimerCommand } from '@/timers/application/command/impl/save-timer.command';
 import { Timer } from '@/timers/domain/timer.model';
 

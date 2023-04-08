@@ -1,8 +1,9 @@
-import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(VerifyResetPasswordTokenCommand)

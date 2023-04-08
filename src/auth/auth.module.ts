@@ -1,24 +1,26 @@
-import { AuthController } from '@/auth/auth.controller';
-import { AuthSerializer } from '@/auth/serialization.provider';
-import { AuthService } from './auth.service';
-import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
+import { Logger, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthController } from '@/auth/auth.controller';
+import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
+import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
+import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
+import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';
+import { AuthSerializer } from '@/auth/serialization.provider';
 import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategy/local.strategy';
-import { Logger, Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
-import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
-import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
-import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
-import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '@/users/infra/db/entity/user.entity';
-import { UserFactory } from '@/users/domain/user.factory';
-import { UserRepository } from '@/users/infra/db/repository/UserRepository';
-import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
 import { jwtExpConfig } from '@/config/jwtConfig';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
+import { UserFactory } from '@/users/domain/user.factory';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
+import { UserRepository } from '@/users/infra/db/repository/UserRepository';
+
+import { AuthService } from './auth.service';
 
 const CommandHandlers = [
   CheckEmailHandler,

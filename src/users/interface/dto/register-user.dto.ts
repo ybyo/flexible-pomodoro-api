@@ -7,8 +7,9 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { NotIn } from '@/utils/decorators/not-in.decorator';
+
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
+import { NotIn } from '@/utils/decorators/not-in.decorator';
 
 export class RegisterUserDto {
   @Transform(({ value, obj }) => {

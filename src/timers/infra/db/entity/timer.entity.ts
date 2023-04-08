@@ -9,6 +9,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 

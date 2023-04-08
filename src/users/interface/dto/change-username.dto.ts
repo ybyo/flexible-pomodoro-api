@@ -1,7 +1,7 @@
-import * as filter from 'leo-profanity';
 import { BadRequestException } from '@nestjs/common';
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import * as filter from 'leo-profanity';
 
 export class ChangeUsernameDto {
   @Transform(({ value }) => {

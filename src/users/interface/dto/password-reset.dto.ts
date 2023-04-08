@@ -1,4 +1,5 @@
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 
 export class PasswordResetDto {

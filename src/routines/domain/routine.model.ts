@@ -1,5 +1,6 @@
-import { Timer } from '@/timers/domain/timer.model';
 import { plainToClass } from 'class-transformer';
+
+import { Timer } from '@/timers/domain/timer.model';
 
 export class Routine {
   id: string;

@@ -1,32 +1,34 @@
-import * as RedisStore from 'connect-redis';
-import * as passport from 'passport';
-import * as path from 'path';
-import * as session from 'express-session';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import emailConfig from '@/config/email.config';
-import jwtConfig from './config/jwtConfig';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthModule } from '@/auth/auth.module';
+import { classes } from '@automapper/classes';
 import { AutomapperModule } from '@automapper/nestjs';
-import { ConfigModule, ConfigType } from '@nestjs/config';
-import { DataSource } from 'typeorm';
-import { ExceptionModule } from './exception/exception-module';
-import { HealthCheckController } from './health-check/health-check.controller';
 import { HttpModule } from '@nestjs/axios';
 import { Inject, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { LoggingModule } from './logging/logging.module';
-import { REDIS, RedisModule } from '@/redis';
-import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
-import { RoutineModule } from '@/routines/routine.module';
+import { ConfigModule, ConfigType } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { TimerModule } from './timers/timer.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './users/user.module';
-import { classes } from '@automapper/classes';
+import * as RedisStore from 'connect-redis';
+import * as session from 'express-session';
+import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
+import * as passport from 'passport';
+import * as path from 'path';
+import { DataSource } from 'typeorm';
+
+import { AuthModule } from '@/auth/auth.module';
+import accessTokenConfig from '@/config/accessTokenConfig';
+import emailConfig from '@/config/email.config';
+import refreshTokenConfig from '@/config/refreshTokenConfig';
+import { REDIS, RedisModule } from '@/redis';
+import { RoutineModule } from '@/routines/routine.module';
+
+import jwtConfig from './config/jwtConfig';
 import { validationSchema } from './config/validationSchema';
+import { ExceptionModule } from './exception/exception-module';
+import { HealthCheckController } from './health-check/health-check.controller';
+import { LoggingModule } from './logging/logging.module';
+import { TimerModule } from './timers/timer.module';
+import { UserModule } from './users/user.module';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 

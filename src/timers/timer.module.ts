@@ -1,16 +1,17 @@
-import { AuthModule } from '@/auth/auth.module';
-import { CqrsModule } from '@nestjs/cqrs';
-import { GetTimerHandler } from '@/timers/application/command/handler/get-timer.handler';
 import { Logger, Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthModule } from '@/auth/auth.module';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { GetTimerHandler } from '@/timers/application/command/handler/get-timer.handler';
 import { SaveTimerHandler } from '@/timers/application/command/handler/save-timer.handler';
-import { TimerController } from '@/timers/interface/timer.controller';
-import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 import { TimerProfile } from '@/timers/common/mapper/timer.profile';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 import { TimerRepository } from '@/timers/infra/db/repository/timer.repository';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TimerController } from '@/timers/interface/timer.controller';
 
 const commandHandlers = [GetTimerHandler, SaveTimerHandler];
 const queryHandlers = [];

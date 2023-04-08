@@ -1,7 +1,8 @@
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(DeleteAccountCommand)

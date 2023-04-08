@@ -1,14 +1,16 @@
-import { Timer } from '@/timers/domain/timer.model';
-import { Chance } from 'chance';
-import { CommandBus } from '@nestjs/cqrs';
-import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
-import { IUser } from '@/customTypes/interfaces/message.interface';
 import { NotFoundException } from '@nestjs/common';
-import { Request } from 'express';
-import { SaveTimerCommand } from '@/timers/application/command/impl/save-timer.command';
+import { CommandBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TimerController } from './timer.controller';
+import { Chance } from 'chance';
+import { Request } from 'express';
 import { ulid } from 'ulid';
+
+import { IUser } from '@/customTypes/interfaces/message.interface';
+import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
+import { SaveTimerCommand } from '@/timers/application/command/impl/save-timer.command';
+import { Timer } from '@/timers/domain/timer.model';
+
+import { TimerController } from './timer.controller';
 
 const chance = new Chance();
 

@@ -1,4 +1,5 @@
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
+
 import { User } from '../user.model';
 
 export interface IUserRepository {

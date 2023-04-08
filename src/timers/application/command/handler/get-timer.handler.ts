@@ -1,7 +1,8 @@
-import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
-import { ITimerRepository } from '@/timers/domain/itimer.repository';
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+
+import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
+import { ITimerRepository } from '@/timers/domain/itimer.repository';
 
 @Injectable()
 @CommandHandler(GetTimerCommand)

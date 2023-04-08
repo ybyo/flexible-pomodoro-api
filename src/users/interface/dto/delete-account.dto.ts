@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
-import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsString, Matches } from 'class-validator';
 
 export class DeleteAccountDto {
   @Transform(({ value }) => {
