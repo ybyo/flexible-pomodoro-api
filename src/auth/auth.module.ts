@@ -1,3 +1,4 @@
+import { CheckDuplicateUsernameHandler } from '@/auth/query/handler/check-duplicate-username.handler';
 import { Logger, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
@@ -27,7 +28,7 @@ const CommandHandlers = [
   RegisterUserHandler,
   ValidateUserHandler,
 ];
-const QueryHandlers = [GetUserByUserIdHandler];
+const QueryHandlers = [GetUserByUserIdHandler, CheckDuplicateUsernameHandler];
 const EventHandlers = [];
 
 const repositories = [

@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Inject,
   Logger,
   LoggerService,
@@ -13,12 +15,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
+import { CheckDuplicateUsernameQuery } from '@/auth/query/impl/check-duplicate-username.query';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
@@ -34,10 +38,28 @@ export class AuthController {
     private refreshConf: ConfigType<typeof refreshTokenConfig>,
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
+    private queryBus: QueryBus,
   ) {}
 
   @Post('register')
-  registerUser(@Req() req: any, @Body() user: RegisterUserDto) {
+  async registerUser(
+    @Req() req: Request,
+    @Body() user: RegisterUserDto,
+  ): Promise<IUser> {
+    let result = {} as IUser;
+    const command = new CheckDuplicateUsernameQuery(user.userName);
+
+    try {
+      result = await this.queryBus.execute(command);
+    } catch (err) {
+      throw new HttpException(
+        'Unable to perform the query.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (result !== null) throw new BadRequestException('Duplicate username');
+
     return this.authService.registerUser(user);
   }
 

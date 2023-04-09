@@ -10,6 +10,7 @@ import {
 
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 import { NotIn } from '@/utils/decorators/not-in.decorator';
+import * as filter from 'leo-profanity';
 
 export class RegisterUserDto {
   @Transform(({ value, obj }) => {
@@ -25,7 +26,12 @@ export class RegisterUserDto {
   @MaxLength(320)
   readonly email: string;
 
-  @Transform((params) => params.value.trim())
+  @Transform(({ value }) => {
+    if (filter.check(value.trim())) {
+      throw new BadRequestException('Contains some prohibited words');
+    }
+    return value.trim();
+  })
   @NotIn('password', {
     message: 'The name string is included in the password.',
   })
