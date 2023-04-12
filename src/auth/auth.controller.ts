@@ -26,6 +26,7 @@ import { CheckDuplicateUsernameQuery } from '@/auth/query/impl/check-duplicate-u
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { Session } from '@/customTypes/types';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
@@ -65,7 +66,7 @@ export class AuthController {
 
   @UseGuards(LocalGuard)
   @Post('login')
-  async login(@Req() req, @Res({ passthrough: true }) res) {
+  async login(@Req() req, @Res({ passthrough: true }) res): Promise<Session> {
     const user = req.session.passport.user;
 
     const accessToken: string = await this.authService.issueToken(user);
