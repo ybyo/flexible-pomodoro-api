@@ -97,18 +97,18 @@ export class AuthController {
     return req.session;
   }
 
-  // TODO: 악의적인 유저로부터 강제로 로그아웃 되지 않도록 고려
   @Delete('logout')
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
-    return new Promise((resolve, reject) => {
-      req.logout((err) => {
-        if (err) return reject(err);
-        resolve(res.clearCookie('accessToken'));
-      });
+    req.logout((err) => {
+      if (err) return err;
     });
+
+    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
+    req.session.cookie.maxAge = 1;
+    return req.session;
   }
 
   @Post('check-email')
