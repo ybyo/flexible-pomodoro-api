@@ -91,7 +91,6 @@ export class AuthService {
   }
 
   async issueToken(user: IUser) {
-    // TODO: 유저 uuid 엔티티 이름 변경, uuid 생성 방법 변경
     return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 
