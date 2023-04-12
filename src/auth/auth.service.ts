@@ -90,7 +90,7 @@ export class AuthService {
     }
   }
 
-  async issueToken(user: IUser) {
+  async issueToken(user: IUser): Promise<string> {
     return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 
