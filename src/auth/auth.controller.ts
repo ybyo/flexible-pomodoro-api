@@ -69,9 +69,12 @@ export class AuthController {
   async login(@Req() req, @Res({ passthrough: true }) res): Promise<Session> {
     const user = req.session.passport.user;
 
-    const accessToken: string = await this.authService.issueToken(user);
-
-    res.cookie('accessToken', accessToken, this.accessConf);
+    try {
+      const accessToken = await this.authService.issueToken(user);
+      res.cookie('accessToken', accessToken, this.accessConf);
+    } catch (err) {
+      this.logger.log(err);
+    }
 
     return req.session;
   }
