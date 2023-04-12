@@ -5,5 +5,5 @@ export default registerAs('jwt', () => ({
 }));
 
 export const jwtExpConfig = {
-  expiresIn: '100d',
+  expiresIn: '1d',
 };
