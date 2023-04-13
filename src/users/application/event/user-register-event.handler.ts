@@ -14,7 +14,6 @@ export class UserRegisterEventHandler
   async handle(event: UserRegisterEvent) {
     switch (event.name) {
       case UserRegisterEvent.name: {
-        console.log('Event: User created');
         const { email, signupVerifyToken } = event as UserRegisterEvent;
         await this.emailService.sendUserSignupVerification(
           email,
