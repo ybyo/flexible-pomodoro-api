@@ -234,7 +234,6 @@ export class UserController {
     @Body() body: ChangeUsernameDto,
     @Res({ passthrough: true }) res,
   ): Promise<IRes> {
-    console.log(body);
     const { newName } = body;
     const { email } = req.user as IUser;
 

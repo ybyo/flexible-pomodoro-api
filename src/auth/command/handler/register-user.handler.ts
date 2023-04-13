@@ -24,13 +24,8 @@ export class RegisterUserHandler
 
   async execute(command: RegisterUserCommand) {
     const { email } = command;
-
     const user = await this.userRepository.findByEmail(email);
-    if (user !== null) {
-      throw new BadRequestException('Duplicate email');
-    }
-
-    // TODO: id, signupVerifyToken 등이 undefined 일 때, 자동으로 값 부여하도록 구현
+    if (user !== null) throw new BadRequestException('Duplicate email');
     const newUser = new User({
       ...command,
       id: ulid(),
