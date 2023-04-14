@@ -47,14 +47,6 @@ export class AuthService {
     const command = new RegisterUserCommand(userName, email, password);
 
     return await this.commandBus.execute(command);
-
-    // TODO: Confirmation Password 검증절차 서버에서 수행
-    // if (users.password !== users.confirmationPassword) {
-    //   throw new BadRequestException(
-    //     'Password and Confirmation Password must match',
-    //   );
-    // }
-    // const { confirmationPassword: _, ...newUser } = users;
   }
 
   async verifyJwt(jwtString: string) {

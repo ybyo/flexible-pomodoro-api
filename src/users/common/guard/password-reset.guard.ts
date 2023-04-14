@@ -18,7 +18,6 @@ export class PasswordResetGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
-    // TODO: 자동 갱신 로직 구현
     // } else if (info == 'TokenExpiredError: jwt expired') {
     //   return info;
     // }
