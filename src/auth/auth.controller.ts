@@ -81,7 +81,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getUserInfoWithAccessToken(@Req() req: Request) {
+  async getUserInfoWithAccessToken(@Req() req: Request): Promise<Express.User> {
     return req.user;
   }
 
