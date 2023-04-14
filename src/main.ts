@@ -13,15 +13,18 @@ import * as winston from 'winston';
 
 import { AppModule } from './app.module';
 
-const devCertPath = path.join(__dirname, '..', 'certs');
+const certPath = path.join(__dirname, '..', 'certs');
 
 const httpsOptions =
   process.env.NODE_ENV === 'development'
     ? {
-        key: fs.readFileSync(`${devCertPath}/dev-key.pem`),
-        cert: fs.readFileSync(`${devCertPath}/dev-cert.pem`),
+        key: fs.readFileSync(`${certPath}/dev-key.pem`),
+        cert: fs.readFileSync(`${certPath}/dev-cert.pem`),
       }
-    : undefined;
+    : {
+        key: fs.readFileSync(`${certPath}/key.pem`),
+        cert: fs.readFileSync(`${certPath}/cert.pem`),
+      };
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

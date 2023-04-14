@@ -1,24 +1,21 @@
-import { UserFactory } from '@/users/domain/user.factory';
-import { UserRepository } from '@/users/infra/db/repository/UserRepository';
-import { Test } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { Chance } from 'chance';
+import { ulid } from 'ulid';
+
 import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
-
-import { Chance } from 'chance';
-import * as ulid from 'ulid';
+import { UserFactory } from '@/users/domain/user.factory';
+import { UserRepository } from '@/users/infra/db/repository/UserRepository';
 
 const chance = new Chance();
 
-jest.mock('ulid');
-jest.spyOn(ulid, 'ulid').mockReturnValue('ulid');
-
 const user = {
-  id: ulid.ulid(),
+  id: ulid(),
   email: chance.email(),
   userName: chance.name(),
   password: chance.string(),
-  signupVerifyToken: ulid.ulid(),
+  signupVerifyToken: ulid(),
 };
 
 describe('RegisterUserHandler', () => {
