@@ -29,7 +29,7 @@ export class CheckDuplicateUsernameHandler
       );
     }
 
-    return user === undefined
+    return user === null
       ? null
       : { id: user.id, userName: user.userName, email: user.email };
   }
