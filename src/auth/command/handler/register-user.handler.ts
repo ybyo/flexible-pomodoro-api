@@ -7,7 +7,9 @@ import {
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ulid } from 'ulid';
 
+import { AuthService } from '@/auth/auth.service';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { RedisService } from '@/redis/redis.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserFactory } from '@/users/domain/user.factory';
 import { User } from '@/users/domain/user.model';
@@ -20,17 +22,33 @@ export class RegisterUserHandler
   constructor(
     private userFactory: UserFactory,
     @Inject('UserRepository') private userRepository: IUserRepository,
+    private readonly redisService: RedisService,
+    private readonly authService: AuthService,
   ) {}
 
   async execute(command: RegisterUserCommand) {
     const { email } = command;
     const user = await this.userRepository.findByEmail(email);
     if (user !== null) throw new BadRequestException('Duplicate email');
+
+    const newUserId = ulid();
+    const signupVerifyToken = ulid();
+
     const newUser = new User({
       ...command,
-      id: ulid(),
-      signupVerifyToken: ulid(),
+      id: newUserId,
+      signupVerifyToken,
     });
+
+    // Redis token
+    try {
+      await this.redisService.setValue(`ru:${newUserId}`, signupVerifyToken);
+    } catch (err) {
+      throw new InternalServerErrorException(
+        'Failed to save token in redis',
+        err,
+      );
+    }
 
     try {
       await this.userRepository.saveUser(newUser);

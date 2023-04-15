@@ -3,10 +3,12 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as Redis from 'redis';
 
+import { RedisService } from '@/redis/redis.service';
+
 import { REDIS } from './redis.constants';
 
 dotenv.config({
-  path: path.join(__dirname, `../../env/.${process.env.NODE_ENV}.env`),
+  path: path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`),
 });
 
 const url = `redis://${process.env.REDIS_URL}`;
@@ -27,7 +29,8 @@ const url = `redis://${process.env.REDIS_URL}`;
         return client;
       },
     },
+    RedisService,
   ],
-  exports: [REDIS],
+  exports: [REDIS, RedisService],
 })
 export class RedisModule {}
