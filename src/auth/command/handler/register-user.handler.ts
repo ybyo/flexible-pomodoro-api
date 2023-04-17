@@ -42,7 +42,7 @@ export class RegisterUserHandler
 
     // Redis token
     try {
-      await this.redisService.setValue(`ru:${newUserId}`, signupVerifyToken);
+      await this.redisService.setValue(`verifyEmail:${signupVerifyToken}`, '1');
     } catch (err) {
       throw new InternalServerErrorException(
         'Failed to save token in redis',
