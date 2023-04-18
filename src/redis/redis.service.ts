@@ -7,8 +7,12 @@ import { REDIS } from '@/redis/redis.constants';
 export class RedisService {
   constructor(@Inject(REDIS) private readonly redisClient: Redis) {}
 
-  async setValue(key: string, value: string): Promise<void> {
-    await this.redisClient.set(key, value);
+  async setValue(key: string, value: string, duration?: number): Promise<void> {
+    if (duration !== undefined) {
+      await this.redisClient.set(key, value, 'EX', duration);
+    } else {
+      await this.redisClient.set(key, value);
+    }
   }
 
   async getValue(key: string): Promise<any> {
