@@ -27,12 +27,17 @@ export class RegisterUserHandler
   ) {}
 
   async execute(command: RegisterUserCommand) {
-    const { email } = command;
+    const { userName, email, password } = command;
+
     const user = await this.userRepository.findByEmail(email);
     if (user !== null) throw new BadRequestException('Duplicate email');
 
     const newUserId = ulid();
-    const signupVerifyToken = ulid();
+    const signupVerifyToken = await this.authService.issueToken({
+      id: newUserId,
+      userName,
+      email,
+    });
 
     const newUser = new User({
       ...command,
