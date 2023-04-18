@@ -31,6 +31,7 @@ import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verif
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
+import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
 import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
@@ -46,6 +47,7 @@ export class UserController {
     private accessConf: ConfigType<typeof accessTokenConfig>,
   ) {}
 
+  @UseGuards(RedisTokenGuard)
   @Get('verify-email')
   async verifyEmail(@Query() query): Promise<string> {
     const { signupVerifyToken } = query;

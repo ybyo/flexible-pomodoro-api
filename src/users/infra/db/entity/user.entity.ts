@@ -30,7 +30,7 @@ export class UserEntity extends BaseEntity {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ nullable: true, default: null })
   signupVerifyToken: string;
 
   @Column({ default: null })

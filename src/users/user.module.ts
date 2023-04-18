@@ -6,6 +6,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { EmailModule } from 'src/email/email.module';
 
 import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
+import { RedisModule } from '@/redis';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
@@ -20,12 +21,13 @@ import { VerifyEmailHandler } from '@/users/application/command/handler/verify-e
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handler/verify-reset-password-token.handler';
 import { UserProfile } from '@/users/common/mapper/user.profile';
 import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
+import { RedisTokenStrategy } from '@/users/common/strategy/redis-token.strategy';
 
 import { UserRegisterEventHandler } from './application/event/user-register-event.handler';
 import { UserFactory } from './domain/user.factory';
 import { EmailService } from './infra/adapter/email.service';
 import { UserEntity } from './infra/db/entity/user.entity';
-import { UserRepository } from './infra/db/repository/UserRepository';
+import { UserRepository } from './infra/db/repository/user.repository';
 import { UserController } from './interface/user.controller';
 
 const commandHandlers = [
@@ -44,7 +46,7 @@ const queryHandlers = [];
 const eventHandlers = [UserRegisterEventHandler];
 const factories = [UserFactory];
 
-const strategies = [PasswordResetStrategy];
+const strategies = [PasswordResetStrategy, RedisTokenStrategy];
 
 const repositories = [
   { provide: 'EmailService', useClass: EmailService },
@@ -58,6 +60,7 @@ const repositories = [
     CqrsModule,
     EmailModule,
     TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
+    RedisModule,
     PassportModule.register({
       session: true,
     }),
