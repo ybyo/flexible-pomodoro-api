@@ -1,7 +1,12 @@
 // TODO: nest 공식 지원 모듈로 변환
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
 
 import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
@@ -11,6 +16,9 @@ import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query
 import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import { IUser } from '@/customTypes/interfaces/message.interface';
+import { REDIS } from '@/redis';
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 
@@ -22,7 +30,34 @@ export class AuthService {
     private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-  ) {}
+    @Inject(REDIS) private readonly redisClient: Redis,
+    @Inject('UserRepository') private userRepository: IUserRepository,
+  ) {
+    // Remove unverified user account
+    const listenClient = new Redis({
+      port: +process.env.REDIS_PORT,
+      host: process.env.REDIS_URL,
+    });
+    listenClient.config('SET', 'notify-keyspace-events', 'Ex');
+    listenClient.subscribe('__keyevent@0__:expired');
+    listenClient.on('message', async (channel, key): Promise<void> => {
+      if (channel === '__keyevent@0__:expired') {
+        const token = key.split(':')[1];
+        const { success, data } = await this.verifyJwt(token);
+        if (success) {
+          const command = new DeleteAccountCommand(data.email);
+          await this.commandBus.execute(command).then(() => {
+            console.log(
+              `Unverified user data deleted...\n${JSON.stringify(data)}`,
+            );
+          });
+        } else
+          throw new InternalServerErrorException(
+            `Cannot verify JWT token While removing expired user data.\nToken: ${token}\nEmail: ${data.email}`,
+          );
+      }
+    });
+  }
 
   // Interact with passport local strategy
   async validateWithIdPw(user: LoginUserDto) {
