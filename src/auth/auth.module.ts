@@ -37,7 +37,6 @@ const repositories = [
   { provide: 'UserRepository', useClass: UserRepository },
 ];
 const factories = [UserFactory];
-
 const strategies = [LocalStrategy, JwtStrategy];
 
 @Module({
