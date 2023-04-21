@@ -48,10 +48,10 @@ export class AuthController {
     @Body() user: RegisterUserDto,
   ): Promise<IUser> {
     let result = {} as IUser;
-    const command = new CheckDuplicateUsernameQuery(user.userName);
+    const query = new CheckDuplicateUsernameQuery(user.userName);
 
     try {
-      result = await this.queryBus.execute(command);
+      result = await this.queryBus.execute(query);
     } catch (err) {
       throw new HttpException(
         'Unable to perform the query.',
