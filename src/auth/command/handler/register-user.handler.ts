@@ -22,8 +22,8 @@ export class RegisterUserHandler
   constructor(
     private userFactory: UserFactory,
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private readonly redisService: RedisService,
-    private readonly authService: AuthService,
+    private redisService: RedisService,
+    private authService: AuthService,
   ) {}
 
   async execute(command: RegisterUserCommand) {
