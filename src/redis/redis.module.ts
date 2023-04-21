@@ -11,8 +11,6 @@ dotenv.config({
   path: path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`),
 });
 
-const url = `redis://${process.env.REDIS_URL}`;
-
 @Module({
   providers: [
     {
@@ -25,6 +23,7 @@ const url = `redis://${process.env.REDIS_URL}`;
         client.on('error', (err) => {
           console.error(err);
         });
+
         return client;
       },
     },

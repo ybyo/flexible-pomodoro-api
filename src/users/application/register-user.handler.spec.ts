@@ -6,7 +6,7 @@ import { ulid } from 'ulid';
 import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 import { UserFactory } from '@/users/domain/user.factory';
-import { UserRepository } from '@/users/infra/db/repository/UserRepository';
+import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
 const chance = new Chance();
 

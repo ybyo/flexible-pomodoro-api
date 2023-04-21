@@ -24,16 +24,16 @@ import { UserEntity } from '../entity/user.entity';
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
-    @InjectMapper() private mapper: Mapper,
-    private datasource: DataSource,
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
-    @InjectRepository(RoutineEntity)
-    private routineRepository: Repository<RoutineEntity>,
-    @InjectRepository(RoutineToTimerEntity)
-    private routineToTimerRepository: Repository<RoutineToTimerEntity>,
-    private userFactory: UserFactory,
-    @Inject(Logger) private readonly logger: LoggerService,
+      @InjectMapper() private mapper: Mapper,
+      private datasource: DataSource,
+      @InjectRepository(UserEntity)
+      private userRepository: Repository<UserEntity>,
+      @InjectRepository(RoutineEntity)
+      private routineRepository: Repository<RoutineEntity>,
+      @InjectRepository(RoutineToTimerEntity)
+      private routineToTimerRepository: Repository<RoutineToTimerEntity>,
+      private userFactory: UserFactory,
+      @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -49,13 +49,13 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByEmailAndPassword(
-    email: string,
-    password: string,
+      email: string,
+      password: string,
   ): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      email: email,
-      password: password,
-    });
+                                                             email: email,
+                                                             password: password,
+                                                           });
     if (!userEntity) {
       return null;
     }
@@ -66,11 +66,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async findBySignupVerifyToken(
-    signupVerifyToken: string,
+      signupVerifyToken: string,
   ): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      signupVerifyToken: signupVerifyToken,
-    });
+                                                             signupVerifyToken: signupVerifyToken,
+                                                           });
     if (!userEntity) {
       return null;
     }
@@ -81,11 +81,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByResetPasswordVerifyToken(
-    resetPasswordVerifyToken: string,
+      resetPasswordVerifyToken: string,
   ): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      resetPasswordToken: resetPasswordVerifyToken,
-    });
+                                                             resetPasswordToken: resetPasswordVerifyToken,
+                                                           });
     if (!userEntity) {
       return null;
     }
@@ -97,8 +97,8 @@ export class UserRepository implements IUserRepository {
 
   async findByChangeEmailToken(changeEmailVerifyToken: string) {
     const userEntity = await this.userRepository.findOneBy({
-      changeEmailToken: changeEmailVerifyToken,
-    });
+                                                             changeEmailToken: changeEmailVerifyToken,
+                                                           });
     if (!userEntity) {
       return null;
     }
@@ -130,7 +130,7 @@ export class UserRepository implements IUserRepository {
       } else {
         if ('password' in partialEntity) {
           partialEntity.password = await argon2.hash(
-            partialEntity.password as string,
+              partialEntity.password as string,
           );
         }
         await manager.update(UserEntity, criteria, partialEntity);
@@ -144,29 +144,29 @@ export class UserRepository implements IUserRepository {
       throw new NotFoundException(`Cannot find user with email ${email}`);
     }
     await this.datasource
-      .transaction(async (manager) => {
-        const routines = await this.routineRepository.find({
-          where: { userId: user.id },
-        });
-        const routineIds = routines.map((routine) => routine.id);
-        if (routineIds.length !== 0) {
-          await this.routineToTimerRepository.delete({
-            routineId: In(routineIds),
-          });
-        }
-        await this.userRepository.delete(user.id);
-      })
-      .then(() => {
-        return {
-          success: true,
-          message: 'User deleted successfully',
-        };
-      })
-      .catch(() => {
-        throw new BadRequestException(
+               .transaction(async (manager) => {
+      const routines = await this.routineRepository.find({
+                                                           where: { userId: user.id },
+                                                         });
+      const routineIds = routines.map((routine) => routine.id);
+      if (routineIds.length !== 0) {
+        await this.routineToTimerRepository.delete({
+                                                     routineId: In(routineIds),
+                                                   });
+      }
+      await this.userRepository.delete(user.id);
+    })
+               .then(() => {
+      return {
+        success: true,
+        message: 'User deleted successfully',
+      };
+    })
+               .catch(() => {
+      throw new BadRequestException(
           `Something went wrong while delete account`,
-        );
-      });
+      );
+    });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -177,35 +177,35 @@ export class UserRepository implements IUserRepository {
     const signupDeadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
 
     const users = await this.userRepository
-      .createQueryBuilder('user')
-      .where('isVerified = :isVerified', { isVerified: 0 })
-      .andWhere('createdAt <= :deadline', { deadline: signupDeadline })
-      .getMany();
+                             .createQueryBuilder('user')
+                             .where('isVerified = :isVerified', { isVerified: 0 })
+                             .andWhere('createdAt <= :deadline', { deadline: signupDeadline })
+                             .getMany();
 
     if (users.length !== 0) {
       for (const user of users) {
         const userId = user['user_id'];
         await this.userRepository.delete(userId);
         console.log(
-          `Account deleted because validation deadline is over: ${user['email']}`,
+            `Account deleted because validation deadline is over: ${user['email']}`,
         );
       }
     }
 
     // Deletes unchanged emails
     const changeEmailDeadline = new Date(
-      new Date().getTime() - 1 * 60 * 60 * 1000,
+        new Date().getTime() - 1 * 60 * 60 * 1000,
     );
 
     const emailUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .where('changeEmailToken != :changeEmailToken', {
-        changeEmailToken: '',
-      })
-      .andWhere('changeEmailTokenCreated <= :deadline', {
-        deadline: changeEmailDeadline,
-      })
-      .getMany();
+                                  .createQueryBuilder('user')
+                                  .where('changeEmailToken != :changeEmailToken', {
+      changeEmailToken: '',
+    })
+                                  .andWhere('changeEmailTokenCreated <= :deadline', {
+      deadline: changeEmailDeadline,
+    })
+                                  .getMany();
 
     if (emailUsers.length !== 0) {
       for (const user of emailUsers) {
@@ -215,7 +215,7 @@ export class UserRepository implements IUserRepository {
 
         await this.userRepository.save(user);
         console.log(
-          `Change email token, timestamp deleted because email not changed: ${user['email']}`,
+            `Change email token, timestamp deleted because email not changed: ${user['email']}`,
         );
       }
     }

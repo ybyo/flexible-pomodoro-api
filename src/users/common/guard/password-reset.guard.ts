@@ -7,10 +7,8 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class PasswordResetGuard extends AuthGuard('jwt') {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const result = (await super.canActivate(context)) as boolean;
-
-    return result;
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    return (await super.canActivate(ctx)) as boolean;
   }
 
   handleRequest(err, user, info, context, status) {
