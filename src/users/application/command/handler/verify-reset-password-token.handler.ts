@@ -2,19 +2,21 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
+import { VerifyResetPasswordTokenCmd } from '@/users/application/command/impl/verify-reset-password-token.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(VerifyResetPasswordTokenCommand)
+@CommandHandler(VerifyResetPasswordTokenCmd)
 export class VerifyResetPasswordTokenHandler
-  implements ICommandHandler<VerifyResetPasswordTokenCommand>
+  implements ICommandHandler<VerifyResetPasswordTokenCmd>
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: VerifyResetPasswordTokenCommand) {
+  async execute(
+    command: VerifyResetPasswordTokenCmd,
+  ): Promise<IRes<IUser | null>> {
     const { resetPasswordVerifyToken } = command;
 
     const userEntity = await this.userRepository.findByResetPasswordVerifyToken(

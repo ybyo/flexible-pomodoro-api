@@ -29,7 +29,7 @@ import { DeleteAccountCommand } from '@/users/application/command/impl/delete-ac
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
-import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
+import { VerifyResetPasswordTokenCmd } from '@/users/application/command/impl/verify-reset-password-token.cmd';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
