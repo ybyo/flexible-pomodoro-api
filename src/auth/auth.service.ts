@@ -8,8 +8,9 @@ import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
+import { ulid } from 'ulid';
 
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
 import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
@@ -123,8 +124,12 @@ export class AuthService {
 
   async checkEmail(dto: CheckEmailDto) {
     const { email } = dto;
-    const command = new CheckEmailCommand(email);
+    const command = new CheckEmailDupCmd(email);
 
     return await this.commandBus.execute(command);
+  }
+
+  async issueUlid(): Promise<string> {
+    return ulid();
   }
 }

@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
 
-export class CheckEmailCommand implements ICommand {
+export class CheckEmailDupCmd implements ICommand {
   constructor(readonly email: string) {}
 }

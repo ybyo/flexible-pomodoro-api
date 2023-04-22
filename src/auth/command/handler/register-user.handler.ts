@@ -42,7 +42,7 @@ export class RegisterUserHandler
     const newUser = new User({
       ...command,
       id: newUserId,
-      signupVerifyToken: '1',
+      signupVerifyToken,
     });
 
     // Redis token

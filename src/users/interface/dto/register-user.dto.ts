@@ -7,10 +7,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import * as filter from 'leo-profanity';
 
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 import { NotIn } from '@/utils/decorators/not-in.decorator';
-import * as filter from 'leo-profanity';
 
 export class RegisterUserDto {
   @Transform(({ value, obj }) => {

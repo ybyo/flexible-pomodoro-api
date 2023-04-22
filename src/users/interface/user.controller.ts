@@ -16,12 +16,12 @@ import { Request, Response } from 'express';
 import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
+import { AddResetTokenCmd } from '@/users/application/command/impl/add-reset-token.cmd';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
@@ -57,44 +57,32 @@ export class UserController {
   }
 
   @Post('reset-password')
-  async resetPass(@Body() data): Promise<IRes<any>> {
+  async sendResetPasswordEmail(@Body() data): Promise<IRes<any>> {
     const { email } = data;
-    const command = new CheckEmailCommand(email);
 
-    const response = await this.commandBus.execute(command);
+    const command = new CheckEmailDupCmd(email);
+    const result = await this.commandBus.execute(command);
 
-    // Email exists, sending email
-    if (response.success === false) {
-      const res = {} as IRes<any>;
+    if (result.success === false) {
+      const resetPasswordVerifyToken = await this.authService.issueUlid();
+      await this.emailService.sendPasswordResetVerification(
+        email,
+        resetPasswordVerifyToken,
+      );
 
-      try {
-        const resetPasswordVerifyToken = ulid();
-        await this.emailService.sendPasswordResetVerification(
-          email,
-          resetPasswordVerifyToken,
-        );
+      const command = new AddResetTokenCmd(email, resetPasswordVerifyToken);
+      await this.commandBus.execute(command);
 
-        const command = new AddResetTokenCommand(
-          email,
-          resetPasswordVerifyToken,
-        );
-
-        const response = await this.commandBus.execute(command);
-
-        res.success = true;
-        res.message = 'Reset password verification email sent successfully.';
-
-        return res;
-      } catch (err) {
-        // res.success = false;
-        // res.message = err;
-        console.log(err);
-
-        return null;
-      }
+      return {
+        success: true,
+        message: 'Reset password verification email sent successfully.',
+      };
     }
 
-    return null;
+    return {
+      success: false,
+      message: 'Email does not exist.',
+    };
   }
 
   @Get('verify-reset-password')
@@ -143,7 +131,7 @@ export class UserController {
 
     if (response.success === true) {
       res.cookie('resetPasswordToken', null, { ...this.accessConf, maxAge: 1 });
-      const command = new AddResetTokenCommand(user.data.email, null);
+      const command = new AddResetTokenCmd(user.data.email, null);
 
       try {
         await this.commandBus.execute(command);
