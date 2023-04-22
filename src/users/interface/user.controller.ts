@@ -16,12 +16,12 @@ import { Request, Response } from 'express';
 import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
+import { AddResetTokenCmd } from '@/users/application/command/impl/add-reset-token.cmd';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';

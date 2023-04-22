@@ -2,21 +2,21 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { AuthService } from '@/auth/auth.service';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { AddResetTokenCommand } from '@/users/application/command/impl/add-reset-token.command';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { IRes, IUser }      from '@/customTypes/interfaces/message.interface';
+import { AddResetTokenCmd } from '@/users/application/command/impl/add-reset-token.cmd';
+import { IUserRepository }  from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(AddResetTokenCommand)
+@CommandHandler(AddResetTokenCmd)
 export class AddResetTokenHandler
-  implements ICommandHandler<AddResetTokenCommand>
+  implements ICommandHandler<AddResetTokenCmd>
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
     private authService: AuthService,
   ) {}
 
-  async execute(command: AddResetTokenCommand) {
+  async execute(command: AddResetTokenCmd) {
     const { email, resetPasswordVerifyToken } = command;
 
     const user = await this.userRepository.findByEmail(email);

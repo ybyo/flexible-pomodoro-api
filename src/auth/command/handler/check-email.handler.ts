@@ -1,18 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { CheckEmailCommand } from '@/auth/command/impl/check-email.command';
+import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { IRes } from '@/customTypes/interfaces/message.interface';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(CheckEmailCommand)
-export class CheckEmailHandler implements ICommandHandler<CheckEmailCommand> {
+@CommandHandler(CheckEmailDupCmd)
+export class CheckEmailHandler implements ICommandHandler<CheckEmailDupCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: CheckEmailCommand) {
+  async execute(command: CheckEmailDupCmd) {
     const { email } = command;
 
     const { email: foundEmail } = (await this.userRepository.findByEmail(
