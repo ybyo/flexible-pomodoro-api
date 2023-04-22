@@ -8,7 +8,7 @@ export interface IUserRepository {
   findBySignupVerifyToken: (signupVerifyToken: string) => Promise<User>;
   findByResetPasswordVerifyToken: (
     resetPasswordVerifyToken: string,
-  ) => Promise<User>;
+  ) => Promise<User | null>;
   findByChangeEmailToken: (changeEmailToken: string) => Promise<any>;
   findByUsername: (userName: string) => Promise<UserEntity>;
   saveUser: (user: User) => Promise<void>;

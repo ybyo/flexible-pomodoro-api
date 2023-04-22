@@ -84,13 +84,12 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({
       resetPasswordToken: resetPasswordVerifyToken,
     });
-    if (!userEntity) {
+
+    if (userEntity === null) {
       return null;
     }
 
-    const newEntity = this.mapper.map(userEntity, UserEntity, User);
-
-    return this.userFactory.reconstitute(newEntity);
+    return this.mapper.map(userEntity, UserEntity, User);
   }
 
   async findByChangeEmailToken(changeEmailVerifyToken: string) {

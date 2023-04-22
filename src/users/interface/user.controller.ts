@@ -29,7 +29,7 @@ import { DeleteAccountCommand } from '@/users/application/command/impl/delete-ac
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
-import { VerifyResetPasswordTokenCommand } from '@/users/application/command/impl/verify-reset-password-token.command';
+import { VerifyResetPasswordTokenCmd } from '@/users/application/command/impl/verify-reset-password-token.cmd';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
@@ -85,23 +85,19 @@ export class UserController {
     };
   }
 
-  @Get('verify-reset-password')
+  @Get('verify-reset-password-token')
   async verifyResetPassword(
     @Query() query,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
-    const { resetPasswordVerifyToken } = query;
+    const { resetPasswordVerifyToken: token } = query;
 
-    const command = new VerifyResetPasswordTokenCommand(
-      resetPasswordVerifyToken,
-    );
+    const command = new VerifyResetPasswordTokenCmd(token);
     const result: IRes<IUser> = await this.commandBus.execute(command);
-
-    const user = result.data;
+    const user: IUser = result.data;
 
     if (user !== null) {
-      const accessToken = await this.authService.issueToken(user as IUser);
-
+      const accessToken = await this.authService.issueToken(user);
       res.cookie('resetPasswordToken', accessToken, this.accessConf);
     }
 
@@ -109,38 +105,34 @@ export class UserController {
   }
 
   @UseGuards(PasswordResetGuard)
-  @Post('post-password-reset')
+  @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
     @Body() body: PasswordResetDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<IRes> {
     const newPassword = body.password;
     let resetPasswordToken;
+    let response = {} as IRes<void>;
 
     if ('resetPasswordToken' in req.cookies) {
       resetPasswordToken = req.cookies.resetPasswordToken;
-    }
-
-    let response = {} as IRes<void>;
-
-    const user = await this.authService.verifyJwt(resetPasswordToken);
-
-    const command = new UpdatePasswordCommand(user.data.email, newPassword);
-    response = await this.commandBus.execute(command);
-
-    if (response.success === true) {
-      res.cookie('resetPasswordToken', null, { ...this.accessConf, maxAge: 1 });
-      const command = new AddResetTokenCmd(user.data.email, null);
-
-      try {
+      const user = await this.authService.verifyJwt(resetPasswordToken);
+      const command = new UpdatePasswordCommand(user.data.email, newPassword);
+      response = await this.commandBus.execute(command);
+      if (response.success === true) {
+        res.cookie('resetPasswordToken', null, {
+          ...this.accessConf,
+          maxAge: 1,
+        });
+        const command = new AddResetTokenCmd(user.data.email, null);
         await this.commandBus.execute(command);
-      } catch (err) {
-        console.log(err);
       }
+
+      return response;
     }
 
-    return response;
+    return { success: false };
   }
 
   @UseGuards(JwtAuthGuard)
