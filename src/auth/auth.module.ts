@@ -4,9 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthController }       from '@/auth/auth.controller';
+import { AuthController } from '@/auth/auth.controller';
 import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
-import { RegisterUserHandler }  from '@/auth/command/handler/register-user.handler';
+import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
 import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
 import { CheckDuplicateUsernameHandler } from '@/auth/query/handler/check-duplicate-username.handler';
 import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';

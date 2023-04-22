@@ -43,9 +43,7 @@ export class UserRepository implements IUserRepository {
       return null;
     }
 
-    const newEntity = this.mapper.map(userEntity, UserEntity, User);
-
-    return this.userFactory.reconstitute(newEntity);
+    return this.mapper.map(userEntity, UserEntity, User);
   }
 
   async findByEmailAndPassword(

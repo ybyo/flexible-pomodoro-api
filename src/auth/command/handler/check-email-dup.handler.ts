@@ -12,24 +12,15 @@ export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: CheckEmailDupCmd) {
+  async execute(command: CheckEmailDupCmd): Promise<IRes<any>> {
     const { email } = command;
 
-    const { email: foundEmail } = (await this.userRepository.findByEmail(
-      email,
-    )) || { email: 'dummy' };
+    const user = await this.userRepository.findByEmail(email);
 
-    if (foundEmail !== 'dummy') {
-      const response = {} as IRes<any>;
-      response.success = false;
-
-      return response;
+    if (user !== null) {
+      return { success: false };
     }
 
-    const response = {} as IRes<any>;
-    response.success = true;
-    response.message = email;
-
-    return response;
+    return { success: true, data: email };
   }
 }
