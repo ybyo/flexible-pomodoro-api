@@ -90,18 +90,14 @@ export class UserController {
     @Query() query,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
-    const { resetPasswordVerifyToken } = query;
+    const { resetPasswordVerifyToken: token } = query;
 
-    const command = new VerifyResetPasswordTokenCommand(
-      resetPasswordVerifyToken,
-    );
+    const command = new VerifyResetPasswordTokenCmd(token);
     const result: IRes<IUser> = await this.commandBus.execute(command);
-
-    const user = result.data;
+    const user: IUser = result.data;
 
     if (user !== null) {
-      const accessToken = await this.authService.issueToken(user as IUser);
-
+      const accessToken = await this.authService.issueToken(user);
       res.cookie('resetPasswordToken', accessToken, this.accessConf);
     }
 
@@ -114,33 +110,29 @@ export class UserController {
     @Req() req: Request,
     @Body() body: PasswordResetDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<IRes> {
     const newPassword = body.password;
     let resetPasswordToken;
+    let response = {} as IRes<void>;
 
     if ('resetPasswordToken' in req.cookies) {
       resetPasswordToken = req.cookies.resetPasswordToken;
-    }
-
-    let response = {} as IRes<void>;
-
-    const user = await this.authService.verifyJwt(resetPasswordToken);
-
-    const command = new UpdatePasswordCommand(user.data.email, newPassword);
-    response = await this.commandBus.execute(command);
-
-    if (response.success === true) {
-      res.cookie('resetPasswordToken', null, { ...this.accessConf, maxAge: 1 });
-      const command = new AddResetTokenCmd(user.data.email, null);
-
-      try {
+      const user = await this.authService.verifyJwt(resetPasswordToken);
+      const command = new UpdatePasswordCommand(user.data.email, newPassword);
+      response = await this.commandBus.execute(command);
+      if (response.success === true) {
+        res.cookie('resetPasswordToken', null, {
+          ...this.accessConf,
+          maxAge: 1,
+        });
+        const command = new AddResetTokenCmd(user.data.email, null);
         await this.commandBus.execute(command);
-      } catch (err) {
-        console.log(err);
       }
+
+      return response;
     }
 
-    return response;
+    return { success: false };
   }
 
   @UseGuards(JwtAuthGuard)

@@ -18,30 +18,28 @@ export class VerifyResetPasswordTokenHandler
     command: VerifyResetPasswordTokenCmd,
   ): Promise<IRes<IUser | null>> {
     const { resetPasswordVerifyToken } = command;
-
     const userEntity = await this.userRepository.findByResetPasswordVerifyToken(
       resetPasswordVerifyToken,
     );
 
-    const response = {} as IRes<IUser>;
-    const user = {} as IUser;
-
     if (userEntity === null) {
-      response.success = false;
-      response.message = 'Invalid reset password verification code';
-      response.data = null;
-
-      return response;
+      return {
+        success: false,
+        message: 'Invalid reset password verification code',
+        data: null,
+      };
     }
 
-    user.id = userEntity.id;
-    user.email = userEntity.email;
-    user.userName = userEntity.userName;
+    const user: IUser = {
+      id: userEntity.id,
+      email: userEntity.email,
+      userName: userEntity.userName,
+    };
 
-    response.success = true;
-    response.message = 'Reset password token verified successfully';
-    response.data = user;
-
-    return response;
+    return {
+      success: true,
+      message: 'Reset password token verified successfully',
+      data: user,
+    };
   }
 }
