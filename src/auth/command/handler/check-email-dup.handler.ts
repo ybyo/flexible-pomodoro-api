@@ -7,7 +7,7 @@ import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(CheckEmailDupCmd)
-export class CheckEmailHandler implements ICommandHandler<CheckEmailDupCmd> {
+export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}

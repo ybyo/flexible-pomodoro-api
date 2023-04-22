@@ -4,9 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthController } from '@/auth/auth.controller';
-import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
-import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
+import { AuthController }       from '@/auth/auth.controller';
+import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
+import { RegisterUserHandler }  from '@/auth/command/handler/register-user.handler';
 import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
 import { CheckDuplicateUsernameHandler } from '@/auth/query/handler/check-duplicate-username.handler';
 import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';
@@ -25,7 +25,7 @@ import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { AuthService } from './auth.service';
 
 const CommandHandlers = [
-  CheckEmailHandler,
+  CheckEmailDupHandler,
   RegisterUserHandler,
   ValidateUserHandler,
 ];

@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { EmailModule } from 'src/email/email.module';
 
-import { CheckEmailHandler } from '@/auth/command/handler/check-email.handler';
+import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
 import { RedisModule } from '@/redis';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
@@ -34,7 +34,7 @@ const commandHandlers = [
   AddResetTokenHandler,
   ChangeEmailHandler,
   ChangeNameHandler,
-  CheckEmailHandler,
+  CheckEmailDupHandler,
   CreateTimestampHandler,
   DeleteAccountHandler,
   UpdatePasswordHandler,
