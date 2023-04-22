@@ -85,7 +85,7 @@ export class UserController {
     };
   }
 
-  @Get('verify-reset-password')
+  @Get('verify-reset-password-token')
   async verifyResetPassword(
     @Query() query,
     @Res({ passthrough: true }) res: Response,
@@ -109,7 +109,7 @@ export class UserController {
   }
 
   @UseGuards(PasswordResetGuard)
-  @Post('post-password-reset')
+  @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
     @Body() body: PasswordResetDto,
