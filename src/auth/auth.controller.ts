@@ -59,7 +59,9 @@ export class AuthController {
       );
     }
 
-    if (result !== null) throw new BadRequestException('Duplicate username');
+    if (result !== null) {
+      throw new BadRequestException('Duplicate username');
+    }
 
     return this.authService.registerUser(user);
   }
@@ -117,8 +119,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<any>> {
     try {
-      const response: IRes<any> = await this.authService.checkEmail(dto);
-      return response;
+      return await this.authService.checkEmail(dto);
     } catch (error) {
       throw new BadRequestException('Duplicate email');
     }
