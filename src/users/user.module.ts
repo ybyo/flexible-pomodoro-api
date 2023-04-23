@@ -10,7 +10,7 @@ import { RedisModule } from '@/redis';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
-import { AddResetTokenHandler } from '@/users/application/command/handler/add-reset-token.handler';
+import { AddTokenToDBHandler } from '@/users/application/command/handler/add-token-to-db.handler';
 import { ChangeEmailHandler } from '@/users/application/command/handler/change-email.handler';
 import { ChangeNameHandler } from '@/users/application/command/handler/change-name.handler';
 import { CreateTimestampHandler } from '@/users/application/command/handler/create-timestamp.handler';
@@ -31,7 +31,7 @@ import { UserRepository } from './infra/db/repository/user.repository';
 import { UserController } from './interface/user.controller';
 
 const commandHandlers = [
-  AddResetTokenHandler,
+  AddTokenToDBHandler,
   ChangeEmailHandler,
   ChangeNameHandler,
   CheckEmailDupHandler,
