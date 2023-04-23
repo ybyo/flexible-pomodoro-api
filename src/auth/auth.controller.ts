@@ -72,7 +72,7 @@ export class AuthController {
     const user = req.session.passport.user;
 
     try {
-      const accessToken = await this.authService.issueToken(user);
+      const accessToken = await this.authService.issueJWT(user);
       res.cookie('accessToken', accessToken, this.accessConf);
     } catch (err) {
       this.logger.log(err);
@@ -93,7 +93,7 @@ export class AuthController {
   async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {
     const user = req.user;
 
-    const accessToken = await this.authService.issueToken(user as IUser);
+    const accessToken = await this.authService.issueJWT(user as IUser);
 
     res.cookie('accessToken', accessToken, this.accessConf);
     return req.session;
