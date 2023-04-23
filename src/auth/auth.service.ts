@@ -43,15 +43,23 @@ export class AuthService {
     listenClient.subscribe('__keyevent@0__:expired');
     listenClient.on('message', async (channel, key): Promise<void> => {
       if (channel === '__keyevent@0__:expired') {
+        const event = key.split(':')[0];
         const token = key.split(':')[1];
         const { success, data } = await this.verifyJwt(token);
         if (success) {
-          const command = new DeleteAccountCommand(data.email);
-          await this.commandBus.execute(command).then(() => {
-            console.log(
-              `Unverified user data deleted...\n${JSON.stringify(data)}`,
+          if (event === 'verifyEmailToken') {
+            const command = new DeleteAccountCommand(data.email);
+            await this.commandBus.execute(command).then(() => {
+              console.log(
+                `Unverified user data deleted...\n${JSON.stringify(data)}`,
+              );
+            });
+          } else if (event === 'resetPasswordToken') {
+            await this.userRepository.updateUser(
+              { email: data.email },
+              { [event]: null },
             );
-          });
+          }
         } else
           throw new InternalServerErrorException(
             `Cannot verify JWT token While removing expired user data.\nToken: ${token}\nEmail: ${data.email}`,
@@ -63,19 +71,15 @@ export class AuthService {
   // Interact with passport local strategy
   async validateWithIdPw(user: LoginUserDto) {
     const { email, password } = user;
-    // TODO: 에러 핸들링 auth service에서 수행하도록 구현
     const command = new ValidateUserCommand(email, password);
 
-    const foundUser = await this.commandBus.execute(command);
-
-    return foundUser;
+    return await this.commandBus.execute(command);
   }
 
   async findByUserId(id: string) {
     const command = new GetUserByUserIdQuery(id);
-    const user = await this.queryBus.execute(command);
 
-    return user;
+    return await this.queryBus.execute(command);
   }
 
   async registerUser(user): Promise<IUser> {
@@ -118,7 +122,7 @@ export class AuthService {
     }
   }
 
-  async issueToken(user: IUser): Promise<string> {
+  async issueJWT(user: IUser): Promise<string> {
     return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 

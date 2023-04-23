@@ -1,5 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 
 import { RedisService } from '@/redis/redis.service';
@@ -19,15 +20,36 @@ export class RedisTokenStrategy extends PassportStrategy(
   }
 
   async validate(req: Request): Promise<boolean> {
-    const token = 'query' in req ? req.query['signupVerifyToken'] : null;
-    const id = await this.redisService.getValue(`verifyEmail:${token}`);
+    const raw =
+      'resetPasswordToken' in req.cookies
+        ? req.cookies.resetPasswordToken
+        : req.query;
 
-    if (id === null) {
-      throw new BadRequestException('Already verified email');
+    if (raw === null) {
+      throw new BadRequestException(`Invalid request`);
     }
 
-    await this.redisService.deleteValue(`verifyEmail:${token}`).then(() => {
-      this.userRepository.updateUser({ id }, { signupVerifyToken: null });
+    let key;
+    let token;
+
+    if (raw === req.cookies.resetPasswordToken) {
+      key = 'resetPasswordToken';
+      token = raw;
+    } else {
+      key = Object.keys(raw)[0];
+      token = Object.values(raw)[0];
+    }
+
+    const id = await this.redisService.getValue(`${key}:${token}`);
+
+    if (id === null) {
+      throw new BadRequestException(
+        `${key} is already verified or invalid token`,
+      );
+    }
+
+    await this.redisService.deleteValue(`${key}:${token}`).then(() => {
+      this.userRepository.updateUser({ id }, { [key]: null });
     });
 
     return true;
