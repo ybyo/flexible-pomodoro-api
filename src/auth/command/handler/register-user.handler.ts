@@ -48,7 +48,7 @@ export class RegisterUserHandler
     // Redis token
     try {
       await this.redisService.setValue(
-        `verifyEmail:${signupVerifyToken}`,
+        `signupVerifyToken:${signupVerifyToken}`,
         newUserId,
         3 * 60 * 60,
       );

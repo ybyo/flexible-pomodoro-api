@@ -16,7 +16,7 @@ export class EmailService implements IEmailService {
     );
   }
 
-  async sendPasswordResetVerification(
+  async sendResetPasswordToken(
     email: string,
     signupVerifyToken: string,
   ): Promise<void> {
