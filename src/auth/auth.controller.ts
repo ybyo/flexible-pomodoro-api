@@ -59,7 +59,9 @@ export class AuthController {
       );
     }
 
-    if (result !== null) throw new BadRequestException('Duplicate username');
+    if (result !== null) {
+      throw new BadRequestException('Duplicate username');
+    }
 
     return this.authService.registerUser(user);
   }
@@ -70,7 +72,7 @@ export class AuthController {
     const user = req.session.passport.user;
 
     try {
-      const accessToken = await this.authService.issueToken(user);
+      const accessToken = await this.authService.issueJWT(user);
       res.cookie('accessToken', accessToken, this.accessConf);
     } catch (err) {
       this.logger.log(err);
@@ -91,7 +93,7 @@ export class AuthController {
   async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {
     const user = req.user;
 
-    const accessToken = await this.authService.issueToken(user as IUser);
+    const accessToken = await this.authService.issueJWT(user as IUser);
 
     res.cookie('accessToken', accessToken, this.accessConf);
     return req.session;
@@ -117,8 +119,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<any>> {
     try {
-      const response: IRes<any> = await this.authService.checkEmail(dto);
-      return response;
+      return await this.authService.checkEmail(dto);
     } catch (error) {
       throw new BadRequestException('Duplicate email');
     }

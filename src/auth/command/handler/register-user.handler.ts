@@ -33,7 +33,7 @@ export class RegisterUserHandler
     if (user !== null) throw new BadRequestException('Duplicate email');
 
     const newUserId = ulid();
-    const signupVerifyToken = await this.authService.issueToken({
+    const signupVerifyToken = await this.authService.issueJWT({
       id: newUserId,
       userName,
       email,

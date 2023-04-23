@@ -33,7 +33,7 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true, default: null })
   signupVerifyToken: string;
 
-  @Column({ default: null })
+  @Column({ nullable: true, default: null })
   resetPasswordToken: string;
 
   @Column({ default: null })
@@ -44,15 +44,6 @@ export class UserEntity extends BaseEntity {
 
   @Column({ default: null })
   changeEmailTokenCreated: Date;
-
-  @Column({ default: false })
-  isVerified: boolean;
-
-  @Column({ default: false })
-  isLoggedin: boolean;
-
-  @Column({ default: false })
-  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
