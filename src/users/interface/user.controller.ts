@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Inject,
+  InternalServerErrorException,
   Post,
   Query,
   Req,
@@ -21,7 +22,7 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { AddResetTokenCmd } from '@/users/application/command/impl/add-reset-token.cmd';
+import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
@@ -56,7 +57,7 @@ export class UserController {
     return await this.commandBus.execute(command);
   }
 
-  @Post('reset-password')
+  @Post('send-reset-password-email')
   async sendResetPasswordEmail(@Body() data): Promise<IRes<any>> {
     const { email } = data;
 
@@ -64,14 +65,26 @@ export class UserController {
     const result = await this.commandBus.execute(command);
 
     if (result.success === false) {
-      const resetPasswordVerifyToken = await this.authService.issueUlid();
-      await this.emailService.sendPasswordResetVerification(
-        email,
-        resetPasswordVerifyToken,
-      );
+      const user = {
+        id: result.data.id,
+        userName: result.data.userName,
+        email: result.data.email,
+      };
+      const resetPasswordToken = await this.authService.issueJWT(user);
 
-      const command = new AddResetTokenCmd(email, resetPasswordVerifyToken);
-      await this.commandBus.execute(command);
+      const command = new AddTokenToDBCmd(
+        email,
+        'resetPasswordToken',
+        resetPasswordToken,
+      );
+      try {
+        await this.commandBus.execute(command);
+      } catch (err) {
+        console.log(err);
+        throw new InternalServerErrorException();
+      }
+
+      await this.emailService.sendResetPasswordToken(email, resetPasswordToken);
 
       return {
         success: true,
@@ -97,7 +110,7 @@ export class UserController {
     const user: IUser = result.data;
 
     if (user !== null) {
-      const accessToken = await this.authService.issueToken(user);
+      const accessToken = await this.authService.issueJWT(user);
       res.cookie('resetPasswordToken', accessToken, this.accessConf);
     }
 
@@ -105,6 +118,7 @@ export class UserController {
   }
 
   @UseGuards(PasswordResetGuard)
+  @UseGuards(RedisTokenGuard)
   @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
@@ -113,20 +127,18 @@ export class UserController {
   ): Promise<IRes> {
     const newPassword = body.password;
     let resetPasswordToken;
-    let response = {} as IRes<void>;
 
     if ('resetPasswordToken' in req.cookies) {
       resetPasswordToken = req.cookies.resetPasswordToken;
       const user = await this.authService.verifyJwt(resetPasswordToken);
       const command = new UpdatePasswordCommand(user.data.email, newPassword);
-      response = await this.commandBus.execute(command);
+      const response = await this.commandBus.execute(command);
+
       if (response.success === true) {
         res.cookie('resetPasswordToken', null, {
           ...this.accessConf,
           maxAge: 1,
         });
-        const command = new AddResetTokenCmd(user.data.email, null);
-        await this.commandBus.execute(command);
       }
 
       return response;
@@ -198,7 +210,7 @@ export class UserController {
 
     if (response.success === true) {
       const newUser: IUser = response.data;
-      const accessToken = await this.authService.issueToken(newUser);
+      const accessToken = await this.authService.issueJWT(newUser);
       res.cookie('accessToken', accessToken, this.accessConf);
 
       return response;
@@ -223,7 +235,7 @@ export class UserController {
     const response = await this.commandBus.execute(command);
     if (response.success === true) {
       const newUser: IUser = response.data;
-      const accessToken = await this.authService.issueToken(newUser);
+      const accessToken = await this.authService.issueJWT(newUser);
       res.cookie('accessToken', accessToken, this.accessConf);
 
       return response;
