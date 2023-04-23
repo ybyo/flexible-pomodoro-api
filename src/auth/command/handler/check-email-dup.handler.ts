@@ -18,7 +18,7 @@ export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
     const user = await this.userRepository.findByEmail(email);
 
     if (user !== null) {
-      return { success: false };
+      return { success: false, data: user };
     }
 
     return { success: true, data: email };
