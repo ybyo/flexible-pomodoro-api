@@ -250,7 +250,7 @@ export class UserController {
     @Req() req: Request,
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
-  ): Promise<IRes> {
+  ): Promise<Session | IRes> {
     let email: string | null;
     if ('email' in req.user) {
       email = req.user.email as string;
@@ -258,7 +258,16 @@ export class UserController {
 
     if (email !== null) {
       const command = new DeleteAccountCommand(email);
-      return await this.commandBus.execute(command);
+      await this.commandBus.execute(command);
+
+      req.logout((err) => {
+        if (err) return err;
+      });
+
+      res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
+      req.session.cookie.maxAge = 0;
+
+      return req.session;
     }
 
     return {
