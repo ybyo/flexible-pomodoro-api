@@ -21,6 +21,7 @@ import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { Session } from '@/customTypes/types';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
@@ -110,8 +111,7 @@ export class UserController {
     const user: IUser = result.data;
 
     if (user !== null) {
-      const accessToken = await this.authService.issueJWT(user);
-      res.cookie('resetPasswordToken', accessToken, this.accessConf);
+      res.cookie('resetPasswordToken', token, this.accessConf);
     }
 
     return result;
