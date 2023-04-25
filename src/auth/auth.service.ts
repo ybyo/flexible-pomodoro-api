@@ -39,7 +39,7 @@ export class AuthService {
       port: +process.env.REDIS_PORT,
       host: process.env.REDIS_URL,
     });
-    listenClient.config('SET', 'notify-keyspace-events', 'Ex');
+    // Config blocked in AWS
     listenClient.subscribe('__keyevent@0__:expired');
     listenClient.on('message', async (channel, key): Promise<void> => {
       if (channel === '__keyevent@0__:expired') {
@@ -58,6 +58,9 @@ export class AuthService {
             await this.userRepository.updateUser(
               { email: data.email },
               { [event]: null },
+            );
+            console.log(
+              `resetPasswordToken expired...\n${JSON.stringify(data)}`,
             );
           }
         } else
