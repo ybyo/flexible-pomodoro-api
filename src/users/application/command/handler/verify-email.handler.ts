@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { AuthService } from '@/auth/auth.service';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
@@ -21,28 +20,28 @@ export class VerifyEmailHandler implements ICommandHandler<VerifyEmailCommand> {
       signupVerifyToken,
     );
 
-    const response = {} as IRes<IUser>;
-
     if (user === null) {
-      response.success = false;
-      response.message = 'Invalid email verification code';
-      return response;
+      return {
+        success: false,
+        message: 'Invalid email verification code',
+      };
     }
 
-    if (!user.isVerified) {
+    if (user.signupVerifyToken !== null) {
       await this.userRepository.updateUser(
-        { signupVerifyToken: signupVerifyToken },
-        { isVerified: true },
+        { id: user.id },
+        { signupVerifyToken: null },
       );
-    } else {
-      response.success = true;
-      response.message = 'Already verified email';
-      return response;
+
+      return {
+        success: true,
+        message: 'Email verified',
+      };
     }
 
-    response.success = true;
-    response.message = 'Email verified';
-
-    return response;
+    return {
+      success: true,
+      message: 'Already verified email',
+    };
   }
 }

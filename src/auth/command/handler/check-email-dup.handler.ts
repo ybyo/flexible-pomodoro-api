@@ -14,7 +14,6 @@ export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
 
   async execute(command: CheckEmailDupCmd): Promise<IRes<any>> {
     const { email } = command;
-
     const user = await this.userRepository.findByEmail(email);
 
     if (user !== null) {

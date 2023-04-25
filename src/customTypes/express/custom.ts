@@ -6,7 +6,4 @@ export type User = {
   signupVerifyToken: string;
   refreshToken: string;
   resetPasswordToken: string;
-  isVerified: boolean;
-  isLoggedin: boolean;
-  isActive: boolean;
 };
