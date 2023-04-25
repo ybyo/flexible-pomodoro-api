@@ -43,7 +43,7 @@ export class EmailService {
     );
 
     const dataMap = {
-      app_name: 'Pipe Timer - 회원가입 인증',
+      app_name: 'Pipe Timer',
       verification_url: verificationUrl,
     };
 
@@ -59,7 +59,7 @@ export class EmailService {
 
     const mailOptions: MailDataRequired = {
       to: emailAddress,
-      subject: 'Pipe Timer',
+      subject: 'Pipe Timer - 회원가입 인증',
       from: 'no-reply@pipetimer.com',
       html: renderedTemplate,
     };

@@ -8,9 +8,6 @@ export class User {
   signupVerifyToken: string;
   refreshToken: string;
   resetPasswordToken: string;
-  isVerified: boolean;
-  isLoggedin: boolean;
-  isActive: boolean;
 
   constructor(user: Partial<User>) {
     if (user) {

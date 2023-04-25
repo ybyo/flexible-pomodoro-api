@@ -29,23 +29,21 @@ export class RedisTokenStrategy extends PassportStrategy(
       throw new BadRequestException(`Invalid request`);
     }
 
-    let key;
-    let token;
+    let key = '';
+    let token = '';
 
     if (raw === req.cookies.resetPasswordToken) {
       key = 'resetPasswordToken';
       token = raw;
     } else {
-      key = Object.keys(raw)[0];
-      token = Object.values(raw)[0];
+      key = Object.keys(raw)[0] as string;
+      token = Object.values(raw)[0] as string;
     }
 
     const id = await this.redisService.getValue(`${key}:${token}`);
 
     if (id === null) {
-      throw new BadRequestException(
-        `${key} is already verified or invalid token`,
-      );
+      throw new BadRequestException(`${key} is already used or invalid token`);
     }
 
     await this.redisService.deleteValue(`${key}:${token}`).then(() => {
