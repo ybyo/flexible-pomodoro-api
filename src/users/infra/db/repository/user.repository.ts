@@ -166,10 +166,9 @@ export class UserRepository implements IUserRepository {
       });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async handleCron() {
-    // Deletes unverified accounts
-    this.logger.log('Deleted unverified accounts');
+  getDataSource(): DataSource {
+    return this.dataSource;
+  }
 
     const signupDeadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
 
