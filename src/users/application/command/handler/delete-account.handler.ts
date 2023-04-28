@@ -14,7 +14,8 @@ export class DeleteAccountHandler
   ) {}
 
   async execute(command: DeleteAccountCommand) {
-    const { email } = command;
-    return await this.userRepository.deleteUser(email);
+    const { id } = command;
+
+    return await this.userRepository.deleteUser(id);
   }
 }
