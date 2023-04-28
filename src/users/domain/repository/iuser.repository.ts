@@ -1,3 +1,6 @@
+import { DataSource } from 'typeorm';
+
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 import { User } from '../user.model';
