@@ -45,7 +45,7 @@ export class RegisterUserHandler
     try {
       await this.redisService.setValue(
         `signupVerifyToken:${signupVerifyToken}`,
-        newUserId,
+        '1',
         3 * 60 * 60,
       );
     } catch (err) {
