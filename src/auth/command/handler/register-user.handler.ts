@@ -4,7 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
@@ -13,6 +13,7 @@ import { RedisService } from '@/redis/redis.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserFactory } from '@/users/domain/user.factory';
 import { User } from '@/users/domain/user.model';
+import { UserRegisterEvent } from '@/users/domain/user-register.event';
 
 @Injectable()
 @CommandHandler(RegisterUserCommand)
@@ -24,6 +25,7 @@ export class RegisterUserHandler
     @Inject('UserRepository') private userRepository: IUserRepository,
     private redisService: RedisService,
     private authService: AuthService,
+    private eventBus: EventBus,
   ) {}
 
   async execute(command: RegisterUserCommand) {
@@ -61,7 +63,17 @@ export class RegisterUserHandler
       throw new InternalServerErrorException('Failed to save user', err);
     }
 
-    await this.userFactory.create(newUser);
+    // Send verification email
+    try {
+      await this.eventBus.publish(
+        new UserRegisterEvent(newUser.email, newUser.signupVerifyToken),
+      );
+    } catch (err) {
+      throw new InternalServerErrorException(
+        'Failed to send verification email',
+        err,
+      );
+    }
 
     return {
       id: newUser.id,

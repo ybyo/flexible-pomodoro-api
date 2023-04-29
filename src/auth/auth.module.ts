@@ -14,11 +14,13 @@ import { AuthSerializer } from '@/auth/serialization.provider';
 import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategy/local.strategy';
 import { jwtExpConfig } from '@/config/jwtConfig';
+import { EmailModule } from '@/email/email.module';
 import { RedisModule } from '@/redis';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
 import { UserFactory } from '@/users/domain/user.factory';
+import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
@@ -33,6 +35,7 @@ const QueryHandlers = [GetUserByUserIdHandler, CheckDuplicateUsernameHandler];
 const EventHandlers = [];
 
 const repositories = [
+  { provide: 'EmailService', useClass: EmailService },
   { provide: 'RoutineRepository', useClass: RoutineRepository },
   { provide: 'UserRepository', useClass: UserRepository },
 ];
@@ -42,6 +45,7 @@ const strategies = [LocalStrategy, JwtStrategy];
 @Module({
   imports: [
     CqrsModule,
+    EmailModule,
     PassportModule.register({ session: true }),
     TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
     JwtModule.register({
