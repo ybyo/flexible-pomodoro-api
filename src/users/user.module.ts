@@ -17,7 +17,6 @@ import { CreateTimestampHandler } from '@/users/application/command/handler/crea
 import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
 import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
 import { VerifyChangeEmailHandler } from '@/users/application/command/handler/verify-change-email.handler';
-import { VerifyEmailHandler } from '@/users/application/command/handler/verify-email.handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handler/verify-reset-password-token.handler';
 import { UserProfile } from '@/users/common/mapper/user.profile';
 import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
@@ -39,7 +38,6 @@ const commandHandlers = [
   DeleteAccountHandler,
   UpdatePasswordHandler,
   VerifyChangeEmailHandler,
-  VerifyEmailHandler,
   VerifyResetPasswordTokenHandler,
 ];
 const queryHandlers = [];

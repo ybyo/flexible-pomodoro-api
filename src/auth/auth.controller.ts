@@ -15,10 +15,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
+import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
@@ -40,6 +41,7 @@ export class AuthController {
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
     private queryBus: QueryBus,
+    private commandBus: CommandBus,
   ) {}
 
   @Post('register')
@@ -47,6 +49,17 @@ export class AuthController {
     @Req() req: Request,
     @Body() user: RegisterUserDto,
   ): Promise<IUser> {
+    const isDuplicated = (await this.checkDuplicateUserName(user)).success;
+
+    if (isDuplicated) {
+      const { userName, email, password } = user;
+      const command = new RegisterUserCommand(userName, email, password);
+
+      return await this.commandBus.execute(command);
+    }
+  }
+
+  async checkDuplicateUserName(@Body() user: RegisterUserDto): Promise<IRes> {
     let result = {} as IUser;
     const query = new CheckDuplicateUsernameQuery(user.userName);
 
@@ -63,7 +76,7 @@ export class AuthController {
       throw new BadRequestException('Duplicate username');
     }
 
-    return this.authService.registerUser(user);
+    return { success: true };
   }
 
   @UseGuards(LocalGuard)

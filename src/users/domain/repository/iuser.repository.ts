@@ -1,3 +1,6 @@
+import { DataSource } from 'typeorm';
+
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 import { User } from '../user.model';
@@ -5,7 +8,7 @@ import { User } from '../user.model';
 export interface IUserRepository {
   findByEmail: (email: string) => Promise<User | null>;
   findByEmailAndPassword: (email: string, password: string) => Promise<User>;
-  findBySignupVerifyToken: (signupVerifyToken: string) => Promise<User>;
+  findBySignupVerifyToken: (signupVerifyToken: string) => Promise<User | null>;
   findByResetPasswordVerifyToken: (
     resetPasswordVerifyToken: string,
   ) => Promise<User | null>;

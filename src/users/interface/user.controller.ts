@@ -30,7 +30,6 @@ import { CreateTimestampCommand } from '@/users/application/command/impl/create-
 import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
 import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
-import { VerifyEmailCommand } from '@/users/application/command/impl/verify-email.command';
 import { VerifyResetPasswordTokenCmd } from '@/users/application/command/impl/verify-reset-password-token.cmd';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
@@ -51,11 +50,8 @@ export class UserController {
 
   @UseGuards(RedisTokenGuard)
   @Get('verify-email')
-  async verifyEmail(@Query() query): Promise<string> {
-    const { signupVerifyToken } = query;
-    const command = new VerifyEmailCommand(signupVerifyToken);
-
-    return await this.commandBus.execute(command);
+  async verifyEmail(@Query() query): Promise<IRes> {
+    return { success: true };
   }
 
   @Post('send-reset-password-email')
@@ -130,7 +126,7 @@ export class UserController {
 
     if ('resetPasswordToken' in req.cookies) {
       resetPasswordToken = req.cookies.resetPasswordToken;
-      const user = await this.authService.verifyJwt(resetPasswordToken);
+      const user = await this.authService.verifyJWT(resetPasswordToken);
       const command = new UpdatePasswordCommand(user.data.email, newPassword);
       const response = await this.commandBus.execute(command);
 
@@ -251,13 +247,14 @@ export class UserController {
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
   ): Promise<Session | IRes> {
-    let email: string | null;
-    if ('email' in req.user) {
-      email = req.user.email as string;
+    let id: string | null;
+
+    if ('id' in req.user) {
+      id = req.user.id as string;
     }
 
-    if (email !== null) {
-      const command = new DeleteAccountCommand(email);
+    if (id !== null) {
+      const command = new DeleteAccountCommand(id);
       await this.commandBus.execute(command);
 
       req.logout((err) => {
