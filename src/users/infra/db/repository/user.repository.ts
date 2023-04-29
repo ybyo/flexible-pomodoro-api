@@ -1,20 +1,20 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import {
-  BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
 import { UserFactory } from 'src/users/domain/user.factory';
 import { DataSource, In, Repository } from 'typeorm';
 
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { User } from '@/users/domain/user.model';
@@ -25,7 +25,7 @@ import { UserEntity } from '../entity/user.entity';
 export class UserRepository implements IUserRepository {
   constructor(
     @InjectMapper() private mapper: Mapper,
-    private datasource: DataSource,
+    private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     @InjectRepository(RoutineEntity)
@@ -67,15 +67,14 @@ export class UserRepository implements IUserRepository {
     signupVerifyToken: string,
   ): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      signupVerifyToken: signupVerifyToken,
+      signupVerifyToken,
     });
+
     if (!userEntity) {
       return null;
     }
 
-    const newEntity = this.mapper.map(userEntity, UserEntity, User);
-
-    return this.userFactory.reconstitute(newEntity);
+    return this.mapper.map(userEntity, UserEntity, User);
   }
 
   async findByResetPasswordVerifyToken(
@@ -110,66 +109,68 @@ export class UserRepository implements IUserRepository {
   }
 
   async saveUser(user: User): Promise<void> {
-    await this.datasource.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });
 
       await manager.save(newUser);
     });
   }
 
-  // TODO: 해당 카테고리가 실제로 있는지, 있다면 타입은 일치하는지 사전에 확인
   async updateUser(criteria: object, partialEntity: object): Promise<void> {
-    await this.datasource.transaction(async (manager) => {
-      // TODO: 에러 처리 구간 확인, 에러메시지 작성
+    await this.dataSource.transaction(async (manager) => {
       const user = await this.userRepository.findOneBy(criteria);
-      if (!user) {
-        return null;
-      } else {
-        if ('password' in partialEntity) {
-          partialEntity.password = await argon2.hash(
-            partialEntity.password as string,
-          );
-        }
-        await manager.update(UserEntity, criteria, partialEntity);
+      if (user !== null && 'password' in partialEntity) {
+        partialEntity.password = await argon2.hash(
+          partialEntity.password as string,
+        );
       }
+
+      await manager.update(UserEntity, criteria, partialEntity);
     });
   }
 
-  async deleteUser(email: string): Promise<void> {
-    const user = await this.userRepository.findOneBy({ email });
+  async deleteUser(id: string): Promise<IRes> {
+    const user = await this.userRepository.findOneBy({ id });
+
     if (!user) {
-      throw new NotFoundException(`Cannot find user with email ${email}`);
+      throw new NotFoundException(`Cannot find user with email ${id}`);
     }
-    await this.datasource
-      .transaction(async (manager) => {
+
+    await this.dataSource
+      .transaction(async (manager): Promise<void> => {
+        // Deletes routine data
         const routines = await this.routineRepository.find({
           where: { userId: user.id },
         });
-        const routineIds = routines.map((routine) => routine.id);
-        if (routineIds.length !== 0) {
+
+        if (routines.length !== 0) {
+          const routineIds = routines.map((routine) => routine.id);
+
           await this.routineToTimerRepository.delete({
             routineId: In(routineIds),
           });
         }
+
+        // Deletes user data
         await this.userRepository.delete(user.id);
       })
-      .then(() => {
-        return {
-          success: true,
-          message: 'User deleted successfully',
-        };
-      })
       .catch(() => {
-        throw new BadRequestException(
+        throw new InternalServerErrorException(
           `Something went wrong while delete account`,
         );
       });
+
+    return {
+      success: true,
+      message: 'User deleted successfully',
+    };
   }
 
   getDataSource(): DataSource {
     return this.dataSource;
   }
 
+  private async deleteUnverifiedAccounts(): Promise<void> {
     const signupDeadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
 
     const users = await this.userRepository
@@ -181,13 +182,16 @@ export class UserRepository implements IUserRepository {
     if (users.length !== 0) {
       for (const user of users) {
         const userId = user['user_id'];
+
         await this.userRepository.delete(userId);
         console.log(
           `Account deleted because validation deadline is over: ${user['email']}`,
         );
       }
     }
+  }
 
+  private async deleteExpiredChangeEmailToken(): Promise<void> {
     // Deletes unchanged emails
     const changeEmailDeadline = new Date(
       new Date().getTime() - 1 * 60 * 60 * 1000,
@@ -216,4 +220,12 @@ export class UserRepository implements IUserRepository {
       }
     }
   }
+
+  // @Cron(CronExpression.EVERY_MINUTE)
+  // async cleanToken(): Promise<void> {
+  //   this.logger.log('Deleted unverified accounts');
+  //
+  //   await this.deleteUnverifiedAccounts();
+  //   await this.deleteExpiredChangeEmailToken();
+  // }
 }
