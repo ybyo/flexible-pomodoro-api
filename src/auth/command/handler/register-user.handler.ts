@@ -9,6 +9,7 @@ import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
 import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RedisService } from '@/redis/redis.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserFactory } from '@/users/domain/user.factory';
@@ -28,8 +29,8 @@ export class RegisterUserHandler
     private eventBus: EventBus,
   ) {}
 
-  async execute(command: RegisterUserCommand) {
-    const { userName, email, password } = command;
+  async execute(command: RegisterUserCommand): Promise<IRes> {
+    const { email } = command;
 
     const user = await this.userRepository.findByEmail(email);
     if (user !== null) throw new BadRequestException('Duplicate email');
@@ -43,7 +44,7 @@ export class RegisterUserHandler
       signupVerifyToken,
     });
 
-    // Redis token
+    // Save token to Redis
     try {
       await this.redisService.setValue(
         `signupVerifyToken:${signupVerifyToken}`,
@@ -57,6 +58,7 @@ export class RegisterUserHandler
       );
     }
 
+    // Save to MySQL
     try {
       await this.userRepository.saveUser(newUser);
     } catch (err) {
@@ -75,10 +77,6 @@ export class RegisterUserHandler
       );
     }
 
-    return {
-      id: newUser.id,
-      userName: newUser.userName,
-      email: newUser.email,
-    };
+    return { success: true };
   }
 }
