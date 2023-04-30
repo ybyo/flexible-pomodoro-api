@@ -10,7 +10,6 @@ import { Strategy } from 'passport-custom';
 
 import { RedisService } from '@/redis/redis.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { User } from '@/users/domain/user.model';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
@@ -36,42 +35,49 @@ export class RedisTokenStrategy extends PassportStrategy(
       throw new BadRequestException(`Invalid request`);
     }
 
-    let key;
+    let event;
     let token;
 
     if (raw === req.cookies.resetPasswordToken) {
-      key = 'resetPasswordToken';
+      event = 'resetPasswordToken';
       token = raw;
     } else {
-      key = Object.keys(raw)[0];
+      event = Object.keys(raw)[0];
       token = Object.values(raw)[0];
     }
 
+    const isValid = await this.redisService.getValue(`${event}:${token}`);
+    if (!isValid) return false;
+
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
-    multi.del(`${key}:${token}`);
+    multi.del(`${event}:${token}`);
 
-    await this.userRepository
-      .findBySignupVerifyToken(token)
-      .then(async (user: Pick<User, 'id'> | null): Promise<void> => {
-        if (user !== null) {
-          await this.userRepository
-            .getDataSource()
-            .transaction(async (manager) => {
-              await manager.update(
-                UserEntity,
-                { id: user.id },
-                { signupVerifyToken: null },
-              );
+    const user =
+      event === 'signupVerifyToken'
+        ? await this.userRepository.findBySignupVerifyToken(token)
+        : await this.userRepository.findByResetPasswordVerifyToken(token);
 
-              await multi.exec();
-            });
-        }
-      })
-      .catch(async (err) => {
+    if (user !== null) {
+      try {
+        await this.userRepository
+          .getDataSource()
+          .transaction(async (manager) => {
+            await manager.update(
+              UserEntity,
+              { id: user.id },
+              { [event]: null },
+            );
+
+            await multi.exec();
+          });
+      } catch (err) {
         await multi.discard();
         throw new InternalServerErrorException('Cannot verify token');
-      });
+      }
+    } else {
+      throw new BadRequestException(`Invalid request`);
+    }
 
     return true;
   }
