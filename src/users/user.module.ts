@@ -13,6 +13,7 @@ import { RoutineRepository } from '@/routines/infra/db/repository/routine-reposi
 import { AddTokenToDBHandler } from '@/users/application/command/handler/add-token-to-db.handler';
 import { ChangeEmailHandler } from '@/users/application/command/handler/change-email.handler';
 import { ChangeNameHandler } from '@/users/application/command/handler/change-name.handler';
+import { CheckTokenValidityHandler } from '@/users/application/command/handler/check-token-validity.handler';
 import { CreateTimestampHandler } from '@/users/application/command/handler/create-timestamp.handler';
 import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
 import { UpdatePasswordHandler } from '@/users/application/command/handler/update-password.handler';
@@ -40,7 +41,7 @@ const commandHandlers = [
   VerifyChangeEmailHandler,
   VerifyResetPasswordTokenHandler,
 ];
-const queryHandlers = [];
+const queryHandlers = [CheckTokenValidityHandler];
 const eventHandlers = [UserRegisterEventHandler];
 const factories = [UserFactory];
 
