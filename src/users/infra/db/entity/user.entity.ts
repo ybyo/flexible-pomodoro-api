@@ -31,7 +31,7 @@ export class UserEntity extends BaseEntity {
   password: string;
 
   @Column({ nullable: true, default: null })
-  signupVerifyToken: string;
+  signupToken: string;
 
   @Column({ nullable: true, default: null })
   resetPasswordToken: string;

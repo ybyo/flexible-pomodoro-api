@@ -5,7 +5,7 @@ export class User {
   userName: string;
   email: string;
   password: string;
-  signupVerifyToken: string;
+  signupToken: string;
   refreshToken: string;
   resetPasswordToken: string;
 
@@ -52,12 +52,12 @@ export class User {
   //   this._password = hashedPassword;
   // }
   //
-  // get signupVerifyToken(): Readonly<string> {
-  //   return this._signupVerifyToken;
+  // get signupToken(): Readonly<string> {
+  //   return this._SignupToken;
   // }
   //
-  // set signupVerifyToken(signupVerifyToken: string) {
-  //   this._signupVerifyToken = signupVerifyToken;
+  // set signupToken(signupToken: string) {
+  //   this._SignupToken = signupToken;
   // }
   //
   // get refreshToken(): Readonly<string> {

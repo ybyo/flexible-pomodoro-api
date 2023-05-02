@@ -14,7 +14,7 @@ const userObject: Partial<User> = {
   userName: chance.name(),
   email: chance.email(),
   password: chance.string(),
-  signupVerifyToken: ulid.ulid(),
+  signupToken: ulid.ulid(),
 };
 
 const newUser = new User(userObject);
