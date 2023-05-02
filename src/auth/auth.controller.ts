@@ -19,7 +19,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
-import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { RegisterUserCmd } from '@/auth/command/impl/register-user.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';

@@ -14,10 +14,10 @@ export class UserRegisterEventHandler
   async handle(event: UserRegisterEvent) {
     switch (event.name) {
       case UserRegisterEvent.name: {
-        const { email, signupVerifyToken } = event as UserRegisterEvent;
+        const { email, signupToken } = event as UserRegisterEvent;
         await this.emailService.sendUserSignupVerification(
           email,
-          signupVerifyToken,
+          signupToken,
         );
         break;
       }

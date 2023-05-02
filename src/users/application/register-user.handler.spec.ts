@@ -4,7 +4,7 @@ import { Chance } from 'chance';
 import { ulid } from 'ulid';
 
 import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
-import { RegisterUserCommand } from '@/auth/command/impl/register-user.command';
+import { RegisterUserCmd } from '@/auth/command/impl/register-user.cmd';
 import { UserFactory } from '@/users/domain/user.factory';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
@@ -15,7 +15,7 @@ const user = {
   email: chance.email(),
   userName: chance.name(),
   password: chance.string(),
-  signupVerifyToken: ulid(),
+  signupToken: ulid(),
 };
 
 describe('RegisterUserHandler', () => {

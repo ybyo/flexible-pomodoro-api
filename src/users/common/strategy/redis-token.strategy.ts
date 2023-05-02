@@ -19,7 +19,7 @@ export class RedisTokenStrategy extends PassportStrategy(
   'redis-token',
 ) {
   constructor(
-    private readonly redisService: RedisService,
+    private readonly redisService: RedisTokenService,
     @Inject('UserRepository') private readonly userRepository: IUserRepository,
   ) {
     super();
