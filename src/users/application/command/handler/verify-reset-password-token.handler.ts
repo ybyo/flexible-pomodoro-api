@@ -17,9 +17,9 @@ export class VerifyResetPasswordTokenHandler
   async execute(
     command: VerifyResetPasswordTokenCmd,
   ): Promise<IRes<IUser | null>> {
-    const { resetPasswordVerifyToken } = command;
-    const userEntity = await this.userRepository.findByResetPasswordVerifyToken(
-      resetPasswordVerifyToken,
+    const { resetPasswordToken } = command;
+    const userEntity = await this.userRepository.findByResetPasswordToken(
+      resetPasswordToken,
     );
 
     if (userEntity === null) {

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { IRes } from '@/customTypes/interfaces/message.interface';
-import { RedisService } from '@/redis/redis.service';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
@@ -11,7 +11,7 @@ import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 export class AddTokenToDBHandler implements ICommandHandler<AddTokenToDBCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private redisService: RedisService,
+    private redisService: RedisTokenService,
   ) {}
 
   async execute(command: AddTokenToDBCmd): Promise<IRes<any>> {

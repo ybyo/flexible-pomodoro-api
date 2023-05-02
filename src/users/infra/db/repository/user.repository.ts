@@ -63,11 +63,9 @@ export class UserRepository implements IUserRepository {
     return this.userFactory.reconstitute(newEntity);
   }
 
-  async findBySignupVerifyToken(
-    signupVerifyToken: string,
-  ): Promise<User | null> {
+  async findBySignupToken(signupToken: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      signupVerifyToken,
+      signupToken,
     });
 
     if (!userEntity) {
@@ -77,11 +75,11 @@ export class UserRepository implements IUserRepository {
     return this.mapper.map(userEntity, UserEntity, User);
   }
 
-  async findByResetPasswordVerifyToken(
-    resetPasswordVerifyToken: string,
+  async findByResetPasswordToken(
+    resetPasswordToken: string,
   ): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({
-      resetPasswordToken: resetPasswordVerifyToken,
+      resetPasswordToken: resetPasswordToken,
     });
 
     if (userEntity === null) {

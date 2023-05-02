@@ -8,9 +8,9 @@ import { User } from '../user.model';
 export interface IUserRepository {
   findByEmail: (email: string) => Promise<User | null>;
   findByEmailAndPassword: (email: string, password: string) => Promise<User>;
-  findBySignupVerifyToken: (signupVerifyToken: string) => Promise<User | null>;
-  findByResetPasswordVerifyToken: (
-    resetPasswordVerifyToken: string,
+  findBySignupToken: (signupToken: string) => Promise<User | null>;
+  findByResetPasswordToken: (
+    resetPasswordToken: string,
   ) => Promise<User | null>;
   findByChangeEmailToken: (changeEmailToken: string) => Promise<any>;
   findByUsername: (userName: string) => Promise<UserEntity>;
@@ -19,4 +19,5 @@ export interface IUserRepository {
   updateUser: (criteria: object, partialEntity: object) => Promise<void>;
   deleteUser: (email: string) => Promise<IRes>;
   getDataSource: () => DataSource;
+  // findByUniqueValue: (uniqueValue: string) => Promise<Pick<User, 'id'> | null>;
 }

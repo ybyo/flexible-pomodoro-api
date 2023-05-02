@@ -6,15 +6,15 @@ import { UpdatePasswordCommand } from '@/users/application/command/impl/update-p
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(UpdatePasswordCommand)
+@CommandHandler(UpdatePasswordCmd)
 export class UpdatePasswordHandler
-  implements ICommandHandler<UpdatePasswordCommand>
+  implements ICommandHandler<UpdatePasswordCmd>
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: UpdatePasswordCommand) {
+  async execute(command: UpdatePasswordCmd) {
     const { email, newPassword } = command;
 
     const user = await this.userRepository.findByEmail(email);

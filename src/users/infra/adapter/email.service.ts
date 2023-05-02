@@ -8,22 +8,16 @@ export class EmailService implements IEmailService {
 
   async sendUserSignupVerification(
     email: string,
-    signupVerifyToken: string,
+    signupToken: string,
   ): Promise<void> {
-    await this.emailService.sendUserSignupVerification(
-      email,
-      signupVerifyToken,
-    );
+    await this.emailService.sendUserSignupVerification(email, signupToken);
   }
 
   async sendResetPasswordToken(
     email: string,
-    signupVerifyToken: string,
+    signupToken: string,
   ): Promise<void> {
-    await this.emailService.sendPasswordResetVerification(
-      email,
-      signupVerifyToken,
-    );
+    await this.emailService.sendPasswordResetVerification(email, signupToken);
   }
 
   async sendChangeEmailVerification(
