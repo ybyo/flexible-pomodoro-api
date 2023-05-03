@@ -15,7 +15,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
@@ -28,6 +28,8 @@ import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
+import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
+import { UserRegisterEvent } from '@/users/domain/user-register.event';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
@@ -42,6 +44,7 @@ export class AuthController {
     private authService: AuthService,
     private queryBus: QueryBus,
     private commandBus: CommandBus,
+    private eventBus: EventBus,
   ) {}
 
   @Post('register')
@@ -136,5 +139,28 @@ export class AuthController {
     } catch (error) {
       throw new BadRequestException('Duplicate email');
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-signup-email')
+  async resendSignupEmail(
+    @Body() body: { email: string },
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<IRes> {
+    const token = await this.authService.issueUlid();
+    const { email } = body;
+
+    const cmd = new AddTokenToDBCmd(email, 'signupToken', token);
+    const result = await this.commandBus.execute(cmd);
+
+    if (result.success === true) {
+      await this.eventBus.publish(new UserRegisterEvent(email, token));
+      return {
+        success: true,
+        message: 'Signup verification email sent successfully',
+      };
+    }
+
+    throw new BadRequestException('Cannot resend signup email');
   }
 }
