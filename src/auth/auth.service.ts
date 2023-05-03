@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import Redis from 'ioredis';
 import * as jwt from 'jsonwebtoken';
 import { ulid } from 'ulid';
 
@@ -11,8 +10,9 @@ import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query
 import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import { IUser } from '@/customTypes/interfaces/message.interface';
-import { REDIS } from '@/redis';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 
@@ -24,7 +24,7 @@ export class AuthService {
     private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    @Inject(REDIS) private readonly redisClient: Redis,
+    private redisService: RedisTokenService,
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
@@ -37,14 +37,15 @@ export class AuthService {
   }
 
   async findByUserId(id: string) {
-    const command = new GetUserByUserIdQuery(id);
+    const query = new GetUserByUserIdQuery(id);
 
-    return await this.queryBus.execute(command);
+    return await this.queryBus.execute(query);
   }
 
   async verifyJWT(jwtString: string) {
     let payload = null;
     const user = {} as IUser;
+
     try {
       payload = jwt.verify(
         jwtString,
@@ -75,15 +76,30 @@ export class AuthService {
     }
   }
 
-  async issueJWT(user: IUser): Promise<string> {
-    return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
-  }
-
   async checkEmail(dto: CheckEmailDto) {
     const { email } = dto;
     const command = new CheckEmailDupCmd(email);
 
     return await this.commandBus.execute(command);
+  }
+
+  async updateToken(event: string, token: string, id: string) {
+    const redis = await this.redisService.getClient();
+    const multi = redis.multi();
+    multi.del(`${event}:${token}`);
+
+    try {
+      await this.userRepository.getDataSource().transaction(async (manager) => {
+        await manager.update(UserEntity, { id }, { [event]: null });
+        await multi.exec();
+      });
+    } catch (err) {
+      await multi.discard();
+    }
+  }
+
+  async issueJWT(user: IUser): Promise<string> {
+    return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
   }
 
   async issueUlid(): Promise<string> {

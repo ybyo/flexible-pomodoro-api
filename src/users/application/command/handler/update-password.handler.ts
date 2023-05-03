@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
+import { IRes } from '@/customTypes/interfaces/message.interface';
+import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()

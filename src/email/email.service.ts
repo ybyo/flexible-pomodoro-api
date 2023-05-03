@@ -24,16 +24,13 @@ export class EmailService {
     sgMail.setApiKey(this.config.auth.sgMailApi);
   }
 
-  async sendUserSignupVerification(
-    emailAddress: string,
-    signupVerifyToken: string,
-  ) {
+  async sendUserSignupVerification(emailAddress: string, signupToken: string) {
     const url =
       process.env.NODE_ENV === 'development'
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    const verificationUrl = `https://${url}/users/verify-email?signupVerifyToken=${signupVerifyToken}`;
+    const verificationUrl = `https://${url}/users/verify-email?signupToken=${signupToken}`;
 
     let renderedTemplate;
 
@@ -76,14 +73,14 @@ export class EmailService {
 
   async sendPasswordResetVerification(
     emailAddress: string,
-    resetPasswordVerifyToken: string,
+    resetPasswordToken: string,
   ) {
     const url =
       process.env.NODE_ENV === 'development'
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    const verificationUrl = `https://${url}/users/verify-reset-password?resetPasswordVerifyToken=${resetPasswordVerifyToken}`;
+    const verificationUrl = `https://${url}/users/verify-reset-password?resetPasswordToken=${resetPasswordToken}`;
 
     let renderedTemplate;
 

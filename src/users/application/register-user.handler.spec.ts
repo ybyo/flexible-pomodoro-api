@@ -55,7 +55,7 @@ describe('RegisterUserHandler', () => {
 
       // When
       await registerUserHandler.execute(
-        new RegisterUserCommand(user.userName, user.email, user.password),
+        new RegisterUserCmd(user.userName, user.email, user.password),
       );
 
       // Then
@@ -73,7 +73,7 @@ describe('RegisterUserHandler', () => {
       // Then
       await expect(
         registerUserHandler.execute(
-          new RegisterUserCommand(user.userName, user.email, user.password),
+          new RegisterUserCmd(user.userName, user.email, user.password),
         ),
       ).rejects.toThrowError(
         new InternalServerErrorException('Duplicate email'),
@@ -89,7 +89,7 @@ describe('RegisterUserHandler', () => {
       // Then
       await expect(
         registerUserHandler.execute(
-          new RegisterUserCommand(user.userName, user.email, user.password),
+          new RegisterUserCmd(user.userName, user.email, user.password),
         ),
       ).rejects.toThrowError(
         new InternalServerErrorException('Failed to save user'),

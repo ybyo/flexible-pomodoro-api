@@ -16,9 +16,7 @@ export class RedisTokenGuard extends AuthGuard('redis-token') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
-    // } else if (info == 'TokenExpiredError: jwt expired') {
-    //   return info;
-    // }
+
     return user;
   }
 }

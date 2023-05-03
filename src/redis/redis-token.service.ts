@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -11,29 +12,28 @@ import { DeleteAccountCommand } from '@/users/application/command/impl/delete-ac
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-export class RedisService {
+export class RedisTokenService {
   constructor(
     private commandBus: CommandBus,
-    @Inject(REDIS) private readonly redisClient: Redis,
+    @Inject(REDIS) private redisClient: Redis,
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {
-    // Remove unverified user account
+    // Add new Redis client for listening event
     const listenClient = new Redis({
       port: +process.env.REDIS_PORT,
       host: process.env.REDIS_URL,
     });
 
     if (process.env.NODE_ENV === 'development') {
-      listenClient.config('SET', 'notify-keyspace-events', 'Ex');
+      listenClient.config('SET', 'notify-keyspace-events', 'AKE');
     }
-
     listenClient.subscribe('__keyevent@0__:expired');
     listenClient.on('message', async (channel, key): Promise<void> => {
       if (channel === '__keyevent@0__:expired') {
         const event = key.split(':')[0];
         const token = key.split(':')[1];
 
-        if (event === 'signupVerifyToken' || event === 'resetPasswordToken') {
+        if (event === 'signupToken' || event === 'resetPasswordToken') {
           try {
             await this.expireToken(
               this.userRepository,
@@ -61,7 +61,13 @@ export class RedisService {
     }
   }
 
-  async getValue(key: string): Promise<any> {
+  // async setValue(key: string, value: string, duration?: number): Promise<void> {
+  //   const args =
+  //     duration !== undefined ? [key, value, 'EX', duration] : [key, value];
+  //   await this.redisClient.set.apply(this.redisClient, args);
+  // }
+
+  async getValue(key: string): Promise<string | null> {
     return this.redisClient.get(key);
   }
 
@@ -73,6 +79,16 @@ export class RedisService {
     return this.redisClient;
   }
 
+  async getEventToken(req) {
+    const raw = req.query;
+    if (raw === null) throw new BadRequestException(`Invalid request`);
+
+    const event = Object.keys(raw)[0] as string;
+    const token = Object.values(raw)[0] as string;
+
+    return { event, token };
+  }
+
   private async expireToken(
     userRepository: IUserRepository,
     commandBus: CommandBus,
@@ -80,17 +96,11 @@ export class RedisService {
     event: string,
   ): Promise<void> {
     const user =
-      event === 'signupVerifyToken'
-        ? await userRepository.findBySignupVerifyToken(token)
-        : await userRepository.findByResetPasswordVerifyToken(token);
+      event === 'signupToken'
+        ? await userRepository.findBySignupToken(token)
+        : await userRepository.findByResetPasswordToken(token);
 
-    if (user === null) {
-      throw new InternalServerErrorException(
-        `Cannot find user with ${event}. \nToken: ${token}`,
-      );
-    }
-
-    if (event === 'signupVerifyToken') {
+    if (event === 'signupToken') {
       const command = new DeleteAccountCommand(user.id);
       await commandBus.execute(command);
       console.log(

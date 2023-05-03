@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   Inject,
-  InternalServerErrorException,
   Post,
   Query,
   Req,
@@ -12,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 import { ulid } from 'ulid';
 
@@ -22,16 +21,16 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
+import { CheckTokenValidityQuery } from '@/users/application/command/impl/check-token-validity.query';
 import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
 import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
-import { UpdatePasswordCommand } from '@/users/application/command/impl/update-password.command';
+import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
 import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
-import { VerifyResetPasswordTokenCmd } from '@/users/application/command/impl/verify-reset-password-token.cmd';
-import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
@@ -40,47 +39,46 @@ import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 @Controller('users')
 export class UserController {
   constructor(
-    private commandBus: CommandBus,
-    private eventBus: EventBus,
-    private authService: AuthService,
     @Inject('EmailService') private emailService: IEmailService,
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
+    private authService: AuthService,
+    private redisService: RedisTokenService,
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   @UseGuards(RedisTokenGuard)
   @Get('verify-email')
-  async verifyEmail(@Query() query): Promise<IRes> {
+  async verifyEmail(@Query() query, @Req() req): Promise<IRes> {
+    const { event, token } = await this.redisService.getEventToken(req);
+    const qry = new CheckTokenValidityQuery('signupToken', token);
+    const user = await this.queryBus.execute(qry);
+
+    if (user !== null) {
+      await this.authService.updateToken(event, token, user.id);
+    } else {
+      await this.redisService.deleteValue(`${event}:${token}`);
+      throw new BadRequestException(`Invalid token`);
+    }
+
     return { success: true };
   }
 
   @Post('send-reset-password-email')
   async sendResetPasswordEmail(@Body() data): Promise<IRes<any>> {
     const { email } = data;
-
     const command = new CheckEmailDupCmd(email);
     const result = await this.commandBus.execute(command);
 
     if (result.success === false) {
-      const user = {
-        id: result.data.id,
-        userName: result.data.userName,
-        email: result.data.email,
-      };
-      const resetPasswordToken = await this.authService.issueJWT(user);
-
+      const resetPasswordToken = await this.authService.issueUlid();
       const command = new AddTokenToDBCmd(
         email,
         'resetPasswordToken',
         resetPasswordToken,
       );
-      try {
-        await this.commandBus.execute(command);
-      } catch (err) {
-        console.log(err);
-        throw new InternalServerErrorException();
-      }
-
+      await this.commandBus.execute(command);
       await this.emailService.sendResetPasswordToken(email, resetPasswordToken);
 
       return {
@@ -95,26 +93,42 @@ export class UserController {
     };
   }
 
+  @UseGuards(RedisTokenGuard)
   @Get('verify-reset-password-token')
-  async verifyResetPassword(
+  async verifyResetPasswordToken(
     @Query() query,
+    @Req() req,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
-    const { resetPasswordVerifyToken: token } = query;
+    const { event, token } = await this.redisService.getEventToken(req);
+    const qry = new CheckTokenValidityQuery('resetPasswordToken', token);
+    const user = await this.queryBus.execute(qry);
 
-    const command = new VerifyResetPasswordTokenCmd(token);
-    const result: IRes<IUser> = await this.commandBus.execute(command);
-    const user: IUser = result.data;
+    const payload: IUser = {
+      id: user.id,
+      userName: user.userName,
+      email: user.email,
+    };
+    const cookieToken = await this.authService.issueJWT(payload);
 
     if (user !== null) {
-      res.cookie('resetPasswordToken', token, this.accessConf);
+      res.cookie('resetPasswordToken', cookieToken, this.accessConf);
+    } else {
+      await this.redisService.deleteValue(`${event}:${token}`);
+      throw new BadRequestException(`Invalid reset password verification code`);
     }
 
-    return result;
+    return {
+      success: true,
+      message: 'Reset password token verified successfully',
+      data: {
+        id: user.id,
+        userName: user.userName,
+        email: user.email,
+      },
+    };
   }
 
-  @UseGuards(PasswordResetGuard)
-  @UseGuards(RedisTokenGuard)
   @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
@@ -122,25 +136,25 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes> {
     const newPassword = body.password;
-    let resetPasswordToken;
 
     if ('resetPasswordToken' in req.cookies) {
-      resetPasswordToken = req.cookies.resetPasswordToken;
+      const resetPasswordToken = req.cookies.resetPasswordToken;
       const user = await this.authService.verifyJWT(resetPasswordToken);
-      const command = new UpdatePasswordCommand(user.data.email, newPassword);
-      const response = await this.commandBus.execute(command);
+      const { event, token } = await this.redisService.getEventToken(req);
 
-      if (response.success === true) {
+      const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
+      const result = await this.commandBus.execute(cmd);
+
+      if (result.success === true) {
+        await this.authService.updateToken(event, token, user.data.id);
         res.cookie('resetPasswordToken', null, {
           ...this.accessConf,
           maxAge: 1,
         });
       }
 
-      return response;
+      return result;
     }
-
-    return { success: false };
   }
 
   @UseGuards(JwtAuthGuard)

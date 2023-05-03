@@ -1,5 +1,5 @@
 export interface IEmailService {
-  sendUserSignupVerification: (email, signupVerifyToken) => Promise<void>;
-  sendResetPasswordToken: (email, resetPasswordVerifyToken) => Promise<void>;
+  sendUserSignupVerification: (email, signupToken) => Promise<void>;
+  sendResetPasswordToken: (email, resetPasswordToken) => Promise<void>;
   sendChangeEmailVerification: (email, changeEmailVerifyToken) => Promise<void>;
 }

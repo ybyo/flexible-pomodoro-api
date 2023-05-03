@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import Redis from 'ioredis';
 import * as path from 'path';
 
-import { RedisService } from '@/redis/redis.service';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
@@ -43,12 +43,12 @@ const factories = [UserFactory];
         return client;
       },
     },
-    RedisService,
+    RedisTokenService,
     Logger,
     ...commandHandlers,
     ...repositories,
     ...factories,
   ],
-  exports: [REDIS, RedisService],
+  exports: [REDIS, RedisTokenService],
 })
 export class RedisModule {}
