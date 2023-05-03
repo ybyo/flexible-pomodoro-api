@@ -24,6 +24,7 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
 import { CheckDuplicateUsernameQuery } from '@/auth/query/impl/check-duplicate-username.query';
+import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
@@ -56,7 +57,7 @@ export class AuthController {
 
     if (isDuplicated) {
       const { userName, email, password } = user;
-      const command = new RegisterUserCommand(userName, email, password);
+      const command = new RegisterUserCmd(userName, email, password);
 
       return await this.commandBus.execute(command);
     }
@@ -99,8 +100,18 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getUserInfoWithAccessToken(@Req() req: Request): Promise<Express.User> {
-    return req.user;
+  async getUserInfoWithAccessToken(@Req() req: Request) {
+    if ('id' in req.user) {
+      const query = new GetUserByUserIdQuery(req.user.id as string);
+      const result = await this.queryBus.execute(query);
+
+      return {
+        id: result.id,
+        userName: result.userName,
+        email: result.email,
+        isVerified: !result.signupToken,
+      };
+    }
   }
 
   // TODO: Refresh 시 인증정보 있는지 우선 확인(인증정보 자체가 없다면 재인증요구)
@@ -108,7 +119,6 @@ export class AuthController {
   @Get('refresh')
   async refreshAuth(@Req() req: Request, @Res({ passthrough: true }) res) {
     const user = req.user;
-
     const accessToken = await this.authService.issueJWT(user as IUser);
 
     res.cookie('accessToken', accessToken, this.accessConf);
@@ -133,7 +143,7 @@ export class AuthController {
   async checkEmail(
     @Body() dto: CheckEmailDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<IRes<any>> {
+  ): Promise<IRes> {
     try {
       return await this.authService.checkEmail(dto);
     } catch (error) {

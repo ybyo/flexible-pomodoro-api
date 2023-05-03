@@ -16,20 +16,16 @@ export class AddTokenToDBHandler implements ICommandHandler<AddTokenToDBCmd> {
 
   async execute(command: AddTokenToDBCmd): Promise<IRes<any>> {
     const { email, event, token } = command;
-
     const user = await this.userRepository.findByEmail(email);
+    const tokenLifetime = 1 * 60 * 60;
 
     if (user !== null) {
       await this.userRepository.updateUser({ email }, { [event]: token });
-      await this.redisService.setValue(
-        `${event}:${token}`,
-        user.id,
-        1 * 60 * 60,
-      );
+      await this.redisService.setValue(`${event}:${token}`, '1', tokenLifetime);
 
       return {
         success: true,
-        message: 'The password reset token has been successfully set',
+        message: `The ${event} has been set successfully`,
       };
     }
 
