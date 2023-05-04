@@ -15,10 +15,7 @@ export class UserRegisterEventHandler
     switch (event.name) {
       case UserRegisterEvent.name: {
         const { email, signupToken } = event as UserRegisterEvent;
-        await this.emailService.sendUserSignupVerification(
-          email,
-          signupToken,
-        );
+        await this.emailService.sendTokenEmail('signup', email, signupToken);
         break;
       }
       default:

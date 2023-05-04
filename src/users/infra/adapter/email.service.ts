@@ -6,27 +6,11 @@ import { IEmailService } from 'src/users/application/adapter/iemail.service';
 export class EmailService implements IEmailService {
   constructor(private emailService: ExternalEmailService) {}
 
-  async sendUserSignupVerification(
+  async sendTokenEmail(
+    event: string,
     email: string,
-    signupToken: string,
+    token: string,
   ): Promise<void> {
-    await this.emailService.sendUserSignupVerification(email, signupToken);
-  }
-
-  async sendResetPasswordToken(
-    email: string,
-    signupToken: string,
-  ): Promise<void> {
-    await this.emailService.sendPasswordResetVerification(email, signupToken);
-  }
-
-  async sendChangeEmailVerification(
-    email: string,
-    changeEmailVerifyToken: string,
-  ): Promise<void> {
-    await this.emailService.sendChangeEmailVerification(
-      email,
-      changeEmailVerifyToken,
-    );
+    await this.emailService.sendToken(event, email, token);
   }
 }

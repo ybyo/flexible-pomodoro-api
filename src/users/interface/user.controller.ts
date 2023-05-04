@@ -79,7 +79,11 @@ export class UserController {
         resetPasswordToken,
       );
       await this.commandBus.execute(command);
-      await this.emailService.sendResetPasswordToken(email, resetPasswordToken);
+      await this.emailService.sendTokenEmail(
+        'resetPassword',
+        email,
+        resetPasswordToken,
+      );
 
       return {
         success: true,
@@ -181,7 +185,8 @@ export class UserController {
 
     if (response.success === true) {
       try {
-        await this.emailService.sendChangeEmailVerification(
+        await this.emailService.sendTokenEmail(
+          'changeEmail',
           newEmail,
           changeEmailVerifyToken,
         );
