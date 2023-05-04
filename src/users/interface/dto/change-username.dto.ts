@@ -5,9 +5,13 @@ import * as filter from 'leo-profanity';
 
 export class ChangeUsernameDto {
   @Transform(({ value }) => {
-    if (filter.check(value.trim())) {
+    filter.add(['admin', 'webmaster', 'yidoyoon']);
+    const formatted = value.replace(/[0-9\s]/g, '');
+
+    if (filter.check(formatted)) {
       throw new BadRequestException('Contains some prohibited words');
     }
+
     return value.trim();
   })
   @IsString()
