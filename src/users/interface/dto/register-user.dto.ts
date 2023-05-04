@@ -27,7 +27,10 @@ export class RegisterUserDto {
   readonly email: string;
 
   @Transform(({ value }) => {
-    if (filter.check(value.trim())) {
+    filter.add(['admin', 'webmaster', 'yidoyoon']);
+    const formatted = value.replace(/[0-9\s]/g, '');
+
+    if (filter.check(formatted)) {
       throw new BadRequestException('Contains some prohibited words');
     }
     return value.trim();
@@ -38,6 +41,7 @@ export class RegisterUserDto {
   @IsString()
   @MinLength(3)
   @MaxLength(39)
+  @Matches(/^[A-Za-z0-9]+$/)
   readonly userName: string;
 
   @IsString()
