@@ -8,15 +8,11 @@ import * as ejs from 'ejs';
 import * as path from 'path';
 
 import emailConfig from '@/config/email.config';
-import { IRes } from '@/customTypes/interfaces/message.interface';
-import nMail = require('nodemailer/lib/mailer');
 import sgMail = require('@sendgrid/mail');
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 
 @Injectable()
 export class EmailService {
-  private nMail: nMail;
-
   constructor(
     @Inject(emailConfig.KEY)
     private config: ConfigType<typeof emailConfig>,
@@ -24,156 +20,68 @@ export class EmailService {
     sgMail.setApiKey(this.config.auth.sgMailApi);
   }
 
-  async sendUserSignupVerification(emailAddress: string, signupToken: string) {
-    const url =
+  async sendToken(event: string, emailAddress: string, token: string) {
+    const host =
       process.env.NODE_ENV === 'development'
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    const verificationUrl = `https://${url}/users/verify-email?signupToken=${signupToken}`;
+    let url;
+    let template;
+    let dataMap;
+    let rendered;
+    let subject;
 
-    let renderedTemplate;
+    if (event === 'signup') {
+      subject = '회원가입 인증';
+      url = `https://${host}/users/verify-email?signupToken=${token}`;
+      template = path.join(__dirname, '../../public/signup-email-inlined.ejs');
+      dataMap = {
+        app_name: 'Pipe Timer',
+        verification_url: url,
+      };
+    } else if (event === 'resetPassword') {
+      subject = '비밀번호 재설정';
+      url = `https://${host}/users/verify-reset-password?resetPasswordToken=${token}`;
+      template = path.join(
+        __dirname,
+        '../../public/reset-password-inlined.ejs',
+      );
+      dataMap = {
+        app_name: 'Pipe Timer',
+        verification_url: url,
+      };
+    } else if (event === 'changeEmail') {
+      subject = '이메일 변경';
+      url = `https://${host}/users/verify-change-email?changeEmailVerifyToken=${token}`;
+      template = path.join(__dirname, '../../public/change-email-inlined.ejs');
+      dataMap = {
+        app_name: 'Pipe Timer',
+        verification_url: url,
+      };
+    }
 
-    const emailTemplateStr = path.join(
-      __dirname,
-      '../../public/signup-email-inlined.ejs',
-    );
-
-    const dataMap = {
-      app_name: 'Pipe Timer',
-      verification_url: verificationUrl,
-    };
-
-    ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
+    ejs.renderFile(template, dataMap, (err, data) => {
       if (err) {
         throw new InternalServerErrorException(
           `Cannot render email template. Account creation reverted.\n${err}`,
         );
-      } else {
-        renderedTemplate = data;
       }
+      rendered = data;
     });
 
     const mailOptions: MailDataRequired = {
       to: emailAddress,
-      subject: 'Pipe Timer - 회원가입 인증',
+      subject: `Pipe Timer - ${subject}`,
       from: 'no-reply@pipetimer.com',
-      html: renderedTemplate,
+      html: rendered,
     };
 
-    return await sgMail
-      .send(mailOptions)
-      .then(() => {
-        console.log('Verification email was successfully sent.');
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  async sendPasswordResetVerification(
-    emailAddress: string,
-    resetPasswordToken: string,
-  ) {
-    const url =
-      process.env.NODE_ENV === 'development'
-        ? '127.0.0.1:4000'
-        : `${this.config.host}`;
-
-    const verificationUrl = `https://${url}/users/verify-reset-password?resetPasswordToken=${resetPasswordToken}`;
-
-    let renderedTemplate;
-
-    const emailTemplateStr = path.join(
-      __dirname,
-      '../../public/reset-password-inlined.ejs',
-    );
-
-    const dataMap = {
-      app_name: 'Pipe Timer',
-      verification_url: verificationUrl,
-    };
-
-    ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
-      if (err) {
-        throw new InternalServerErrorException(
-          `Cannot render email template. Reset password reverted.\n${err}`,
-        );
-      } else {
-        renderedTemplate = data;
-      }
-    });
-
-    const mailOptions: MailDataRequired = {
-      to: emailAddress,
-      subject: 'Pipe Timer - 비밀번호 재설정',
-      from: 'no-reply@pipetimer.com',
-      html: renderedTemplate,
-    };
-
-    return await sgMail
-      .send(mailOptions)
-      .then(() => {
-        console.log('Password reset email was successfully sent.');
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  async sendChangeEmailVerification(
-    newEmail: string,
-    changeEmailVerifyToken: string,
-  ) {
-    const url =
-      process.env.NODE_ENV === 'development'
-        ? '127.0.0.1:4000'
-        : `${this.config.host}`;
-
-    const verificationUrl = `https://${url}/users/verify-change-email?changeEmailVerifyToken=${changeEmailVerifyToken}`;
-
-    let renderedTemplate;
-
-    const emailTemplateStr = path.join(
-      __dirname,
-      '../../public/change-email-inlined.ejs',
-    );
-
-    const dataMap = {
-      app_name: 'Pipe Timer - 이메일 변경 인증',
-      verification_url: verificationUrl,
-    };
-
-    ejs.renderFile(emailTemplateStr, dataMap, (err, data) => {
-      if (err) {
-        throw new InternalServerErrorException(
-          `Cannot render email template. Change email reverted.\n${err}`,
-        );
-      } else {
-        renderedTemplate = data;
-      }
-    });
-
-    const mailOptions: MailDataRequired = {
-      to: newEmail,
-      subject: 'Pipe Timer - 이메일 변경 인증',
-      from: 'no-reply@pipetimer.com',
-      html: renderedTemplate,
-    };
-
-    const res = {} as IRes;
-
-    await sgMail
-      .send(mailOptions)
-      .then(() => {
-        console.log('Verification email was sent successfully.');
-        res.success = true;
-      })
-      .catch((err) => {
-        console.log(err);
-        res.success = false;
-      });
-
-    return res;
+    try {
+      await sgMail.send(mailOptions);
+      console.log(`${event} email sent successfully`);
+    } catch (err) {
+      throw new InternalServerErrorException(`Cannot ${event} send email`);
+    }
   }
 }
