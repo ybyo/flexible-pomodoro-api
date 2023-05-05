@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
@@ -16,10 +16,10 @@ export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
     const { email } = command;
     const user = await this.userRepository.findByEmail(email);
 
-    if (user !== null) {
-      return { success: false, data: user };
+    if (!user) {
+      return { success: true, data: email };
     }
 
-    return { success: true, data: email };
+    throw new BadRequestException('Duplicate email');
   }
 }

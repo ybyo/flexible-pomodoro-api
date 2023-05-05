@@ -36,8 +36,19 @@ export class UserRepository implements IUserRepository {
     @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
+  async findById(id: string): Promise<User | null> {
+    const userEntity = await this.userRepository.findOneBy({ id });
+
+    if (!userEntity) {
+      return null;
+    }
+
+    const user = await this.mapper.map(userEntity, UserEntity, User);
+    return user;
+  }
+
   async findByEmail(email: string): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({ email: email });
+    const userEntity = await this.userRepository.findOneBy({ email });
 
     if (!userEntity) {
       return null;
@@ -100,10 +111,13 @@ export class UserRepository implements IUserRepository {
     return userEntity;
   }
 
-  async findByUsername(userName: string): Promise<UserEntity> {
-    const result = await this.userRepository.findOneBy({ userName });
+  async findByUsername(userName: string): Promise<User | null> {
+    const userEntity = await this.userRepository.findOneBy({ userName });
 
-    return result;
+    if (!userEntity) return null;
+    const user = this.mapper.map(userEntity, UserEntity, User);
+
+    return user;
   }
 
   async saveUser(user: User): Promise<void> {
@@ -167,63 +181,4 @@ export class UserRepository implements IUserRepository {
   getDataSource(): DataSource {
     return this.dataSource;
   }
-
-  private async deleteUnverifiedAccounts(): Promise<void> {
-    const signupDeadline = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
-
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .where('isVerified = :isVerified', { isVerified: 0 })
-      .andWhere('createdAt <= :deadline', { deadline: signupDeadline })
-      .getMany();
-
-    if (users.length !== 0) {
-      for (const user of users) {
-        const userId = user['user_id'];
-
-        await this.userRepository.delete(userId);
-        console.log(
-          `Account deleted because validation deadline is over: ${user['email']}`,
-        );
-      }
-    }
-  }
-
-  private async deleteExpiredChangeEmailToken(): Promise<void> {
-    // Deletes unchanged emails
-    const changeEmailDeadline = new Date(
-      new Date().getTime() - 1 * 60 * 60 * 1000,
-    );
-
-    const emailUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .where('changeEmailToken != :changeEmailToken', {
-        changeEmailToken: '',
-      })
-      .andWhere('changeEmailTokenCreated <= :deadline', {
-        deadline: changeEmailDeadline,
-      })
-      .getMany();
-
-    if (emailUsers.length !== 0) {
-      for (const user of emailUsers) {
-        user.changeEmailToken = null;
-        user.changeEmailTokenCreated = null;
-        user.newEmail = null;
-
-        await this.userRepository.save(user);
-        console.log(
-          `Change email token, timestamp deleted because email not changed: ${user['email']}`,
-        );
-      }
-    }
-  }
-
-  // @Cron(CronExpression.EVERY_MINUTE)
-  // async cleanToken(): Promise<void> {
-  //   this.logger.log('Deleted unverified accounts');
-  //
-  //   await this.deleteUnverifiedAccounts();
-  //   await this.deleteExpiredChangeEmailToken();
-  // }
 }

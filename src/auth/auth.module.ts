@@ -8,8 +8,8 @@ import { AuthController } from '@/auth/auth.controller';
 import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
 import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
 import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
-import { CheckDuplicateUsernameHandler } from '@/auth/query/handler/check-duplicate-username.handler';
-import { GetUserByUserIdHandler } from '@/auth/query/handler/get-user-by-userid.handler';
+import { CheckDupNameHandler } from '@/auth/query/handler/check-dup-name.handler';
+import { GetUserByIdHandler } from '@/auth/query/handler/get-user-by-id.handler';
 import { AuthSerializer } from '@/auth/serialization.provider';
 import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategy/local.strategy';
@@ -31,7 +31,7 @@ const CommandHandlers = [
   RegisterUserHandler,
   ValidateUserHandler,
 ];
-const QueryHandlers = [GetUserByUserIdHandler, CheckDuplicateUsernameHandler];
+const QueryHandlers = [GetUserByIdHandler, CheckDupNameHandler];
 const EventHandlers = [];
 
 const repositories = [

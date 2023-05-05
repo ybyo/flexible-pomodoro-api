@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { IRes } from '@/customTypes/interfaces/message.interface';
@@ -29,9 +29,6 @@ export class AddTokenToDBHandler implements ICommandHandler<AddTokenToDBCmd> {
       };
     }
 
-    return {
-      success: false,
-      message: 'No user found with the matching email',
-    };
+    throw new BadRequestException('Cannot resend signup email');
   }
 }

@@ -23,7 +23,6 @@ import { UserProfile } from '@/users/common/mapper/user.profile';
 import { PasswordResetStrategy } from '@/users/common/strategy/password-reset.strategy';
 import { RedisTokenStrategy } from '@/users/common/strategy/redis-token.strategy';
 
-import { UserRegisterEventHandler } from './application/event/user-register-event.handler';
 import { UserFactory } from './domain/user.factory';
 import { EmailService } from './infra/adapter/email.service';
 import { UserEntity } from './infra/db/entity/user.entity';
@@ -42,7 +41,7 @@ const commandHandlers = [
   VerifyResetPasswordTokenHandler,
 ];
 const queryHandlers = [CheckTokenValidityHandler];
-const eventHandlers = [UserRegisterEventHandler];
+const eventHandlers = [];
 const factories = [UserFactory];
 
 const strategies = [PasswordResetStrategy, RedisTokenStrategy];
