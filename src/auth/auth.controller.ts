@@ -41,11 +41,12 @@ export class AuthController {
     private accessConf: ConfigType<typeof accessTokenConfig>,
     @Inject(refreshTokenConfig.KEY)
     private refreshConf: ConfigType<typeof refreshTokenConfig>,
+
     @Inject(Logger) private readonly logger: LoggerService,
     private authService: AuthService,
-    private queryBus: QueryBus,
     private commandBus: CommandBus,
     private eventBus: EventBus,
+    private queryBus: QueryBus,
   ) {}
 
   @Post('register')

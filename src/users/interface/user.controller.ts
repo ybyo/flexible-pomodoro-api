@@ -43,9 +43,9 @@ export class UserController {
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
-    private redisService: RedisTokenService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    private redisService: RedisTokenService,
   ) {}
 
   @UseGuards(RedisTokenGuard)
@@ -108,12 +108,11 @@ export class UserController {
     const qry = new CheckTokenValidityQuery('resetPasswordToken', token);
     const user = await this.queryBus.execute(qry);
 
-    const payload: IUser = {
+    const cookieToken = await this.authService.issueJWT({
       id: user.id,
       userName: user.userName,
       email: user.email,
-    };
-    const cookieToken = await this.authService.issueJWT(payload);
+    });
 
     if (user !== null) {
       res.cookie('resetPasswordToken', cookieToken, this.accessConf);
@@ -167,7 +166,7 @@ export class UserController {
     @Req() req: Request,
     @Body() body: any,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<IRes> {
     let oldEmail;
     let uid;
     if ('email' in req.user && 'id' in req.user) {
@@ -176,34 +175,26 @@ export class UserController {
     }
     const newEmail = body.email;
     const changeEmailVerifyToken = ulid();
-    const command = new ChangeEmailCommand(
+    const cmd = new ChangeEmailCommand(
       oldEmail,
       newEmail,
       changeEmailVerifyToken,
     );
-    const response = await this.commandBus.execute(command);
+    const response = await this.commandBus.execute(cmd);
 
     if (response.success === true) {
-      try {
-        await this.emailService.sendTokenEmail(
-          'changeEmail',
-          newEmail,
-          changeEmailVerifyToken,
-        );
-
-        const command = new CreateTimestampCommand(
-          uid,
-          `changeEmailTokenCreated`,
-        );
-        const response = await this.commandBus.execute(command);
-      } catch (err) {
-        console.log(err);
-      }
+      await this.emailService.sendTokenEmail(
+        'changeEmail',
+        newEmail,
+        changeEmailVerifyToken,
+      );
+      const cmd = new CreateTimestampCommand(uid, `changeEmailTokenCreated`);
+      const response = await this.commandBus.execute(cmd);
     }
 
     return {
       success: true,
-      message: 'Change email verification email sent successfully.',
+      message: 'Change email verification email sent successfully',
     };
   }
 
@@ -248,6 +239,7 @@ export class UserController {
 
     const command = new ChangeNameCommand(email, newName);
     const response = await this.commandBus.execute(command);
+
     if (response.success === true) {
       const newUser: IUser = response.data;
       const accessToken = await this.authService.issueJWT(newUser);
@@ -256,7 +248,7 @@ export class UserController {
       return response;
     }
 
-    return response;
+    throw new BadRequestException('Duplicate username');
   }
 
   @UseGuards(JwtAuthGuard)
