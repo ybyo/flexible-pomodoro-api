@@ -1,18 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
+import { IRes, IUser }     from '@/customTypes/interfaces/message.interface';
+import { ChangeNameCmd }   from '@/users/application/command/impl/change-name.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(ChangeNameCommand)
-export class ChangeNameHandler implements ICommandHandler<ChangeNameCommand> {
+@CommandHandler(ChangeNameCmd)
+export class ChangeNameHandler implements ICommandHandler<ChangeNameCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: ChangeNameCommand): Promise<IRes<IUser>> {
+  async execute(command: ChangeNameCmd): Promise<IRes<IUser>> {
     const { email, newName } = command;
 
     const isDuplicate = await this.userRepository.findByUsername(newName);

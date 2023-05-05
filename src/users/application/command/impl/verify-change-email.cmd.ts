@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
 
-export class VerifyChangeEmailCommand implements ICommand {
+export class VerifyChangeEmailCmd implements ICommand {
   constructor(readonly changeEmailVerifyToken: string) {}
 }

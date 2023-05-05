@@ -1,19 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { IRes, IUser }          from '@/customTypes/interfaces/message.interface';
+import { VerifyChangeEmailCmd } from '@/users/application/command/impl/verify-change-email.cmd';
+import { IUserRepository }      from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(VerifyChangeEmailCommand)
+@CommandHandler(VerifyChangeEmailCmd)
 export class VerifyChangeEmailHandler
-  implements ICommandHandler<VerifyChangeEmailCommand>
+  implements ICommandHandler<VerifyChangeEmailCmd>
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
-  async execute(command: VerifyChangeEmailCommand) {
+  async execute(command: VerifyChangeEmailCmd) {
     // 토큰을 가지고 있는지 확인
     const { changeEmailVerifyToken } = command;
     const response = {} as IRes<IUser>;

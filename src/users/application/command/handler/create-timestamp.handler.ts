@@ -2,20 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { AuthService } from '@/auth/auth.service';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { IRes, IUser }        from '@/customTypes/interfaces/message.interface';
+import { CreateTimestampCmd } from '@/users/application/command/impl/create-timestamp.cmd';
+import { IUserRepository }    from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(CreateTimestampCommand)
+@CommandHandler(CreateTimestampCmd)
 export class CreateTimestampHandler
-  implements ICommandHandler<CreateTimestampCommand>
+  implements ICommandHandler<CreateTimestampCmd>
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: CreateTimestampCommand) {
+  async execute(command: CreateTimestampCmd) {
     const { id, target } = command;
     const response = {} as IRes;
 
