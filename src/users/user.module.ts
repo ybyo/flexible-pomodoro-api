@@ -7,6 +7,7 @@ import { EmailModule } from 'src/email/email.module';
 
 import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
 import { RedisModule } from '@/redis';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
@@ -48,6 +49,7 @@ const strategies = [PasswordResetStrategy, RedisTokenStrategy];
 
 const repositories = [
   { provide: 'EmailService', useClass: EmailService },
+  { provide: 'RedisTokenService', useClass: RedisTokenService },
   { provide: 'RoutineRepository', useClass: RoutineRepository },
   { provide: 'UserRepository', useClass: UserRepository },
 ];
@@ -57,8 +59,8 @@ const repositories = [
     AuthModule,
     CqrsModule,
     EmailModule,
-    TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
     RedisModule,
+    TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
     PassportModule.register({
       session: true,
     }),
