@@ -10,13 +10,4 @@ export class RedisTokenGuard extends AuthGuard('redis-token') {
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     return (await super.canActivate(ctx)) as boolean;
   }
-
-  handleRequest(err, user, info, context, status) {
-    // console.log(err, user, info, context, status);
-    if (err || !user) {
-      throw err || new UnauthorizedException();
-    }
-
-    return user;
-  }
 }

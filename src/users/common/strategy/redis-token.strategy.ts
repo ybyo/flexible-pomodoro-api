@@ -5,7 +5,6 @@ import { Strategy } from 'passport-custom';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
 @Injectable()
 export class RedisTokenStrategy extends PassportStrategy(

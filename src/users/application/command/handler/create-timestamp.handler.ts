@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { AuthService } from '@/auth/auth.service';
-import { IRes, IUser }        from '@/customTypes/interfaces/message.interface';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import { CreateTimestampCmd } from '@/users/application/command/impl/create-timestamp.cmd';
-import { IUserRepository }    from '@/users/domain/repository/iuser.repository';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 @CommandHandler(CreateTimestampCmd)

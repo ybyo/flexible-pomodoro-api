@@ -6,6 +6,7 @@ export class User {
   email: string;
   password: string;
   signupToken: string;
+  newEmail: string;
   refreshToken: string;
   resetPasswordToken: string;
 

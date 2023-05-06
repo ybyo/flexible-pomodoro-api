@@ -8,7 +8,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
 
 import { REDIS } from '@/redis/redis.constants';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
@@ -95,14 +95,11 @@ export class RedisTokenService {
     token: string,
     event: string,
   ): Promise<void> {
-    const user =
-      event === 'signupToken'
-        ? await userRepository.findBySignupToken(token)
-        : await userRepository.findByResetPasswordToken(token);
+    const user = await userRepository.findByToken(event, token);
 
-    if (user !== null) {
+    if (user) {
       if (event === 'signupToken') {
-        const command = new DeleteAccountCommand(user.id);
+        const command = new DeleteAccountCmd(user.id);
         await commandBus.execute(command);
         console.log(
           `Unverified user data deleted...\n User email: ${JSON.stringify(

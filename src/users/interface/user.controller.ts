@@ -16,19 +16,19 @@ import { Request, Response } from 'express';
 import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
-import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { CheckDupNameQry } from '@/auth/query/impl/check-dup-name.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
-import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
+import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
 import { ChangeNameCmd } from '@/users/application/command/impl/change-name.cmd';
-import { CheckTokenValidityQuery } from '@/users/application/command/impl/check-token-validity.query';
+import { CheckTokenValidityQry } from '@/users/application/command/impl/check-token-validity.qry';
 import { CreateTimestampCmd } from '@/users/application/command/impl/create-timestamp.cmd';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
 import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
 import { VerifyChangeEmailCmd } from '@/users/application/command/impl/verify-change-email.cmd';
 import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
@@ -54,10 +54,10 @@ export class UserController {
   async verifyEmail(@Query() query, @Req() req): Promise<IRes> {
     const { event, token } = await this.redisService.getEventToken(req);
 
-    const qry = new CheckTokenValidityQuery('signupToken', token);
+    const qry = new CheckTokenValidityQry('signupToken', token);
     const user = await this.queryBus.execute(qry);
 
-    if (!!user) {
+    if (user) {
       await this.authService.updateToken(event, token, user.id);
 
       return { success: true };
@@ -65,35 +65,27 @@ export class UserController {
 
     // Delete invalid token in Redis
     await this.redisService.deleteValue(`${event}:${token}`);
-
-    throw new BadRequestException(`Invalid token`);
   }
 
   @Post('send-reset-password-email')
   async sendResetPasswordEmail(@Body() data): Promise<IRes<any>> {
     const { email } = data;
-    const command = new CheckEmailDupCmd(email);
-    const result = await this.commandBus.execute(command);
 
-    if (!result.success) {
-      const resetPasswordToken = await this.authService.issueUlid();
-      const command = new AddTokenToDBCmd(
-        email,
-        'resetPasswordToken',
-        resetPasswordToken,
-      );
-      await this.commandBus.execute(command);
+    const resetPasswordToken = await this.authService.issueUlid();
+    const cmd = new AddTokenToDBCmd(
+      email,
+      'resetPasswordToken',
+      resetPasswordToken,
+    );
+    await this.commandBus.execute(cmd);
 
-      await this.emailService.sendTokenEmail(
-        'resetPassword',
-        email,
-        resetPasswordToken,
-      );
+    await this.emailService.sendTokenEmail(
+      'resetPassword',
+      email,
+      resetPasswordToken,
+    );
 
-      return { success: true };
-    }
-
-    return { success: false };
+    return { success: true };
   }
 
   @UseGuards(RedisTokenGuard)
@@ -104,7 +96,7 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
     const { event, token } = await this.redisService.getEventToken(req);
-    const qry = new CheckTokenValidityQuery('resetPasswordToken', token);
+    const qry = new CheckTokenValidityQry('resetPasswordToken', token);
     const user = await this.queryBus.execute(qry);
 
     if (!!user) {
@@ -114,6 +106,7 @@ export class UserController {
         email: user.email,
       });
       res.cookie('resetPasswordToken', cookieToken, this.accessConf);
+
       await this.redisService.deleteValue(`${event}:${token}`);
 
       return {
@@ -129,8 +122,6 @@ export class UserController {
 
     // Delete invalid token in Redis
     await this.redisService.deleteValue(`${event}:${token}`);
-
-    throw new BadRequestException(`Invalid reset password verification token`);
   }
 
   @UseGuards(PasswordResetGuard)
@@ -141,32 +132,26 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes> {
     const { resetPasswordToken: token } = req.cookies;
+    const newPassword = body.password;
+    const user = await this.authService.verifyJWT(token);
 
-    if (token !== undefined) {
-      const resetPasswordToken = req.cookies.resetPasswordToken;
-      const user = await this.authService.verifyJWT(resetPasswordToken);
+    const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
+    const result = await this.commandBus.execute(cmd);
 
-      const newPassword = body.password;
-      const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
-      const result = await this.commandBus.execute(cmd);
+    if (result.success === true) {
+      await this.authService.updateToken(
+        'resetPasswordToken',
+        token,
+        user.data.id,
+      );
 
-      if (result.success === true) {
-        await this.authService.updateToken(
-          'resetPasswordToken',
-          token,
-          user.data.id,
-        );
-
-        res.cookie('resetPasswordToken', null, {
-          ...this.accessConf,
-          maxAge: 1,
-        });
-      }
-
-      return result;
+      res.cookie('resetPasswordToken', null, {
+        ...this.accessConf,
+        maxAge: 1,
+      });
     }
 
-    throw new BadRequestException('Missing required parameter');
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -176,32 +161,24 @@ export class UserController {
     const newEmail = body.email;
     const changeEmailVerifyToken = ulid();
 
-    if (oldEmail !== undefined && id !== undefined) {
-      const cmd = new ChangeEmailCommand(
-        oldEmail,
+    const cmd = new ChangeEmailCmd(oldEmail, newEmail, changeEmailVerifyToken);
+    const result = await this.commandBus.execute(cmd);
+
+    if (result.success) {
+      await this.emailService.sendTokenEmail(
+        'changeEmail',
         newEmail,
         changeEmailVerifyToken,
       );
-      const response = await this.commandBus.execute(cmd);
 
-      if (response.success === true) {
-        await this.emailService.sendTokenEmail(
-          'changeEmail',
-          newEmail,
-          changeEmailVerifyToken,
-        );
+      const cmd = new CreateTimestampCmd(id, `changeEmailTokenCreated`);
+      await this.commandBus.execute(cmd);
 
-        const cmd = new CreateTimestampCmd(id, `changeEmailTokenCreated`);
-        await this.commandBus.execute(cmd);
-
-        return {
-          success: true,
-          message: 'Change email verification email sent successfully',
-        };
-      }
+      return {
+        success: true,
+        message: 'Change email verification email sent successfully',
+      };
     }
-
-    throw new BadRequestException('Missing required parameter');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -213,21 +190,17 @@ export class UserController {
   ): Promise<IRes | Error> {
     const { changeEmailToken } = query;
 
-    if (changeEmailToken !== undefined) {
-      const cmd = new VerifyChangeEmailCmd(changeEmailToken);
-      const result = await this.commandBus.execute(cmd);
+    const cmd = new VerifyChangeEmailCmd(changeEmailToken);
+    const result = await this.commandBus.execute(cmd);
 
-      if (result.success === true) {
-        const newUser: IUser = result.data;
-        const accessToken = await this.authService.issueJWT(newUser);
+    if (result.success) {
+      const newUser: IUser = result.data;
+      const accessToken = await this.authService.issueJWT(newUser);
 
-        res.cookie('accessToken', accessToken, this.accessConf);
+      res.cookie('accessToken', accessToken, this.accessConf);
 
-        return result;
-      }
+      return result;
     }
-
-    throw new BadRequestException('Missing required parameter');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -240,18 +213,20 @@ export class UserController {
     const { newName } = body;
     const { email } = req.user as IUser;
 
-    const command = new ChangeNameCmd(email, newName);
-    const response = await this.commandBus.execute(command);
+    const qry = new CheckDupNameQry(newName);
+    await this.queryBus.execute(qry);
 
-    if (response.success === true) {
-      const newUser: IUser = response.data;
+    const cmd = new ChangeNameCmd(email, newName);
+    const result = await this.commandBus.execute(cmd);
+
+    if (result.success) {
+      const newUser = result.data;
       const accessToken = await this.authService.issueJWT(newUser);
+
       res.cookie('accessToken', accessToken, this.accessConf);
 
-      return response;
+      return result;
     }
-
-    throw new BadRequestException('Duplicate username');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -263,20 +238,16 @@ export class UserController {
   ): Promise<Session | IRes> {
     const { id } = req.user as IUser;
 
-    if (id !== null) {
-      const command = new DeleteAccountCommand(id);
-      await this.commandBus.execute(command);
+    const cmd = new DeleteAccountCmd(id);
+    await this.commandBus.execute(cmd);
 
-      req.logout((err) => {
-        if (err) return err;
-      });
+    req.logout((err) => {
+      if (err) return err;
+    });
 
-      res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
-      req.session.cookie.maxAge = 0;
+    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
+    req.session.cookie.maxAge = 0;
 
-      return req.session;
-    }
-
-    throw new BadRequestException('Cannot delete account');
+    return req.session;
   }
 }

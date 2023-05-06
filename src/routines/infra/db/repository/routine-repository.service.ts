@@ -59,7 +59,7 @@ export class RoutineRepository implements IRoutineRepository {
       await this.dataSource.transaction(async (manager) => {
         // TODO: 불필요한 프로퍼티 생성 최소화
         // TODO: Mapper 활용하여 내부 데이터 id -> timerId 수행
-        const { formatResult, ids } = entityFormatter([routine], '_', {
+        const { formatResult } = entityFormatter([routine], '_', {
           userId: userId,
           routineToTimerId: 'ulid',
         });

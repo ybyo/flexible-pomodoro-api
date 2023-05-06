@@ -4,11 +4,11 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import * as jwt from 'jsonwebtoken';
 import { ulid } from 'ulid';
 
-import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
+import { ValidateUserCmd } from '@/auth/command/impl/validate-user.cmd';
 import { GetUserByIdQry } from '@/auth/query/impl/get-user-by-id.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
+import { IUser } from '@/customTypes/interfaces/message.interface';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
@@ -29,7 +29,7 @@ export class AuthService {
   // Interact with passport local strategy
   async validateWithIdPw(user: LoginUserDto) {
     const { email, password } = user;
-    const command = new ValidateUserCommand(email, password);
+    const command = new ValidateUserCmd(email, password);
 
     return await this.commandBus.execute(command);
   }

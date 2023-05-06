@@ -1,19 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(DeleteAccountCommand)
-export class DeleteAccountHandler
-  implements ICommandHandler<DeleteAccountCommand>
-{
+@CommandHandler(DeleteAccountCmd)
+export class DeleteAccountHandler implements ICommandHandler<DeleteAccountCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: DeleteAccountCommand) {
+  async execute(command: DeleteAccountCmd) {
     const { id } = command;
 
     return await this.userRepository.deleteUser(id);

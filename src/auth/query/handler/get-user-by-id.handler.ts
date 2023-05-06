@@ -1,7 +1,7 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { GetUserByIdQry }  from '@/auth/query/impl/get-user-by-id.qry';
+import { GetUserByIdQry } from '@/auth/query/impl/get-user-by-id.qry';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { User } from '@/users/domain/user.model';
 

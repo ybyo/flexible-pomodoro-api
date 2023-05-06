@@ -3,7 +3,6 @@ import { InjectMapper } from '@automapper/nestjs';
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
   LoggerService,
   NotFoundException,
@@ -74,41 +73,13 @@ export class UserRepository implements IUserRepository {
     return this.userFactory.reconstitute(newEntity);
   }
 
-  async findBySignupToken(signupToken: string): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({
-      signupToken,
-    });
+  async findByToken(column: string, token: string): Promise<User | null> {
+    const userEntity = await this.userRepository.findOneBy({ [column]: token });
+    if (!userEntity) return null;
 
-    if (!userEntity) {
-      return null;
-    }
+    const user = this.mapper.map(userEntity, UserEntity, User);
 
-    return this.mapper.map(userEntity, UserEntity, User);
-  }
-
-  async findByResetPasswordToken(
-    resetPasswordToken: string,
-  ): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({
-      resetPasswordToken: resetPasswordToken,
-    });
-
-    if (userEntity === null) {
-      return null;
-    }
-
-    return this.mapper.map(userEntity, UserEntity, User);
-  }
-
-  async findByChangeEmailToken(changeEmailVerifyToken: string) {
-    const userEntity = await this.userRepository.findOneBy({
-      changeEmailToken: changeEmailVerifyToken,
-    });
-    if (!userEntity) {
-      return null;
-    }
-
-    return userEntity;
+    return user;
   }
 
   async findByUsername(userName: string): Promise<User | null> {
@@ -128,9 +99,10 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async updateUser(criteria: object, partialEntity: object): Promise<void> {
+  async updateUser(criteria: object, partialEntity: object): Promise<IRes> {
     await this.dataSource.transaction(async (manager) => {
       const user = await this.userRepository.findOneBy(criteria);
+
       if (user !== null && 'password' in partialEntity) {
         partialEntity.password = await argon2.hash(
           partialEntity.password as string,
@@ -139,43 +111,35 @@ export class UserRepository implements IUserRepository {
 
       await manager.update(UserEntity, criteria, partialEntity);
     });
+
+    return { success: true };
   }
 
   async deleteUser(id: string): Promise<IRes> {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException(`Cannot find user with email ${id}`);
+      throw new NotFoundException(`Cannot find user id: ${id}`);
     }
 
-    await this.dataSource
-      .transaction(async (manager): Promise<void> => {
-        // Deletes routine data
-        const routines = await this.routineRepository.find({
-          where: { userId: user.id },
-        });
-
-        if (routines.length !== 0) {
-          const routineIds = routines.map((routine) => routine.id);
-
-          await this.routineToTimerRepository.delete({
-            routineId: In(routineIds),
-          });
-        }
-
-        // Deletes user data
-        await this.userRepository.delete(user.id);
-      })
-      .catch(() => {
-        throw new InternalServerErrorException(
-          `Something went wrong while delete account`,
-        );
+    await this.dataSource.transaction(async (manager): Promise<void> => {
+      // Deletes routine data
+      const routines = await manager.find(RoutineEntity, {
+        where: { userId: user.id },
       });
 
-    return {
-      success: true,
-      message: 'User deleted successfully',
-    };
+      if (routines.length !== 0) {
+        const routineIds = routines.map((routine) => routine.id);
+        await manager.delete(RoutineToTimerEntity, {
+          routineId: In(routineIds),
+        });
+      }
+
+      // Deletes user data
+      await manager.delete(UserEntity, user.id);
+    });
+
+    return { success: true };
   }
 
   getDataSource(): DataSource {

@@ -16,9 +16,7 @@ export class CheckEmailDupHandler implements ICommandHandler<CheckEmailDupCmd> {
     const { email } = command;
     const user = await this.userRepository.findByEmail(email);
 
-    if (!user) {
-      return { success: true, data: email };
-    }
+    if (!user) return { success: true, data: email };
 
     throw new BadRequestException('Duplicate email');
   }
