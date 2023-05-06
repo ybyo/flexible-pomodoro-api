@@ -100,19 +100,21 @@ export class RedisTokenService {
         ? await userRepository.findBySignupToken(token)
         : await userRepository.findByResetPasswordToken(token);
 
-    if (event === 'signupToken') {
-      const command = new DeleteAccountCommand(user.id);
-      await commandBus.execute(command);
-      console.log(
-        `Unverified user data deleted...\n User email: ${JSON.stringify(
-          user.email,
-        )}`,
-      );
-    } else {
-      await userRepository.updateUser({ id: user.id }, { [event]: null });
-      console.log(
-        `${event} expired...\n User email: ${JSON.stringify(user.email)}`,
-      );
+    if (user !== null) {
+      if (event === 'signupToken') {
+        const command = new DeleteAccountCommand(user.id);
+        await commandBus.execute(command);
+        console.log(
+          `Unverified user data deleted...\n User email: ${JSON.stringify(
+            user.email,
+          )}`,
+        );
+      } else {
+        await userRepository.updateUser({ id: user.id }, { [event]: null });
+        console.log(
+          `${event} expired...\n User email: ${JSON.stringify(user.email)}`,
+        );
+      }
     }
   }
 }
