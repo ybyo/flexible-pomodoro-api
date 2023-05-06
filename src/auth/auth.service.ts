@@ -4,16 +4,14 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import * as jwt from 'jsonwebtoken';
 import { ulid } from 'ulid';
 
-import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
-import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
-import { GetUserByUserIdQuery } from '@/auth/query/impl/get-user-by-userid.query';
+import { ValidateUserCmd } from '@/auth/command/impl/validate-user.cmd';
+import { GetUserByIdQry } from '@/auth/query/impl/get-user-by-id.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import { IUser } from '@/customTypes/interfaces/message.interface';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
-import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 
 @Injectable()
@@ -31,15 +29,15 @@ export class AuthService {
   // Interact with passport local strategy
   async validateWithIdPw(user: LoginUserDto) {
     const { email, password } = user;
-    const command = new ValidateUserCommand(email, password);
+    const command = new ValidateUserCmd(email, password);
 
     return await this.commandBus.execute(command);
   }
 
   async findByUserId(id: string) {
-    const query = new GetUserByUserIdQuery(id);
+    const qry = new GetUserByIdQry(id);
 
-    return await this.queryBus.execute(query);
+    return await this.queryBus.execute(qry);
   }
 
   async verifyJWT(jwtString: string) {
@@ -76,13 +74,6 @@ export class AuthService {
     }
   }
 
-  async checkEmail(dto: CheckEmailDto) {
-    const { email } = dto;
-    const command = new CheckEmailDupCmd(email);
-
-    return await this.commandBus.execute(command);
-  }
-
   async updateToken(event: string, token: string, id: string) {
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
@@ -99,7 +90,9 @@ export class AuthService {
   }
 
   async issueJWT(user: IUser): Promise<string> {
-    return jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
+    const token = jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
+
+    return token;
   }
 
   async issueUlid(): Promise<string> {

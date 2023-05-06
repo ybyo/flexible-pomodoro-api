@@ -16,21 +16,22 @@ import { Request, Response } from 'express';
 import { ulid } from 'ulid';
 
 import { AuthService } from '@/auth/auth.service';
-import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { CheckDupNameQry } from '@/auth/query/impl/check-dup-name.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
-import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
-import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
-import { CheckTokenValidityQuery } from '@/users/application/command/impl/check-token-validity.query';
-import { CreateTimestampCommand } from '@/users/application/command/impl/create-timestamp.command';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
+import { ChangeNameCmd } from '@/users/application/command/impl/change-name.cmd';
+import { CheckTokenValidityQry } from '@/users/application/command/impl/check-token-validity.qry';
+import { CreateTimestampCmd } from '@/users/application/command/impl/create-timestamp.cmd';
+import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
 import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
-import { VerifyChangeEmailCommand } from '@/users/application/command/impl/verify-change-email.command';
+import { VerifyChangeEmailCmd } from '@/users/application/command/impl/verify-change-email.cmd';
+import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
@@ -43,58 +44,48 @@ export class UserController {
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
-    private redisService: RedisTokenService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    private redisService: RedisTokenService,
   ) {}
 
   @UseGuards(RedisTokenGuard)
   @Get('verify-email')
   async verifyEmail(@Query() query, @Req() req): Promise<IRes> {
     const { event, token } = await this.redisService.getEventToken(req);
-    const qry = new CheckTokenValidityQuery('signupToken', token);
+
+    const qry = new CheckTokenValidityQry('signupToken', token);
     const user = await this.queryBus.execute(qry);
 
-    if (user !== null) {
+    if (user) {
       await this.authService.updateToken(event, token, user.id);
-    } else {
-      await this.redisService.deleteValue(`${event}:${token}`);
-      throw new BadRequestException(`Invalid token`);
+
+      return { success: true };
     }
 
-    return { success: true };
+    // Delete invalid token in Redis
+    await this.redisService.deleteValue(`${event}:${token}`);
   }
 
   @Post('send-reset-password-email')
   async sendResetPasswordEmail(@Body() data): Promise<IRes<any>> {
     const { email } = data;
-    const command = new CheckEmailDupCmd(email);
-    const result = await this.commandBus.execute(command);
 
-    if (result.success === false) {
-      const resetPasswordToken = await this.authService.issueUlid();
-      const command = new AddTokenToDBCmd(
-        email,
-        'resetPasswordToken',
-        resetPasswordToken,
-      );
-      await this.commandBus.execute(command);
-      await this.emailService.sendTokenEmail(
-        'resetPassword',
-        email,
-        resetPasswordToken,
-      );
+    const resetPasswordToken = await this.authService.issueUlid();
+    const cmd = new AddTokenToDBCmd(
+      email,
+      'resetPasswordToken',
+      resetPasswordToken,
+    );
+    await this.commandBus.execute(cmd);
 
-      return {
-        success: true,
-        message: 'Reset password verification email sent successfully.',
-      };
-    }
+    await this.emailService.sendTokenEmail(
+      'resetPassword',
+      email,
+      resetPasswordToken,
+    );
 
-    return {
-      success: false,
-      message: 'Email does not exist.',
-    };
+    return { success: true };
   }
 
   @UseGuards(RedisTokenGuard)
@@ -105,106 +96,89 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes<IUser>> {
     const { event, token } = await this.redisService.getEventToken(req);
-    const qry = new CheckTokenValidityQuery('resetPasswordToken', token);
+    const qry = new CheckTokenValidityQry('resetPasswordToken', token);
     const user = await this.queryBus.execute(qry);
 
-    const payload: IUser = {
-      id: user.id,
-      userName: user.userName,
-      email: user.email,
-    };
-    const cookieToken = await this.authService.issueJWT(payload);
-
-    if (user !== null) {
-      res.cookie('resetPasswordToken', cookieToken, this.accessConf);
-    } else {
-      await this.redisService.deleteValue(`${event}:${token}`);
-      throw new BadRequestException(`Invalid reset password verification code`);
-    }
-
-    return {
-      success: true,
-      message: 'Reset password token verified successfully',
-      data: {
+    if (!!user) {
+      const cookieToken = await this.authService.issueJWT({
         id: user.id,
         userName: user.userName,
         email: user.email,
-      },
-    };
+      });
+      res.cookie('resetPasswordToken', cookieToken, this.accessConf);
+
+      await this.redisService.deleteValue(`${event}:${token}`);
+
+      return {
+        success: true,
+        message: 'Reset password token verified successfully',
+        data: {
+          id: user.id,
+          userName: user.userName,
+          email: user.email,
+        },
+      };
+    }
+
+    // Delete invalid token in Redis
+    await this.redisService.deleteValue(`${event}:${token}`);
   }
 
+  @UseGuards(PasswordResetGuard)
   @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
     @Body() body: PasswordResetDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<IRes> {
+    const { resetPasswordToken: token } = req.cookies;
     const newPassword = body.password;
+    const user = await this.authService.verifyJWT(token);
 
-    if ('resetPasswordToken' in req.cookies) {
-      const resetPasswordToken = req.cookies.resetPasswordToken;
-      const user = await this.authService.verifyJWT(resetPasswordToken);
-      const { event, token } = await this.redisService.getEventToken(req);
+    const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
+    const result = await this.commandBus.execute(cmd);
 
-      const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
-      const result = await this.commandBus.execute(cmd);
+    if (result.success === true) {
+      await this.authService.updateToken(
+        'resetPasswordToken',
+        token,
+        user.data.id,
+      );
 
-      if (result.success === true) {
-        await this.authService.updateToken(event, token, user.data.id);
-        res.cookie('resetPasswordToken', null, {
-          ...this.accessConf,
-          maxAge: 1,
-        });
-      }
-
-      return result;
+      res.cookie('resetPasswordToken', null, {
+        ...this.accessConf,
+        maxAge: 1,
+      });
     }
+
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('change-email')
-  async changeEmail(
-    @Req() req: Request,
-    @Body() body: any,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    let oldEmail;
-    let uid;
-    if ('email' in req.user && 'id' in req.user) {
-      oldEmail = req.user.email;
-      uid = req.user.id;
-    }
+  async changeEmail(@Req() req: Request, @Body() body: any): Promise<IRes> {
+    const { email: oldEmail, id } = req.user as IUser;
     const newEmail = body.email;
     const changeEmailVerifyToken = ulid();
-    const command = new ChangeEmailCommand(
-      oldEmail,
-      newEmail,
-      changeEmailVerifyToken,
-    );
-    const response = await this.commandBus.execute(command);
 
-    if (response.success === true) {
-      try {
-        await this.emailService.sendTokenEmail(
-          'changeEmail',
-          newEmail,
-          changeEmailVerifyToken,
-        );
+    const cmd = new ChangeEmailCmd(oldEmail, newEmail, changeEmailVerifyToken);
+    const result = await this.commandBus.execute(cmd);
 
-        const command = new CreateTimestampCommand(
-          uid,
-          `changeEmailTokenCreated`,
-        );
-        const response = await this.commandBus.execute(command);
-      } catch (err) {
-        console.log(err);
-      }
+    if (result.success) {
+      await this.emailService.sendTokenEmail(
+        'changeEmail',
+        newEmail,
+        changeEmailVerifyToken,
+      );
+
+      const cmd = new CreateTimestampCmd(id, `changeEmailTokenCreated`);
+      await this.commandBus.execute(cmd);
+
+      return {
+        success: true,
+        message: 'Change email verification email sent successfully',
+      };
     }
-
-    return {
-      success: true,
-      message: 'Change email verification email sent successfully.',
-    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -213,26 +187,19 @@ export class UserController {
     @Req() req: Request,
     @Query() query: any,
     @Res({ passthrough: true }) res,
-  ) {
-    let changeEmailVerifyToken;
-    if ('changeEmailVerifyToken' in query) {
-      changeEmailVerifyToken = query.changeEmailVerifyToken;
-    }
-    let response = {} as IRes<IUser>;
-    response.success = false;
-    const command = new VerifyChangeEmailCommand(changeEmailVerifyToken);
-    response = await this.commandBus.execute(command);
+  ): Promise<IRes | Error> {
+    const { changeEmailToken } = query;
 
-    if (response.success === true) {
-      const newUser: IUser = response.data;
+    const cmd = new VerifyChangeEmailCmd(changeEmailToken);
+    const result = await this.commandBus.execute(cmd);
+
+    if (result.success) {
+      const newUser: IUser = result.data;
       const accessToken = await this.authService.issueJWT(newUser);
+
       res.cookie('accessToken', accessToken, this.accessConf);
 
-      return response;
-    } else {
-      throw new BadRequestException(
-        'Something went wrong. Change email reverted',
-      );
+      return result;
     }
   }
 
@@ -246,17 +213,20 @@ export class UserController {
     const { newName } = body;
     const { email } = req.user as IUser;
 
-    const command = new ChangeNameCommand(email, newName);
-    const response = await this.commandBus.execute(command);
-    if (response.success === true) {
-      const newUser: IUser = response.data;
+    const qry = new CheckDupNameQry(newName);
+    await this.queryBus.execute(qry);
+
+    const cmd = new ChangeNameCmd(email, newName);
+    const result = await this.commandBus.execute(cmd);
+
+    if (result.success) {
+      const newUser = result.data;
       const accessToken = await this.authService.issueJWT(newUser);
+
       res.cookie('accessToken', accessToken, this.accessConf);
 
-      return response;
+      return result;
     }
-
-    return response;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -266,29 +236,18 @@ export class UserController {
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
   ): Promise<Session | IRes> {
-    let id: string | null;
+    const { id } = req.user as IUser;
 
-    if ('id' in req.user) {
-      id = req.user.id as string;
-    }
+    const cmd = new DeleteAccountCmd(id);
+    await this.commandBus.execute(cmd);
 
-    if (id !== null) {
-      const command = new DeleteAccountCommand(id);
-      await this.commandBus.execute(command);
+    req.logout((err) => {
+      if (err) return err;
+    });
 
-      req.logout((err) => {
-        if (err) return err;
-      });
+    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
+    req.session.cookie.maxAge = 0;
 
-      res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
-      req.session.cookie.maxAge = 0;
-
-      return req.session;
-    }
-
-    return {
-      success: false,
-      message: 'Cannot delete account. Please try again.',
-    };
+    return req.session;
   }
 }

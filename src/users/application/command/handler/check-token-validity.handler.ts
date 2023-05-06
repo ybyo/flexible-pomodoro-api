@@ -1,23 +1,25 @@
+import { BadRequestException, Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
-import { IUser } from '@/customTypes/interfaces/message.interface';
-import { CheckTokenValidityQuery } from '@/users/application/command/impl/check-token-validity.query';
-import { UserEntity } from '@/users/infra/db/entity/user.entity';
+import { CheckTokenValidityQry } from '@/users/application/command/impl/check-token-validity.qry';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { User } from '@/users/domain/user.model';
 
-@QueryHandler(CheckTokenValidityQuery)
+@QueryHandler(CheckTokenValidityQry)
 export class CheckTokenValidityHandler
-  implements IQueryHandler<CheckTokenValidityQuery>
+  implements IQueryHandler<CheckTokenValidityQry>
 {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    @Inject('UserRepository')
+    private userRepository: IUserRepository,
   ) {}
 
-  async execute(query: CheckTokenValidityQuery): Promise<IUser | null> {
-    const { field, token } = query;
+  async execute(qry: CheckTokenValidityQry): Promise<User | null> {
+    const { column, token } = qry;
+    const user = await this.userRepository.findByToken(column, token);
 
-    return await this.userRepository.findOneBy({ [field]: token });
+    if (user) return user;
+
+    throw new BadRequestException('Invalid token');
   }
 }

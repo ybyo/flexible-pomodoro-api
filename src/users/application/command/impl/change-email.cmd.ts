@@ -1,6 +1,6 @@
 import { ICommand } from '@nestjs/cqrs';
 
-export class ChangeEmailCommand implements ICommand {
+export class ChangeEmailCmd implements ICommand {
   constructor(
     readonly oldEmail: string,
     readonly newEmail: string,

@@ -1,21 +1,19 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { ValidateUserCommand } from '@/auth/command/impl/validate-user.command';
+import { ValidateUserCmd } from '@/auth/command/impl/validate-user.cmd';
 import { IUser } from '@/customTypes/interfaces/message.interface';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { verifyPassword } from '@/utils/password-util';
 
 @Injectable()
-@CommandHandler(ValidateUserCommand)
-export class ValidateUserHandler
-  implements ICommandHandler<ValidateUserCommand>
-{
+@CommandHandler(ValidateUserCmd)
+export class ValidateUserHandler implements ICommandHandler<ValidateUserCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(command: ValidateUserCommand) {
+  async execute(command: ValidateUserCmd) {
     const { email, password } = command;
 
     // TODO: 데이터베이스가 완전히 비어있을 때 에러 처리

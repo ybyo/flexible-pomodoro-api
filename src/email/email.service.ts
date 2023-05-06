@@ -1,13 +1,10 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import * as ejs from 'ejs';
 import * as path from 'path';
 
 import emailConfig from '@/config/email.config';
+import { IRes } from '@/customTypes/interfaces/message.interface';
 import sgMail = require('@sendgrid/mail');
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 
@@ -20,7 +17,11 @@ export class EmailService {
     sgMail.setApiKey(this.config.auth.sgMailApi);
   }
 
-  async sendToken(event: string, emailAddress: string, token: string) {
+  async sendToken(
+    event: string,
+    emailAddress: string,
+    token: string,
+  ): Promise<IRes> {
     const host =
       process.env.NODE_ENV === 'development'
         ? '127.0.0.1:4000'
@@ -62,11 +63,8 @@ export class EmailService {
     }
 
     ejs.renderFile(template, dataMap, (err, data) => {
-      if (err) {
-        throw new InternalServerErrorException(
-          `Cannot render email template. Account creation reverted.\n${err}`,
-        );
-      }
+      if (err) console.log(err);
+
       rendered = data;
     });
 
@@ -77,11 +75,15 @@ export class EmailService {
       html: rendered,
     };
 
-    try {
-      await sgMail.send(mailOptions);
-      console.log(`${event} email sent successfully`);
-    } catch (err) {
-      throw new InternalServerErrorException(`Cannot ${event} send email`);
-    }
+    return sgMail
+      .send(mailOptions)
+      .then(() => ({
+        success: true,
+        message: event,
+      }))
+      .catch((err) => {
+        console.log(err);
+        return { success: false };
+      });
   }
 }

@@ -7,22 +7,19 @@ import { RegisterUserCmd } from '@/auth/command/impl/register-user.cmd';
 import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
-import { UserFactory } from '@/users/domain/user.factory';
 import { User } from '@/users/domain/user.model';
-import { UserRegisterEvent } from '@/users/domain/user-register.event';
 
 @Injectable()
 @CommandHandler(RegisterUserCmd)
 export class RegisterUserHandler implements ICommandHandler<RegisterUserCmd> {
   constructor(
-    private userFactory: UserFactory,
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private redisService: RedisTokenService,
     private authService: AuthService,
     private eventBus: EventBus,
+    private redisService: RedisTokenService,
   ) {}
 
-  async execute(command: RegisterUserCmd): Promise<IRes> {
+  async execute(command: RegisterUserCmd): Promise<IRes<string>> {
     const { email } = command;
 
     const user = await this.userRepository.findByEmail(email);
@@ -45,11 +42,6 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCmd> {
     );
     await this.userRepository.saveUser(newUser);
 
-    // Send verification email
-    await this.eventBus.publish(
-      new UserRegisterEvent(newUser.email, newUser.signupToken),
-    );
-
-    return { success: true };
+    return { success: true, data: signupToken };
   }
 }

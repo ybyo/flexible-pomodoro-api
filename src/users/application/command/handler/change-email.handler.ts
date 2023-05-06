@@ -3,18 +3,18 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { AuthService } from '@/auth/auth.service';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { ChangeEmailCommand } from '@/users/application/command/impl/change-email.command';
+import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
-@CommandHandler(ChangeEmailCommand)
-export class ChangeEmailHandler implements ICommandHandler<ChangeEmailCommand> {
+@CommandHandler(ChangeEmailCmd)
+export class ChangeEmailHandler implements ICommandHandler<ChangeEmailCmd> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
     private authService: AuthService,
   ) {}
 
-  async execute(command: ChangeEmailCommand) {
+  async execute(command: ChangeEmailCmd) {
     const { oldEmail, newEmail, changeEmailVerifyToken } = command;
 
     const user = await this.userRepository.findByEmail(oldEmail);

@@ -1,5 +1,5 @@
 import { IQuery } from '@nestjs/cqrs';
 
-export class CheckDuplicateUsernameQuery implements IQuery {
+export class CheckDupNameQry implements IQuery {
   constructor(readonly username: string) {}
 }
