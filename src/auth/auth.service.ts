@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import * as jwt from 'jsonwebtoken';
@@ -10,6 +10,7 @@ import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
 import { IUser } from '@/customTypes/interfaces/message.interface';
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { CheckTokenValidityQry } from '@/users/application/command/impl/check-token-validity.qry';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
@@ -74,7 +75,15 @@ export class AuthService {
     }
   }
 
-  async updateToken(event: string, token: string, id: string) {
+  async updateToken(event: string, token: string): Promise<void> {
+    const qry = new CheckTokenValidityQry(event, token);
+    const { id } = await this.queryBus.execute(qry);
+
+    if (id !== undefined) {
+      await this.redisService.deleteValue(`${event}:${token}`);
+      throw new BadRequestException('Invalid token');
+    }
+
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
     multi.del(`${event}:${token}`);

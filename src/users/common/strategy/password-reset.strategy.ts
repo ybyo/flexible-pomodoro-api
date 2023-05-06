@@ -10,6 +10,7 @@ const cookieExtractor = (req) => {
   if (req && req.cookies) {
     token = req.cookies['resetPasswordToken'];
   }
+
   return token;
 };
 

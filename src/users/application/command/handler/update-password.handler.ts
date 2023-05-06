@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
+import { AuthService } from '@/auth/auth.service';
 import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
@@ -15,16 +16,17 @@ export class UpdatePasswordHandler
 {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
+    private authService: AuthService,
   ) {}
 
-  async execute(command: UpdatePasswordCmd) {
-    const { email, newPassword } = command;
-    const user = await this.userRepository.findByEmail(email);
+  async execute(cmd: UpdatePasswordCmd) {
+    const { token, newPassword } = cmd;
+    const result = await this.authService.verifyJWT(token);
 
-    if (user) {
+    if (result.success) {
       await this.userRepository.updateUser(
-        { email },
-        { password: newPassword },
+        { email: result.data.email },
+        { password: newPassword, resetPasswordToken: null },
       );
 
       return { success: true };

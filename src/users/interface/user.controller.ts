@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -21,8 +20,8 @@ import { CheckDupNameQry } from '@/auth/query/impl/check-dup-name.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
-import { RedisTokenService } from '@/redis/redis-token.service';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { IRedisTokenService } from '@/users/application/adapter/iredis-token.service';
 import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
 import { ChangeNameCmd } from '@/users/application/command/impl/change-name.cmd';
@@ -31,7 +30,6 @@ import { CreateTimestampCmd } from '@/users/application/command/impl/create-time
 import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
 import { UpdatePasswordCmd } from '@/users/application/command/impl/update-password.cmd';
 import { VerifyChangeEmailCmd } from '@/users/application/command/impl/verify-change-email.cmd';
-import { PasswordResetGuard } from '@/users/common/guard/password-reset.guard';
 import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
@@ -41,30 +39,24 @@ import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 export class UserController {
   constructor(
     @Inject('EmailService') private emailService: IEmailService,
+    @Inject('RedisTokenService') private redisService: IRedisTokenService,
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    private redisService: RedisTokenService,
   ) {}
 
+  // Url의 쿼리 부분에서 토큰을 확인
   @UseGuards(RedisTokenGuard)
   @Get('verify-email')
   async verifyEmail(@Query() query, @Req() req): Promise<IRes> {
+    // Redis에서 키 값이 존재하는 지 확인
     const { event, token } = await this.redisService.getEventToken(req);
+    // DB에서 토큰을 갱신해야함
+    await this.authService.updateToken(event, token);
 
-    const qry = new CheckTokenValidityQry('signupToken', token);
-    const user = await this.queryBus.execute(qry);
-
-    if (user) {
-      await this.authService.updateToken(event, token, user.id);
-
-      return { success: true };
-    }
-
-    // Delete invalid token in Redis
-    await this.redisService.deleteValue(`${event}:${token}`);
+    return { success: true };
   }
 
   @Post('send-reset-password-email')
@@ -124,7 +116,6 @@ export class UserController {
     await this.redisService.deleteValue(`${event}:${token}`);
   }
 
-  @UseGuards(PasswordResetGuard)
   @Post('reset-password')
   async resetPassword(
     @Req() req: Request,
@@ -133,25 +124,18 @@ export class UserController {
   ): Promise<IRes> {
     const { resetPasswordToken: token } = req.cookies;
     const newPassword = body.password;
-    const user = await this.authService.verifyJWT(token);
 
-    const cmd = new UpdatePasswordCmd(user.data.email, newPassword);
+    const cmd = new UpdatePasswordCmd(token, newPassword);
     const result = await this.commandBus.execute(cmd);
 
-    if (result.success === true) {
-      await this.authService.updateToken(
-        'resetPasswordToken',
-        token,
-        user.data.id,
-      );
-
+    if (result.success) {
       res.cookie('resetPasswordToken', null, {
         ...this.accessConf,
         maxAge: 1,
       });
-    }
 
-    return result;
+      return result;
+    }
   }
 
   @UseGuards(JwtAuthGuard)
