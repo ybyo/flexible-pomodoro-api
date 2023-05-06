@@ -6,6 +6,7 @@ import Redis from 'ioredis';
 import * as path from 'path';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { RedisTokenListeningService } from '@/redis/redis-token-listening.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
@@ -44,6 +45,7 @@ const factories = [UserFactory];
       },
     },
     RedisTokenService,
+    RedisTokenListeningService,
     Logger,
     ...commandHandlers,
     ...repositories,
