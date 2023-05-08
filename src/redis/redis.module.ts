@@ -5,12 +5,14 @@ import * as dotenv from 'dotenv';
 import Redis from 'ioredis';
 import * as path from 'path';
 
+import { EmailModule } from '@/email/email.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { RedisTokenListeningService } from '@/redis/redis-token-listening.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
 import { UserFactory } from '@/users/domain/user.factory';
+import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
@@ -20,6 +22,8 @@ dotenv.config({
   path: path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`),
 });
 
+const externalService = [{ provide: 'EmailService', useClass: EmailService }];
+
 const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
 const commandHandlers = [DeleteAccountHandler];
 const factories = [UserFactory];
@@ -27,6 +31,7 @@ const factories = [UserFactory];
 @Module({
   imports: [
     CqrsModule,
+    EmailModule,
     TypeOrmModule.forFeature([UserEntity, RoutineEntity, RoutineToTimerEntity]),
   ],
   providers: [
@@ -44,13 +49,14 @@ const factories = [UserFactory];
         return client;
       },
     },
-    RedisTokenService,
-    RedisTokenListeningService,
-    Logger,
     ...commandHandlers,
-    ...repositories,
+    ...externalService,
     ...factories,
+    ...repositories,
+    Logger,
+    RedisTokenListeningService,
+    RedisTokenService,
   ],
-  exports: [REDIS, RedisTokenService],
+  exports: [REDIS, RedisTokenService, RedisTokenListeningService],
 })
 export class RedisModule {}

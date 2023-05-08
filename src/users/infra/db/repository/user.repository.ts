@@ -9,16 +9,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { IUserRepository } from 'src/users/domain/repository/iuser.repository';
-import { UserFactory } from 'src/users/domain/user.factory';
 import { DataSource, In, Repository } from 'typeorm';
 
 import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { UserFactory } from '@/users/domain/user.factory';
 import { User } from '@/users/domain/user.model';
-
-import { UserEntity } from '../entity/user.entity';
+import { EmailService } from '@/users/infra/adapter/email.service';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -33,14 +34,13 @@ export class UserRepository implements IUserRepository {
     private routineToTimerRepository: Repository<RoutineToTimerEntity>,
     private userFactory: UserFactory,
     @Inject(Logger) private readonly logger: LoggerService,
+    @Inject('EmailService') private emailService: IEmailService,
   ) {}
 
   async findById(id: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ id });
 
-    if (!userEntity) {
-      return null;
-    }
+    if (!userEntity) return null;
 
     const user = await this.mapper.map(userEntity, UserEntity, User);
     return user;
@@ -91,25 +91,46 @@ export class UserRepository implements IUserRepository {
     return user;
   }
 
-  async saveUser(user: User): Promise<void> {
+  async saveUser(user: User): Promise<IRes> {
     await this.dataSource.transaction(async (manager) => {
       const newUser = UserEntity.create({ ...user });
 
+      await this.emailService.sendTokenMail(
+        'signupToken',
+        user.email,
+        user.signupToken,
+      );
+
       await manager.save(newUser);
     });
+
+    return { success: true };
   }
 
-  async updateUser(criteria: object, partialEntity: object): Promise<IRes> {
+  async updateToken(
+    user: Partial<User>,
+    event: string,
+    token: string,
+    sendMail?: boolean,
+  ): Promise<IRes> {
     await this.dataSource.transaction(async (manager) => {
-      const user = await this.userRepository.findOneBy(criteria);
-
-      if (user !== null && 'password' in partialEntity) {
-        partialEntity.password = await argon2.hash(
-          partialEntity.password as string,
-        );
+      if (!!sendMail && !!user.email) {
+        await this.emailService.sendTokenMail(event, user.email, token);
       }
 
-      await manager.update(UserEntity, criteria, partialEntity);
+      await manager.update(UserEntity, { id: user.id }, { [event]: token });
+    });
+
+    return { success: true };
+  }
+
+  async updateUser(user: Partial<User>, column: Partial<User>): Promise<IRes> {
+    await this.dataSource.transaction(async (manager) => {
+      if ('password' in column) {
+        column.password = await argon2.hash(column.password as string);
+      }
+
+      await manager.update(UserEntity, { email: user.email }, column);
     });
 
     return { success: true };
@@ -118,14 +139,23 @@ export class UserRepository implements IUserRepository {
   async deleteUser(id: string): Promise<IRes> {
     const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) {
+    if (user === null)
       throw new NotFoundException(`Cannot find user id: ${id}`);
-    }
 
+    await this.dataSource.transaction(async (manager): Promise<void> => {
+      await this.deleteRoutine(id);
+
+      await manager.delete(UserEntity, user.id);
+    });
+
+    return { success: true };
+  }
+
+  async deleteRoutine(id: string): Promise<IRes> {
     await this.dataSource.transaction(async (manager): Promise<void> => {
       // Deletes routine data
       const routines = await manager.find(RoutineEntity, {
-        where: { userId: user.id },
+        where: { userId: id },
       });
 
       if (routines.length !== 0) {
@@ -134,9 +164,6 @@ export class UserRepository implements IUserRepository {
           routineId: In(routineIds),
         });
       }
-
-      // Deletes user data
-      await manager.delete(UserEntity, user.id);
     });
 
     return { success: true };

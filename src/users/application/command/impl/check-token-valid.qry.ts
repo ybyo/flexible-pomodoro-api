@@ -1,5 +1,5 @@
 import { IQuery } from '@nestjs/cqrs';
 
-export class CheckTokenValidityQry implements IQuery {
+export class CheckTokenValidQry implements IQuery {
   constructor(readonly column: string, readonly token: string) {}
 }

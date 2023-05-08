@@ -1,3 +1,4 @@
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { Logger, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
@@ -6,8 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthController } from '@/auth/auth.controller';
 import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
-import { RegisterUserHandler } from '@/auth/command/handler/register-user.handler';
-import { ValidateUserHandler } from '@/auth/command/handler/validate-user.handler';
+import { CheckDupUserHandler }  from '@/auth/command/handler/check-dup-user-handler.service';
+import { ValidateUserHandler }  from '@/auth/command/handler/validate-user.handler';
 import { CheckDupNameHandler } from '@/auth/query/handler/check-dup-name.handler';
 import { GetUserByIdHandler } from '@/auth/query/handler/get-user-by-id.handler';
 import { AuthSerializer } from '@/auth/serialization.provider';
@@ -28,14 +29,18 @@ import { AuthService } from './auth.service';
 
 const CommandHandlers = [
   CheckEmailDupHandler,
-  RegisterUserHandler,
+  CheckDupUserHandler,
   ValidateUserHandler,
 ];
 const QueryHandlers = [GetUserByIdHandler, CheckDupNameHandler];
 const EventHandlers = [];
 
-const repositories = [
+const externalService = [
   { provide: 'EmailService', useClass: EmailService },
+  { provide: 'RedisTokenService', useClass: RedisTokenService },
+];
+
+const repositories = [
   { provide: 'RoutineRepository', useClass: RoutineRepository },
   { provide: 'UserRepository', useClass: UserRepository },
 ];
@@ -59,6 +64,7 @@ const strategies = [LocalStrategy, JwtStrategy];
     ...CommandHandlers,
     ...EventHandlers,
     ...QueryHandlers,
+    ...externalService,
     ...factories,
     ...repositories,
     ...strategies,

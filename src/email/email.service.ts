@@ -17,7 +17,7 @@ export class EmailService {
     sgMail.setApiKey(this.config.auth.sgMailApi);
   }
 
-  async sendToken(
+  async sendTokenEmail(
     event: string,
     emailAddress: string,
     token: string,
@@ -33,7 +33,7 @@ export class EmailService {
     let rendered;
     let subject;
 
-    if (event === 'signup') {
+    if (event === 'signupToken') {
       subject = '회원가입 인증';
       url = `https://${host}/users/verify-email?signupToken=${token}`;
       template = path.join(__dirname, '../../public/signup-email-inlined.ejs');
@@ -41,7 +41,7 @@ export class EmailService {
         app_name: 'Pipe Timer',
         verification_url: url,
       };
-    } else if (event === 'resetPassword') {
+    } else if (event === 'resetPasswordToken') {
       subject = '비밀번호 재설정';
       url = `https://${host}/users/verify-reset-password?resetPasswordToken=${token}`;
       template = path.join(
@@ -52,7 +52,7 @@ export class EmailService {
         app_name: 'Pipe Timer',
         verification_url: url,
       };
-    } else if (event === 'changeEmail') {
+    } else if (event === 'changeEmailToken') {
       subject = '이메일 변경';
       url = `https://${host}/users/verify-change-email?changeEmailVerifyToken=${token}`;
       template = path.join(__dirname, '../../public/change-email-inlined.ejs');
