@@ -16,19 +16,17 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/auth.service';
+import { CheckDupUserQry } from '@/auth/command/impl/check-dup-user.qry';
 import { CheckEmailDupCmd } from '@/auth/command/impl/check-email-dup.cmd';
-import { RegisterUserCmd } from '@/auth/command/impl/register-user.cmd';
 import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/guard/local.guard';
 import { LoggedInGuard } from '@/auth/guard/logged-in.guard';
-import { CheckDupNameQry } from '@/auth/query/impl/check-dup-name.qry';
 import { GetUserByIdQry } from '@/auth/query/impl/get-user-by-id.qry';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { AddTokenToDBCmd } from '@/users/application/command/impl/add-token-to-db.cmd';
 import { CheckEmailDto } from '@/users/interface/dto/check-email.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
@@ -52,24 +50,14 @@ export class AuthController {
     @Req() req: Request,
     @Body() user: RegisterUserDto,
   ): Promise<IRes> {
-    const qry = new CheckDupNameQry(user.userName);
-    const result = await this.queryBus.execute(qry);
+    const { userName, email, password } = user;
 
-    if (result.success) {
-      const { userName, email, password } = user;
-      const cmd = new RegisterUserCmd(userName, email, password);
-      const { success, data: token } = await this.commandBus.execute(cmd);
+    const qry = new CheckDupUserQry(userName, email, password);
+    await this.commandBus.execute(qry);
 
-      if (success) {
-        const result = await this.emailService.sendTokenEmail(
-          'signup',
-          email,
-          token,
-        );
+    await this.authService.saveUser(user);
 
-        return result;
-      }
-    }
+    return { success: true };
   }
 
   @UseGuards(LocalGuard)
@@ -100,14 +88,12 @@ export class AuthController {
   async getUserInfoWithAccessToken(@Req() req: Request) {
     const { id } = req.user as IUser;
 
-    const query = new GetUserByIdQry(id);
-    const result = await this.queryBus.execute(query);
+    const qry = new GetUserByIdQry(id);
+    const user = await this.queryBus.execute(qry);
 
     return {
-      id: result.id,
-      userName: result.userName,
-      email: result.email,
-      isVerified: !result.signupToken,
+      ...user,
+      isVerified: !user.signupToken as boolean,
     };
   }
 
@@ -139,19 +125,14 @@ export class AuthController {
   @Post('resend-signup-email')
   async resendSignupEmail(@Body() body: { email: string }): Promise<IRes> {
     const { email } = body;
-    const token = await this.authService.issueUlid();
+    const ttl = 1 * 60 * 60;
 
-    const cmd = new AddTokenToDBCmd(email, 'signupToken', token);
-    const result = await this.commandBus.execute(cmd);
+    const result = await this.authService.addTokenAndSendMail(
+      email,
+      'signupToken',
+      ttl,
+    );
 
-    if (result.success) {
-      const result = await this.emailService.sendTokenEmail(
-        'signup',
-        email,
-        token,
-      );
-
-      return result;
-    }
+    return result;
   }
 }

@@ -1,3 +1,4 @@
+import { AuthService } from '@/auth/auth.service';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -12,14 +13,15 @@ export class RedisTokenStrategy extends PassportStrategy(
   'redis-token',
 ) {
   constructor(
-    private readonly redisService: RedisTokenService,
-    @Inject('UserRepository') private readonly userRepository: IUserRepository,
+    @Inject('UserRepository') private userRepository: IUserRepository,
+    private authService: AuthService,
+    private redisService: RedisTokenService,
   ) {
     super();
   }
 
   async validate(req: Request): Promise<boolean> {
-    const { event, token } = await this.redisService.getEventToken(req);
+    const { event, token } = await this.authService.splitEventToken(req);
 
     const isValid = await this.redisService.getValue(`${event}:${token}`);
     if (!!isValid) return true;

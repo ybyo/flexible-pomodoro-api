@@ -10,7 +10,13 @@ export interface IUserRepository {
   findByEmailAndPassword: (email: string, password: string) => Promise<User>;
   findByToken: (column: string, token: string) => Promise<User | null>;
   findByUsername: (userName: string) => Promise<User | null>;
-  saveUser: (user: User) => Promise<void>;
+  saveUser: (user: User) => Promise<IRes>;
+  updateToken: (
+    user: Partial<User>,
+    event: string,
+    token: string,
+    sendMail?: boolean,
+  ) => Promise<IRes>;
   // TODO: 파라메터 범위 좁히기
   updateUser: (criteria: object, partialEntity: object) => Promise<IRes>;
   deleteUser: (email: string) => Promise<IRes>;

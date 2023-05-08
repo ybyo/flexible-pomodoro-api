@@ -14,6 +14,8 @@ export class DeleteAccountHandler implements ICommandHandler<DeleteAccountCmd> {
   async execute(command: DeleteAccountCmd) {
     const { id } = command;
 
-    return await this.userRepository.deleteUser(id);
+    const result = await this.userRepository.deleteUser(id);
+
+    return result;
   }
 }

@@ -4,6 +4,7 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { CheckDupNameQry } from '@/auth/query/impl/check-dup-name.qry';
 import { IRes } from '@/customTypes/interfaces/message.interface';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { User } from '@/users/domain/user.model';
 
 @QueryHandler(CheckDupNameQry)
 export class CheckDupNameHandler implements IQueryHandler<CheckDupNameQry> {
@@ -11,12 +12,12 @@ export class CheckDupNameHandler implements IQueryHandler<CheckDupNameQry> {
     @Inject('UserRepository') private userRepository: IUserRepository,
   ) {}
 
-  async execute(query: CheckDupNameQry): Promise<IRes | null> {
+  async execute(query: CheckDupNameQry): Promise<IRes<User> | null> {
     const { username } = query;
     const user = await this.userRepository.findByUsername(username);
 
-    if (!user) return { success: true };
+    if (user !== null) return { success: true, data: user };
 
-    throw new BadRequestException('Duplicate username');
+    return { success: false };
   }
 }

@@ -1,20 +1,20 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
-import { CheckTokenValidityQry } from '@/users/application/command/impl/check-token-validity.qry';
+import { CheckTokenValidQry } from '@/users/application/command/impl/check-token-valid.qry';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 import { User } from '@/users/domain/user.model';
 
-@QueryHandler(CheckTokenValidityQry)
+@QueryHandler(CheckTokenValidQry)
 export class CheckTokenValidityHandler
-  implements IQueryHandler<CheckTokenValidityQry>
+  implements IQueryHandler<CheckTokenValidQry>
 {
   constructor(
     @Inject('UserRepository')
     private userRepository: IUserRepository,
   ) {}
 
-  async execute(qry: CheckTokenValidityQry): Promise<User | null> {
+  async execute(qry: CheckTokenValidQry): Promise<User | null> {
     const { column, token } = qry;
     const user = await this.userRepository.findByToken(column, token);
 
