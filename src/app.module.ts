@@ -19,7 +19,7 @@ import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { REDIS, RedisModule } from '@/redis';
+import { REDIS_AUTH, RedisModule } from '@/redis';
 import { RoutineModule } from '@/routines/routine.module';
 
 import jwtConfig from './config/jwtConfig';
@@ -76,7 +76,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 })
 export class AppModule implements NestModule {
   constructor(
-    @Inject(REDIS) private readonly redis: RedisClient,
+    @Inject(REDIS_AUTH) private readonly redis: RedisClient,
     @Inject(refreshTokenConfig.KEY)
     private refreshTokenConf: ConfigType<typeof refreshTokenConfig>,
   ) {}
