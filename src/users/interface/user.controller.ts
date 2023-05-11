@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
 import { Session } from '@/customTypes/types';
+import { REDIS_TOKEN } from '@/redis';
 import { IEmailService } from '@/users/application/adapter/iemail.service';
 import { IRedisTokenService } from '@/users/application/adapter/iredis-token.service';
 import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
@@ -34,7 +35,7 @@ import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
 export class UserController {
   constructor(
     @Inject('EmailService') private emailService: IEmailService,
-    @Inject('RedisTokenService') private redisService: IRedisTokenService,
+    @Inject(REDIS_TOKEN) private redisService: IRedisTokenService,
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,

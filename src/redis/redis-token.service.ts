@@ -1,14 +1,14 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
 
-import { REDIS } from '@/redis/redis.constants';
+import { REDIS_TOKEN } from '@/redis/redis.constants';
 
 @Injectable()
 export class RedisTokenService {
   constructor(
     private commandBus: CommandBus,
-    @Inject(REDIS) private redisClient: Redis,
+    @Inject(REDIS_TOKEN) private redisClient: Redis,
   ) {}
 
   async setValue(key: string, value: string, duration?: number): Promise<void> {

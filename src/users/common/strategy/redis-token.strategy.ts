@@ -1,9 +1,9 @@
-import { AuthService } from '@/auth/auth.service';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 
+import { AuthService } from '@/auth/auth.service';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
