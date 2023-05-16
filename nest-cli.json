@@ -20,7 +20,12 @@
             ".dto.ts"
           ]
         }
+      },
+      {
+        "name": "@nestjs/swagger",
+        "options": { "classValidatorShim": false, "introspectComments": true }
       }
     ]
-  }
+  },
+  "typeRoots": ["./node_module/@types", "src/shared/types"]
 }
