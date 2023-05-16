@@ -24,15 +24,16 @@ export class RegisterUserDto {
   @IsString()
   @IsEmail()
   @MaxLength(320)
-  readonly email: string;
+  email: string;
 
   @Transform(({ value }) => {
-    filter.add(['admin', 'webmaster', 'yidoyoon']);
+    filter.add(['admin', 'webmaster']);
     const formatted = value.replace(/[0-9\s]/g, '');
 
     if (filter.check(formatted)) {
-      throw new BadRequestException('Contains some prohibited words');
+      throw new BadRequestException('Name contains prohibited words');
     }
+
     return value.trim();
   })
   @NotIn('password', {
@@ -42,18 +43,18 @@ export class RegisterUserDto {
   @MinLength(3)
   @MaxLength(39)
   @Matches(/^[A-Za-z0-9]+$/)
-  readonly userName: string;
+  name: string;
 
   @IsString()
   @MinLength(8)
   @MaxLength(32)
   @Matches(/^.{8,32}$/)
-  readonly password: string;
+  password: string;
 
   // TODO: Test 추가
   @IsString()
   @MinLength(8)
   @MaxLength(32)
   @MatchPassword('password', { message: 'Password does not match.' })
-  passwordConfirm: string;
+  confirmPassword: string;
 }

@@ -2,7 +2,7 @@ import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
 
-export class PasswordResetDto {
+export class ChangePasswordDto {
   @IsString()
   @MinLength(8)
   @MaxLength(32)
@@ -14,5 +14,5 @@ export class PasswordResetDto {
   @MinLength(8)
   @MaxLength(32)
   @MatchPassword('password', { message: 'Password does not match.' })
-  passwordConfirm: string;
+  readonly passwordConfirm: string;
 }
