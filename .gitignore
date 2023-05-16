@@ -11,6 +11,9 @@
 # Backup files
 .bak
 
+# NPM
+.npmrc
+
 # Logs
 logs
 *.log
