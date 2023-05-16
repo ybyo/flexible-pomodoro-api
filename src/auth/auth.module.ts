@@ -27,10 +27,11 @@ import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
 import { AuthService } from './auth.service';
 
-const CommandHandlers = [
-  CheckEmailDupHandler,
-  CheckDupUserHandler,
-  ValidateUserHandler,
+const CommandHandlers = [CheckDuplicateEmailHandler];
+const QueryHandlers = [
+  GetUserByIdHandler,
+  CheckDuplicateNameHandler,
+  GetUserByEmailHandler,
 ];
 const QueryHandlers = [GetUserByIdHandler, CheckDupNameHandler];
 const EventHandlers = [];
