@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development nest start --watch",
-    "start:debug": "nest start --debug --watch",
+    "start:debug": "cross-env NODE_ENV=development nest start --debug --watch",
     "docker:dev": "cross-env NODE_ENV=development docker compose --env-file ./env/.development.env -f compose-db.yml up -d",
     "start:prod": "cross-env NODE_ENV=production node dist/main",
     "start:prod2": "pm2 start npm --name \"pipe-timer\" -- run start:production",
