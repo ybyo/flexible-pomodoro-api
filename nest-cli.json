@@ -26,5 +26,6 @@
         "options": { "classValidatorShim": false, "introspectComments": true }
       }
     ]
-  }
+  },
+  "typeRoots": ["./node_module/@types", "src/shared/types"]
 }
