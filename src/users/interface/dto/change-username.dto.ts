@@ -5,7 +5,7 @@ import * as filter from 'leo-profanity';
 
 export class ChangeUsernameDto {
   @Transform(({ value }) => {
-    filter.add(['admin', 'webmaster', 'yidoyoon']);
+    filter.add(['admin', 'webmaster']);
     const formatted = value.replace(/[0-9\s]/g, '');
 
     if (filter.check(formatted)) {

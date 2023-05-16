@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MaxLength } from 'class-validator';
 
-export class CheckEmailDto {
+export class CheckDuplicateEmailDto {
   @IsString()
   @IsEmail()
   @MaxLength(320)
