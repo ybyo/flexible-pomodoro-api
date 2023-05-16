@@ -8,6 +8,9 @@
 /dist
 /node_modules
 
+# Backup files
+.bak
+
 # Logs
 logs
 *.log
