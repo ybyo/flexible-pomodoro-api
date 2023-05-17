@@ -1,7 +1,13 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+  DocumentBuilder,
+  SwaggerDocumentOptions,
+  SwaggerModule,
+} from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import * as basicAuth from 'express-basic-auth';
 import * as fs from 'fs';
 import helmet from 'helmet';
 import {
@@ -14,6 +20,16 @@ import * as winston from 'winston';
 import { AppModule } from './app.module';
 
 const certPath = path.join(__dirname, '..', 'certs');
+
+const corsOption = {
+  origin: [
+    process.env.NODE_ENV === 'development'
+      ? 'https://127.0.0.1:4000'
+      : `https://${process.env.DOMAIN_URL}:4000`,
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
 
 const httpsOptions =
   process.env.NODE_ENV === 'development'
@@ -44,21 +60,46 @@ async function bootstrap() {
     }),
     httpsOptions,
   });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
     }),
   );
 
-  const corsOption = {
-    origin: [
-      process.env.NODE_ENV === 'development'
-        ? 'https://127.0.0.1:4000'
-        : `https://${process.env.DOMAIN_URL}:4000`,
-    ],
-    credentials: true,
-    optionsSuccessStatus: 200,
-  };
+  if (process.env.NODE_ENV === 'development') {
+    app.use(
+      ['/api'],
+      basicAuth({
+        challenge: true,
+        users: {
+          [process.env.SWAGGER_ID]: process.env.SWAGGER_PASSWORD,
+        },
+      }),
+    );
+
+    const options: SwaggerDocumentOptions = {
+      operationIdFactory: (controllerKey: string, methodKey: string) =>
+        methodKey,
+    };
+
+    const config = new DocumentBuilder()
+      .setTitle('Pipe Timer API docs')
+      .setDescription('The Pipe Timer API description')
+      .setVersion('0.0.1')
+      .addCookieAuth(
+        'accessToken',
+        {
+          type: 'apiKey',
+          in: 'cookie',
+        },
+        'accessToken',
+      )
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config, options);
+    SwaggerModule.setup('api', app, document);
+  }
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
