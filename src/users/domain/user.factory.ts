@@ -1,17 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { EventBus } from '@nestjs/cqrs';
 
-import { User } from './user.model';
+import { UserWithoutPassword } from '@/users/domain/user.model';
 
 @Injectable()
 export class UserFactory {
-  constructor(private eventBus: EventBus) {}
+  create(
+    id: string,
+    name: string,
+    email: string,
+    password: string,
+    signupToken: string,
+    changePasswordToken: string,
+    changeEmailToken: string,
+  ): UserWithoutPassword {
+    const user = new UserWithoutPassword();
 
-  async create(user: User): Promise<User> {
-    return user;
-  }
+    user.id = id;
+    user.name = name;
+    user.email = email;
+    user.signupToken = signupToken;
+    user.changePasswordToken = changePasswordToken;
+    user.changeEmailToken = changeEmailToken;
 
-  reconstitute(user: User): User {
     return user;
   }
 }
