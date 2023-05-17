@@ -1,21 +1,19 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { IRes } from '@/customTypes/interfaces/message.interface';
 import { EmailService as ExternalEmailService } from '@/email/email.service';
-import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 
 @Injectable()
-export class EmailService implements IEmailService {
+export class EmailService implements IEmailAdapter {
   constructor(private emailService: ExternalEmailService) {}
 
-  async sendTokenMail(
-    event: string,
-    email: string,
-    token: string,
-  ): Promise<IRes> {
-    const result = await this.emailService.sendTokenEmail(event, email, token);
-    if (result.success) return result;
-
-    throw new InternalServerErrorException('Cannot send email');
+  async sendSignupEmailToken(email: string, token: string): Promise<void> {
+    await this.emailService.sendSignupEmailToken(email, token);
+  }
+  async sendResetPasswordToken(email: string, token: string): Promise<void> {
+    await this.emailService.sendResetPasswordToken(email, token);
+  }
+  async sendChangeEmailToken(email: string, token: string): Promise<void> {
+    await this.emailService.sendChangeEmailToken(email, token);
   }
 }

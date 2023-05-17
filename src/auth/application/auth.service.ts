@@ -17,7 +17,7 @@ import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-dup
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
-import { IRedisTokenService } from '@/users/application/adapter/iredis-token.service';
+import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
 import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
@@ -35,7 +35,7 @@ export class AuthService {
     private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    @Inject('RedisTokenService') private redisService: IRedisTokenService,
+    @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
     @Inject('UserRepository') private userRepository: IUserRepository,
     private logger: Logger,
   ) {}

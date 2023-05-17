@@ -39,7 +39,7 @@ import { LoggedInGuard } from '@/auth/interface/guard/logged-in.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { Session } from '@/shared/types/common-types';
-import { IEmailService } from '@/users/application/adapter/iemail.service';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { CheckDuplicateEmailDto } from '@/users/interface/dto/check-duplicate-email.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
@@ -52,7 +52,7 @@ export class AuthController {
     private accessConf: ConfigType<typeof accessTokenConfig>,
     @Inject(refreshTokenConfig.KEY)
     private refreshConf: ConfigType<typeof refreshTokenConfig>,
-    @Inject('EmailService') private emailService: IEmailService,
+    @Inject('EmailService') private emailService: IEmailAdapter,
     private authService: AuthService,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
