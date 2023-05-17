@@ -2,19 +2,18 @@ import { PassportStrategy } from '@nestjs/passport';
 import { JwtPayload } from 'jsonwebtoken';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import { AuthService } from '@/auth/auth.service';
-import { IUser } from '@/customTypes/interfaces/message.interface';
+import { AuthService } from '@/auth/application/auth.service';
+import { UserJwt } from '@/users/domain/user.model';
 
 const cookieExtractor = (req) => {
   let token = null;
   if (req && req.cookies) {
-    token = req.cookies['resetPasswordToken'];
+    token = req.cookies['accessToken'];
   }
-
   return token;
 };
 
-export class PasswordResetStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
@@ -24,7 +23,7 @@ export class PasswordResetStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload & IUser) {
+  async validate(payload: JwtPayload & UserJwt) {
     return payload;
   }
 }
