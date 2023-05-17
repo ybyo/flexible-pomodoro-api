@@ -5,7 +5,6 @@ import { Chance } from 'chance';
 import { Request } from 'express';
 import { ulid } from 'ulid';
 
-import { IUser } from '@/customTypes/interfaces/message.interface';
 import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
 import { SaveTimerCommand } from '@/timers/application/command/impl/save-timer.command';
 import { Timer } from '@/timers/domain/timer.model';
@@ -14,10 +13,10 @@ import { TimerController } from './timer.controller';
 
 const chance = new Chance();
 
-const user: IUser = {
+const user = {
   id: ulid(),
   email: chance.email(),
-  userName: chance.name(),
+  name: chance.name(),
 };
 
 const timer: Timer = {
@@ -59,7 +58,7 @@ describe('TimerController', () => {
         .mockImplementationOnce(async () => commandResult);
 
       const req = {} as Request;
-      req.user = user;
+      // req.user = user;
       const result = await controller.fetch(req);
 
       expect(commandBus.execute).toHaveBeenCalledWith(
@@ -79,7 +78,7 @@ describe('TimerController', () => {
         .mockImplementationOnce(async () => commandResult);
 
       const req = {} as Request;
-      req.user = user;
+      // req.user = user;
       const result = await controller.commit(req, timerData);
 
       expect(commandBus.execute).toHaveBeenCalledWith(

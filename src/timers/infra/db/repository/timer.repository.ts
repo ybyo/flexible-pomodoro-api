@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
-import { IRes } from '@/customTypes/interfaces/message.interface';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { ITimerRepository } from '@/timers/domain/itimer.repository';
@@ -38,7 +37,7 @@ export class TimerRepository implements ITimerRepository {
     return this.mapper.mapArray(timerEntity, TimerEntity, Timer);
   }
 
-  async saveTimer(userId: string, timer: Timer[]): Promise<IRes<void>> {
+  async saveTimer(userId: string, timer: Timer[]): Promise<any> {
     try {
       await this.connection.transaction(async (manager) => {
         // ID 필터링 기준 = 'timerId'
@@ -107,10 +106,6 @@ export class TimerRepository implements ITimerRepository {
       throw new Error(err);
     }
 
-    const result = {} as IRes<void>;
-
-    result.success = true;
-
-    return result;
+    return { success: true };
   }
 }

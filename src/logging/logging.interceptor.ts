@@ -20,7 +20,7 @@ export class LoggingInterceptor implements NestInterceptor {
       .pipe(
         tap((data) =>
           this.logger.log(
-            `Response from ${method} ${url} \n response: ${JSON.stringify(
+            `Response from ${method} ${url} \nresponse: ${JSON.stringify(
               data,
             )}`,
           ),

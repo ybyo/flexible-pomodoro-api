@@ -9,14 +9,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
-import { IUser } from '@/customTypes/interfaces/message.interface';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import { GetRoutineCommand } from '@/routines/application/command/impl/get-routine.command';
 import { RemoveRoutineCommand } from '@/routines/application/command/impl/remove-routine.command';
 import { SaveRoutineCommand } from '@/routines/application/command/impl/save-routine.command';
+import { UserJwt } from '@/users/domain/user.model';
 
+@ApiTags('routine')
 @Controller('routine')
 export class RoutineController {
   constructor(private readonly commandBus: CommandBus) {}
@@ -24,7 +26,7 @@ export class RoutineController {
   @Get('fetch')
   // TODO: 응답 타입 정의
   async fetch(@Req() req) {
-    const user = req.user as JwtPayload & IUser;
+    const user = req.user as JwtPayload & UserJwt;
 
     let routine;
 
@@ -39,7 +41,7 @@ export class RoutineController {
   @UseGuards(JwtAuthGuard)
   @Post('save')
   async save(@Req() req, @Body() routine) {
-    const user = req.user as JwtPayload & IUser;
+    const user = req.user as JwtPayload & UserJwt;
 
     const command = new SaveRoutineCommand(user.id, routine);
 

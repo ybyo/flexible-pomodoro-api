@@ -28,6 +28,6 @@ services:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: ${REDIS_CONTAINER_NAME}
     ports:
-      - ${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}
+      - ${REDIS_PORT}:${REDIS_PORT}
     networks:
       - app-tier
