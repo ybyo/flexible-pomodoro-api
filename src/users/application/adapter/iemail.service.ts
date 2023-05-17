@@ -1,5 +1,5 @@
-import { IRes } from '@/customTypes/interfaces/message.interface';
-
 export interface IEmailService {
-  sendTokenMail: (event, email, token) => Promise<IRes>;
+  sendSignupEmailToken: (email: string, token: string) => Promise<void>;
+  sendResetPasswordToken: (email: string, token: string) => Promise<void>;
+  sendChangeEmailToken: (newEmail: string, token: string) => Promise<void>;
 }
