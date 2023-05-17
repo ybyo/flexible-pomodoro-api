@@ -1,31 +1,30 @@
-import { RedisTokenService } from '@/redis/redis-token.service';
 import { Logger, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthController } from '@/auth/auth.controller';
-import { CheckEmailDupHandler } from '@/auth/command/handler/check-email-dup.handler';
-import { CheckDupUserHandler }  from '@/auth/command/handler/check-dup-user-handler.service';
-import { ValidateUserHandler }  from '@/auth/command/handler/validate-user.handler';
-import { CheckDupNameHandler } from '@/auth/query/handler/check-dup-name.handler';
-import { GetUserByIdHandler } from '@/auth/query/handler/get-user-by-id.handler';
+import { AuthService } from '@/auth/application/auth.service';
+import { CheckDuplicateEmailHandler } from '@/auth/application/query/handlers/check-duplicate-email.handler';
+import { CheckDuplicateNameHandler } from '@/auth/application/query/handlers/check-duplicate-name.handler';
+import { GetUserByEmailHandler } from '@/auth/application/query/handlers/get-user-by-email.handler';
+import { GetUserByIdHandler } from '@/auth/application/query/handlers/get-user-by-id.handler';
+import { AuthController } from '@/auth/interface/auth.controller';
+import { JwtStrategy } from '@/auth/interface/strategy/jwt.strategy';
+import { LocalStrategy } from '@/auth/interface/strategy/local.strategy';
 import { AuthSerializer } from '@/auth/serialization.provider';
-import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
-import { LocalStrategy } from '@/auth/strategy/local.strategy';
 import { jwtExpConfig } from '@/config/jwtConfig';
 import { EmailModule } from '@/email/email.module';
-import { RedisModule } from '@/redis';
+import { RedisModule } from '@/redis/redis.module';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
+import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 import { UserFactory } from '@/users/domain/user.factory';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
-
-import { AuthService } from './auth.service';
+import { RedisTokenStrategy } from '@/users/interface/strategy/redis-token.strategy';
 
 const CommandHandlers = [CheckDuplicateEmailHandler];
 const QueryHandlers = [
@@ -33,7 +32,6 @@ const QueryHandlers = [
   CheckDuplicateNameHandler,
   GetUserByEmailHandler,
 ];
-const QueryHandlers = [GetUserByIdHandler, CheckDupNameHandler];
 const EventHandlers = [];
 
 const externalService = [
@@ -41,12 +39,14 @@ const externalService = [
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
+const strategies = [LocalStrategy, JwtStrategy, RedisTokenStrategy];
+
 const repositories = [
   { provide: 'RoutineRepository', useClass: RoutineRepository },
   { provide: 'UserRepository', useClass: UserRepository },
 ];
+
 const factories = [UserFactory];
-const strategies = [LocalStrategy, JwtStrategy];
 
 @Module({
   imports: [
@@ -66,12 +66,13 @@ const strategies = [LocalStrategy, JwtStrategy];
     ...EventHandlers,
     ...QueryHandlers,
     ...externalService,
+    ...strategies,
     ...factories,
     ...repositories,
-    ...strategies,
     AuthSerializer,
     AuthService,
     Logger,
+    RedisTokenService,
   ],
   exports: [AuthService],
 })

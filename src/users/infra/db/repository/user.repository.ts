@@ -9,16 +9,22 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { DataSource, In, Repository } from 'typeorm';
+import {
+  DataSource,
+  DeleteResult,
+  In,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
+import { ulid } from 'ulid';
 
-import { IRes } from '@/customTypes/interfaces/message.interface';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 import { UserFactory } from '@/users/domain/user.factory';
-import { User } from '@/users/domain/user.model';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Injectable()
@@ -33,127 +39,140 @@ export class UserRepository implements IUserRepository {
     @InjectRepository(RoutineToTimerEntity)
     private routineToTimerRepository: Repository<RoutineToTimerEntity>,
     private userFactory: UserFactory,
-    @Inject(Logger) private readonly logger: LoggerService,
-    @Inject('EmailService') private emailService: IEmailService,
+    @Inject(Logger) private logger: LoggerService,
+    @Inject('EmailService') private emailService: IEmailAdapter,
+    private redisService: RedisTokenService,
   ) {}
-
-  async findById(id: string): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({ id });
-
-    if (!userEntity) return null;
-
-    const user = await this.mapper.map(userEntity, UserEntity, User);
-    return user;
-  }
-
   async findByEmail(email: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ email });
-
-    if (!userEntity) {
-      return null;
-    }
+    if (!userEntity) return null;
 
     return this.mapper.map(userEntity, UserEntity, User);
+  }
+
+  async findById(id: string): Promise<UserJwt | null> {
+    const userEntity = await this.userRepository.findOneBy({ id });
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserJwt);
   }
 
   async findByEmailAndPassword(
     email: string,
     password: string,
-  ): Promise<User | null> {
+  ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
       email: email,
       password: password,
     });
-    if (!userEntity) {
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async findBySignupToken(token: string): Promise<UserWithoutPassword | null> {
+    const userEntity = await this.userRepository.findOneBy({
+      signupToken: token,
+    });
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async findByResetPasswordToken(
+    token: string,
+  ): Promise<UserWithoutPassword | null> {
+    const userEntity = await this.userRepository.findOneBy({
+      resetPasswordToken: token,
+    });
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async findByUsername(name: string): Promise<UserWithoutPassword | null> {
+    const userEntity = await this.userRepository.findOneBy({ name });
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async registerUser(user: User): Promise<UserEntity | null> {
+    const id = ulid();
+    const token = ulid();
+    const userEntity = UserEntity.create({ ...user, id, signupToken: token });
+    const expiredAt = new Date(
+      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
+    ).getTime();
+
+    try {
+      return await this.dataSource.transaction(
+        async (manager): Promise<UserEntity> => {
+          await this.emailService.sendSignupEmailToken(user.email, token);
+          await this.redisService.setPXAT(
+            `signupToken:${token}`,
+            '1',
+            expiredAt,
+          );
+
+          return await manager.save(userEntity);
+        },
+      );
+    } catch (err) {
+      this.logger.log(err);
       return null;
     }
-
-    const newEntity = this.mapper.map(userEntity, UserEntity, User);
-
-    return this.userFactory.reconstitute(newEntity);
   }
 
-  async findByToken(column: string, token: string): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({ [column]: token });
-    if (!userEntity) return null;
+  async sendChangeEmailToken(
+    oldEmail: string,
+    newEmail: string,
+  ): Promise<UpdateResult> {
+    const token = ulid();
+    const expiredAt = new Date(
+      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
+    ).getTime();
 
-    const user = this.mapper.map(userEntity, UserEntity, User);
-
-    return user;
-  }
-
-  async findByUsername(userName: string): Promise<User | null> {
-    const userEntity = await this.userRepository.findOneBy({ userName });
-
-    if (!userEntity) return null;
-    const user = this.mapper.map(userEntity, UserEntity, User);
-
-    return user;
-  }
-
-  async saveUser(user: User): Promise<IRes> {
-    await this.dataSource.transaction(async (manager) => {
-      const newUser = UserEntity.create({ ...user });
-
-      await this.emailService.sendTokenMail(
-        'signupToken',
-        user.email,
-        user.signupToken,
+    return await this.dataSource.transaction(async (manager) => {
+      await this.emailService.sendChangeEmailToken(newEmail, token);
+      await this.redisService.setPXAT(
+        `changeEmailToken:${token}`,
+        '1',
+        expiredAt,
       );
 
-      await manager.save(newUser);
+      return await manager.update(
+        UserEntity,
+        { email: oldEmail },
+        { changeEmailToken: token, newEmail },
+      );
     });
-
-    return { success: true };
   }
 
-  async updateToken(
-    user: Partial<User>,
-    event: string,
-    token: string,
-    sendMail?: boolean,
-  ): Promise<IRes> {
-    await this.dataSource.transaction(async (manager) => {
-      if (!!sendMail && !!user.email) {
-        await this.emailService.sendTokenMail(event, user.email, token);
-      }
-
-      await manager.update(UserEntity, { id: user.id }, { [event]: token });
-    });
-
-    return { success: true };
+  async updateUser(
+    user: Partial<UserWithoutPassword>,
+    column: Partial<UserWithoutPassword>,
+  ): Promise<UpdateResult> {
+    return await this.dataSource.transaction(
+      async (manager): Promise<UpdateResult> => {
+        return await manager.update(UserEntity, { email: user.email }, column);
+      },
+    );
   }
 
-  async updateUser(user: Partial<User>, column: Partial<User>): Promise<IRes> {
-    await this.dataSource.transaction(async (manager) => {
-      if ('password' in column) {
-        column.password = await argon2.hash(column.password as string);
-      }
-
-      await manager.update(UserEntity, { email: user.email }, column);
-    });
-
-    return { success: true };
-  }
-
-  async deleteUser(id: string): Promise<IRes> {
+  async deleteUser(id: string): Promise<DeleteResult> {
     const user = await this.userRepository.findOneBy({ id });
-
     if (user === null)
       throw new NotFoundException(`Cannot find user id: ${id}`);
 
-    await this.dataSource.transaction(async (manager): Promise<void> => {
+    return await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
-
-      await manager.delete(UserEntity, user.id);
+      return await manager.delete(UserEntity, user.id);
     });
-
-    return { success: true };
   }
 
-  async deleteRoutine(id: string): Promise<IRes> {
+  async deleteRoutine(id: string): Promise<void> {
     await this.dataSource.transaction(async (manager): Promise<void> => {
-      // Deletes routine data
       const routines = await manager.find(RoutineEntity, {
         where: { userId: id },
       });
@@ -165,11 +184,141 @@ export class UserRepository implements IUserRepository {
         });
       }
     });
-
-    return { success: true };
   }
 
   getDataSource(): DataSource {
     return this.dataSource;
+  }
+
+  async sendResetPasswordToken(email: string): Promise<UpdateResult> {
+    const token = ulid();
+    const expiredAt = new Date(
+      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
+    ).getTime();
+
+    return await this.dataSource.transaction(async (manager) => {
+      await this.emailService.sendResetPasswordToken(email, token);
+      await this.redisService.setPXAT(
+        `resetPasswordToken:${token}`,
+        '1',
+        expiredAt,
+      );
+
+      return await manager.update(
+        UserEntity,
+        { email },
+        { resetPasswordToken: token },
+      );
+    });
+  }
+
+  async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
+    const redis = await this.redisService.getClient();
+    const multi = redis.multi();
+    multi.del(`signupToken:${token}`);
+
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        await multi.exec();
+
+        return await manager.update(UserEntity, { id }, { signupToken: null });
+      });
+    } catch (err) {
+      await multi.discard();
+    }
+  }
+
+  async changePassword(
+    id: string,
+    password: string,
+    token: string,
+  ): Promise<UpdateResult> {
+    const redis = await this.redisService.getClient();
+    const multi = redis.multi();
+    multi.del(`resetPasswordToken:${token}`);
+
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        const hashed = await argon2.hash(password as string);
+
+        await multi.exec();
+        return await manager.update(
+          UserEntity,
+          { id },
+          { password: hashed, resetPasswordToken: null },
+        );
+      });
+    } catch (err) {
+      await multi.discard();
+    }
+  }
+
+  async findByChangeEmailToken(
+    token: string,
+  ): Promise<UserWithoutPassword | null> {
+    console.log(token);
+    const userEntity = await this.userRepository.findOneBy({
+      changeEmailToken: token,
+    });
+
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async changeEmail(
+    id: string,
+    newEmail: string,
+    token: string,
+  ): Promise<UpdateResult> {
+    const redis = await this.redisService.getClient();
+    const multi = redis.multi();
+    multi.del(`changeEmailToken:${token}`);
+
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        await multi.exec();
+
+        return await manager.update(
+          UserEntity,
+          { id },
+          { email: newEmail, changeEmailToken: null, newEmail: null },
+        );
+      });
+    } catch (err) {
+      await multi.discard();
+    }
+  }
+
+  async findByToken(
+    column: string,
+    token: string,
+  ): Promise<UserWithoutPassword | null> {
+    const userEntity = await this.userRepository.findOneBy({ [column]: token });
+    if (!userEntity) return null;
+
+    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+  }
+
+  async renewSignupToken(
+    email: string,
+    oldToken: string,
+  ): Promise<UpdateResult> {
+    const redis = await this.redisService.getClient();
+    const multi = redis.multi();
+    const newToken = ulid();
+
+    multi.rename(`signupToken:${oldToken}`, `signupToken:${newToken}`);
+
+    return await this.dataSource.transaction(async (manager) => {
+      await this.emailService.sendSignupEmailToken(email, newToken);
+      await multi.exec();
+
+      return await manager.update(
+        UserEntity,
+        { email },
+        { signupToken: newToken },
+      );
+    });
   }
 }

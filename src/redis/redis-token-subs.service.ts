@@ -1,14 +1,11 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
+import { UpdateResult } from 'typeorm';
 
 import { REDIS_SUB } from '@/redis/redis.constants';
-import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
 export class RedisTokenSubsService {
@@ -16,6 +13,7 @@ export class RedisTokenSubsService {
     private commandBus: CommandBus,
     @Inject(REDIS_SUB) private redisClient: Redis,
     @Inject('UserRepository') private userRepository: IUserRepository,
+    private logger: Logger,
   ) {
     const client = this.runRedisTokenPub();
     this.runRedisTokenSub(client);
@@ -49,9 +47,7 @@ export class RedisTokenSubsService {
             this.commandBus,
           );
         } catch (err) {
-          throw new InternalServerErrorException(
-            `Cannot expire token. ${event}:${token}`,
-          );
+          this.logger.error(`Cannot expire token. ${event}:${token}`);
         }
       }
     });
@@ -62,24 +58,26 @@ export class RedisTokenSubsService {
     token: string,
     userRepository: IUserRepository,
     commandBus: CommandBus,
-  ): Promise<void> {
+  ): Promise<UpdateResult> {
     const user = await userRepository.findByToken(event, token);
 
-    if (user) {
-      if (event === 'signupToken') {
-        const command = new DeleteAccountCmd(user.id);
-        await commandBus.execute(command);
-        console.log(
-          `Unverified user data deleted...\n User email: ${JSON.stringify(
-            user.email,
-          )}`,
-        );
-      } else {
-        await userRepository.updateUser({ id: user.id }, { [event]: null });
-        console.log(
-          `${event} expired...\n User email: ${JSON.stringify(user.email)}`,
-        );
-      }
+    if (event === 'signupToken') {
+      const command = new DeleteAccountCommand(user.id);
+      await commandBus.execute(command);
+      this.logger.verbose(
+        `Unverified user data deleted...\n User email: ${JSON.stringify(
+          user.email,
+        )}`,
+      );
+    } else {
+      this.logger.verbose(
+        `${event} expired...\n User email: ${JSON.stringify(user.email)}`,
+      );
+
+      return await userRepository.updateUser(
+        { id: user.id },
+        { [event]: null },
+      );
     }
   }
 }

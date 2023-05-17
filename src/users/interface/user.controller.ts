@@ -12,32 +12,43 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus } from '@nestjs/cqrs';
+import {
+  ApiBody,
+  ApiExcludeEndpoint,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { ulid } from 'ulid';
 
-import { AuthService } from '@/auth/auth.service';
-import { JwtAuthGuard } from '@/auth/guard/jwt-auth.guard';
+import { AuthService } from '@/auth/application/auth.service';
+import { SuccessDto } from '@/auth/interface/dto/success.dto';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/accessTokenConfig';
-import { IRes, IUser } from '@/customTypes/interfaces/message.interface';
-import { Session } from '@/customTypes/types';
-import { REDIS_TOKEN } from '@/redis';
-import { IEmailService } from '@/users/application/adapter/iemail.service';
-import { IRedisTokenService } from '@/users/application/adapter/iredis-token.service';
-import { ChangeEmailCmd } from '@/users/application/command/impl/change-email.cmd';
-import { CreateTimestampCmd } from '@/users/application/command/impl/create-timestamp.cmd';
-import { DeleteAccountCmd } from '@/users/application/command/impl/delete-account.cmd';
-import { VerifyChangeEmailCmd } from '@/users/application/command/impl/verify-change-email.cmd';
-import { RedisTokenGuard } from '@/users/common/guard/redis-token.guard';
+import { REDIS_TOKEN } from '@/redis/redis.constants';
+import { Session } from '@/shared/types/common-types';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
+import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
+import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
+import { SendResetPasswordEmailCommand } from '@/users/application/command/impl/send-reset-password-email.command';
+import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
+import { UserJwt } from '@/users/domain/user.model';
+import { ChangePasswordDto } from '@/users/interface/dto/change-password.dto';
 import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
 import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
-import { PasswordResetDto } from '@/users/interface/dto/password-reset.dto';
+import { SendChangeEmailTokenDto } from '@/users/interface/dto/send-change-email-token.dto';
+import { SendResetPasswordEmailDto } from '@/users/interface/dto/send-reset-password-email.dto';
+import { RedisTokenGuard } from '@/users/interface/guard/redis-token.guard';
 
+@ApiTags('users')
 @Controller('users')
 export class UserController {
   constructor(
-    @Inject('EmailService') private emailService: IEmailService,
-    @Inject(REDIS_TOKEN) private redisService: IRedisTokenService,
+    @Inject('EmailService') private emailService: IEmailAdapter,
+    @Inject(REDIS_TOKEN) private redisService: IRedisTokenAdapter,
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
@@ -45,158 +56,149 @@ export class UserController {
   ) {}
 
   @UseGuards(RedisTokenGuard)
-  @Get('verify-email')
-  async verifyEmail(@Req() req: Request): Promise<IRes> {
-    const { event, token } = await this.authService.splitEventToken(req);
-
-    await this.authService.validateToken(event, token);
-
-    return { success: true };
+  @Get('verify-signup-token')
+  @ApiOperation({ summary: 'Verify signup token' })
+  @ApiResponse({
+    description: 'Signup token verified successfully',
+  })
+  async verifySignupToken(@Req() req: Request): Promise<any> {
+    return await this.authService.verifySignupToken(req);
   }
 
   @Post('send-reset-password-email')
-  async sendResetPasswordEmail(@Body() data): Promise<IRes> {
-    const { email } = data;
-    const ttl = 1 * 60 * 60;
-
-    await this.authService.addTokenAndSendMail(
-      email,
-      'resetPasswordToken',
-      ttl,
-    );
-
-    return { success: true };
+  @ApiBody({ type: SendResetPasswordEmailDto })
+  @ApiOperation({ summary: 'Send reset password email' })
+  @ApiResponse({ type: SuccessDto })
+  async sendResetPasswordEmail(
+    @Body() dto: SendResetPasswordEmailDto,
+  ): Promise<SuccessDto> {
+    const command = new SendResetPasswordEmailCommand(dto.email);
+    return await this.commandBus.execute(command);
   }
 
   @UseGuards(RedisTokenGuard)
   @Get('verify-reset-password-token')
+  @ApiOperation({ summary: 'Verify reset password token' })
+  @ApiResponse({
+    description: 'Reset password token verified successfully',
+  })
   async verifyResetPasswordToken(
-    @Query() query,
     @Req() req,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<IRes> {
-    const { event, token } = await this.authService.splitEventToken(req);
+  ): Promise<void> {
+    const token = await this.authService.verifyResetPasswordToken(req);
 
-    const newToken = await this.authService.validateAndIssueJWT(event, token);
-
-    if (newToken !== null) {
-      res.cookie('resetPasswordToken', newToken, this.accessConf);
-
-      return {
-        success: true,
-        message: 'Reset password token verified successfully',
-      };
+    if (token !== null) {
+      res.cookie('resetPasswordToken', token, this.accessConf);
     }
   }
 
   @Post('change-password')
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({
+    description: 'User password changed successfully',
+  })
   async changePassword(
     @Req() req: Request,
-    @Body() body: PasswordResetDto,
+    @Body() body: ChangePasswordDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<IRes> {
-    const { resetPasswordToken: token } = req.cookies;
-    const newPassword = body.password;
+  ): Promise<void> {
+    await this.authService.changePassword(
+      req.cookies.resetPasswordToken,
+      body.password,
+    );
 
-    const result = await this.authService.changePassword(token, newPassword);
-
-    if (result.success) {
-      res.cookie('resetPasswordToken', null, {
-        ...this.accessConf,
-        maxAge: 1,
-      });
-
-      return result;
-    }
+    res.cookie('resetPasswordToken', null, {
+      ...this.accessConf,
+      maxAge: 1,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('send-change-mail')
-  async sendChangeMail(@Req() req: Request, @Body() body: any): Promise<IRes> {
-    const { email: oldEmail, id } = req.user as IUser;
-    const newEmail = body.email;
-    const changeEmailToken = ulid();
-
-    const cmd = new ChangeEmailCmd(oldEmail, newEmail, changeEmailToken);
-    const result = await this.commandBus.execute(cmd);
-
-    if (result.success) {
-      await this.emailService.sendTokenMail(
-        'changeEmail',
-        newEmail,
-        changeEmailToken,
-      );
-
-      const cmd = new CreateTimestampCmd(id, `changeEmailTokenCreated`);
-      await this.commandBus.execute(cmd);
-
-      return {
-        success: true,
-        message: 'Change email verification email sent successfully',
-      };
-    }
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('verify-change-email')
-  async verifyChangeEmail(
+  @Post('send-change-email-token')
+  @ApiBody({ type: SendChangeEmailTokenDto })
+  @ApiOperation({ summary: 'Send email to change email address' })
+  @ApiResponse({
+    description: 'Email to change email address sent successfully',
+  })
+  async sendChangeEmailToken(
     @Req() req: Request,
-    @Query() query: any,
+    @Body() body: SendChangeEmailTokenDto,
+  ): Promise<SuccessDto> {
+    const command = new SendChangeEmailTokenCommand(req.user.email, body.email);
+    return await this.commandBus.execute(command);
+  }
+
+  @UseGuards(RedisTokenGuard)
+  @Get('verify-change-email-token')
+  @ApiQuery({ name: 'changeEmailToken', type: 'string' })
+  @ApiOperation({
+    summary: 'Verify change email token to change email address',
+  })
+  @ApiResponse({
+    description: 'Change email token verified successfully',
+  })
+  async verifyChangeEmailToken(
+    @Req() req: Request,
+    @Query('changeEmailToken') token: string,
     @Res({ passthrough: true }) res,
-  ): Promise<IRes | Error> {
-    const { changeEmailToken } = query;
+  ): Promise<void> {
+    const command = new VerifyChangeEmailTokenCommand(token);
+    const result = await this.commandBus.execute(command);
 
-    const cmd = new VerifyChangeEmailCmd(changeEmailToken);
-    const result = await this.commandBus.execute(cmd);
+    const accessToken = await this.authService.issueJWT(result.data as UserJwt);
+    res.cookie('accessToken', accessToken, this.accessConf);
 
-    if (result.success) {
-      const newUser: IUser = result.data;
-      const accessToken = await this.authService.issueJWT(newUser);
-
-      res.cookie('accessToken', accessToken, this.accessConf);
-
-      return result;
-    }
+    return result.data;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('change-name')
+  @ApiBody({ type: ChangeUsernameDto })
+  @ApiOperation({
+    summary: 'Change username and renew access token with new username',
+  })
+  @ApiResponse({
+    description: 'Username changed successfully',
+  })
   async changeName(
     @Req() req: Request,
     @Body() body: ChangeUsernameDto,
     @Res({ passthrough: true }) res,
-  ): Promise<IRes> {
-    const { email } = req.user as IUser;
-    const { newName } = body;
-
-    const { data: newAccessToken } = await this.authService.changeNameAndJWT(
-      email,
-      newName,
+  ): Promise<any> {
+    const result = await this.authService.changeNameAndJWT(
+      req.user.id,
+      req.user.email,
+      body.newName,
     );
 
-    res.cookie('accessToken', newAccessToken, this.accessConf);
-
-    return { success: true };
+    res.cookie('accessToken', result.data, this.accessConf);
+    return { success: result.success };
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('delete-account')
+  @ApiBody({ type: DeleteAccountDto })
+  @ApiOperation({
+    summary: 'Delete account and clear client-side user related cookies',
+  })
+  @ApiResponse({
+    description: 'Account deleted successfully',
+  })
   async deleteAccount(
     @Req() req: Request,
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
-  ): Promise<Session | IRes> {
-    const { id } = req.user as IUser;
-
-    const cmd = new DeleteAccountCmd(id);
-    await this.commandBus.execute(cmd);
+  ): Promise<Session> {
+    const command = new DeleteAccountCommand(req.user.id);
+    await this.commandBus.execute(command);
 
     req.logout((err) => {
       if (err) return err;
     });
 
     res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
-
     req.session.cookie.maxAge = 0;
 
     return req.session;

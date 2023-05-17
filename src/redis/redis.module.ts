@@ -10,7 +10,7 @@ import { RedisTokenService } from '@/redis/redis-token.service';
 import { RedisTokenSubsService } from '@/redis/redis-token-subs.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { DeleteAccountHandler } from '@/users/application/command/handler/delete-account.handler';
+import { DeleteAccountHandler } from '@/users/application/command/handlers/delete-account.handler';
 import { UserFactory } from '@/users/domain/user.factory';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
@@ -64,8 +64,8 @@ async function createRedisClient(): Promise<Redis> {
     ...factories,
     ...repositories,
     Logger,
-    RedisTokenSubsService,
     RedisTokenService,
+    RedisTokenSubsService,
   ],
   exports: [
     REDIS_AUTH,

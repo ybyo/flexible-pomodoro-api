@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { RemoveRoutineCommand } from '@/routines/application/command/impl/remove-routine.command';
-import { RoutineRepository } from '@/routines/infra/db/repository/routine-repository.service';
+import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 
 @Injectable()
 @CommandHandler(RemoveRoutineCommand)

@@ -18,13 +18,13 @@ import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ unique: true })
   id: string;
 
-  @Column({ length: 39 })
-  userName: string;
+  @Column({ unique: true, length: 39 })
+  name: string;
 
-  @Column({ length: 320, unique: true })
+  @Column({ unique: true, length: 320 })
   email: string;
 
   @Column()
@@ -36,14 +36,11 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true, default: null })
   resetPasswordToken: string;
 
-  @Column({ default: null })
+  @Column({ nullable: true, default: null })
   changeEmailToken: string;
 
-  @Column({ default: null })
+  @Column({ nullable: true, default: null })
   newEmail: string;
-
-  @Column({ default: null })
-  changeEmailTokenCreated: Date;
 
   @CreateDateColumn()
   createdAt: Date;

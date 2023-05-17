@@ -1,34 +1,37 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 import { PassportSerializer } from '@nestjs/passport';
 
-import { AuthService } from '@/auth/auth.service';
-import { IUser } from '@/customTypes/interfaces/message.interface';
+import { GetUserByIdQuery } from '@/auth/application/query/impl/get-user-by-id.query';
+import { UserJwt } from '@/users/domain/user.model';
 
 @Injectable()
 export class AuthSerializer extends PassportSerializer {
-  constructor(private readonly authService: AuthService) {
+  constructor(private queryBus: QueryBus) {
     super();
   }
   serializeUser(
-    user: IUser,
+    user: UserJwt,
     done: (
       err: Error,
-      user: { id: string; userName: string; email: string },
+      user: { id: string; email: string; name: string },
     ) => void,
   ) {
     done(null, {
       id: user.id,
-      userName: user.userName,
       email: user.email,
+      name: user.name,
     });
   }
 
   async deserializeUser(
-    payload: { id: string; userName: string; email: string },
-    done: (err: Error, user: Omit<IUser, 'password'>) => void,
+    payload: { id: string; email: string; name: string },
+    done: (err: Error, user: Omit<UserJwt, 'password'>) => void,
   ) {
-    const user = await this.authService.findByUserId(payload.id);
-    if (user.id === null) {
+    const query = new GetUserByIdQuery(payload.id);
+    const user = await this.queryBus.execute(query);
+
+    if (user === null) {
       done(new HttpException('User not found', 404), null);
     }
     done(null, user);

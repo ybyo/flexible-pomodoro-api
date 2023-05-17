@@ -19,16 +19,17 @@ import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { REDIS_AUTH, RedisModule } from '@/redis';
+import { validationSchema } from '@/config/validationSchema';
+import { ExceptionModule } from '@/exception/exception-module';
+import { HealthCheckController } from '@/health-check/health-check.controller';
+import { LoggingModule } from '@/logging/logging.module';
+import { REDIS_AUTH } from '@/redis/redis.constants';
+import { RedisModule } from '@/redis/redis.module';
 import { RoutineModule } from '@/routines/routine.module';
+import { TimerModule } from '@/timers/timer.module';
+import { UserModule } from '@/users/user.module';
 
 import jwtConfig from './config/jwtConfig';
-import { validationSchema } from './config/validationSchema';
-import { ExceptionModule } from './exception/exception-module';
-import { HealthCheckController } from './health-check/health-check.controller';
-import { LoggingModule } from './logging/logging.module';
-import { TimerModule } from './timers/timer.module';
-import { UserModule } from './users/user.module';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
