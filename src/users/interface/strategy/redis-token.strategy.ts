@@ -1,11 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 
-import { AuthService } from '@/auth/auth.service';
+import { AuthService } from '@/auth/application/auth.service';
 import { RedisTokenService } from '@/redis/redis-token.service';
-import { IUserRepository } from '@/users/domain/repository/iuser.repository';
 
 @Injectable()
 export class RedisTokenStrategy extends PassportStrategy(
@@ -13,7 +12,6 @@ export class RedisTokenStrategy extends PassportStrategy(
   'redis-token',
 ) {
   constructor(
-    @Inject('UserRepository') private userRepository: IUserRepository,
     private authService: AuthService,
     private redisService: RedisTokenService,
   ) {
@@ -21,11 +19,11 @@ export class RedisTokenStrategy extends PassportStrategy(
   }
 
   async validate(req: Request): Promise<boolean> {
-    const { event, token } = await this.authService.splitEventToken(req);
+    const { event, token } = await this.authService.splitEventToken(req.query);
 
     const isValid = await this.redisService.getValue(`${event}:${token}`);
-    if (!!isValid) return true;
+    if (isValid) return true;
 
-    throw new BadRequestException('Invalid token');
+    throw new BadRequestException('Invalid signup token');
   }
 }
