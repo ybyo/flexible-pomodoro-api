@@ -1,4 +1,5 @@
 import {
+  All,
   Body,
   Controller,
   Get,
@@ -39,5 +40,9 @@ export class TimerController {
     return await this.commandBus.execute(command);
   }
 
-  // TODO: 404페이지 구현하기
+  @ApiExcludeEndpoint()
+  @All('*')
+  handleNotFound(): Promise<NotFoundException> {
+    throw new NotFoundException('The requested resource could not be found.');
+  }
 }
