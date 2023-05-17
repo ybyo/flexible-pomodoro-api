@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  All,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtPayload } from 'jsonwebtoken';
 
@@ -43,5 +52,11 @@ export class RoutineController {
     const command = new RemoveRoutineCommand(Object.keys(id)[0]);
 
     return await this.commandBus.execute(command);
+  }
+
+  @ApiExcludeEndpoint()
+  @All('*')
+  handleNotFound(): Promise<NotFoundException> {
+    throw new NotFoundException('The requested resource could not be found.');
   }
 }

@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { All, Controller, Get, NotFoundException } from '@nestjs/common';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
   HealthCheckService,
@@ -16,5 +17,11 @@ export class HealthCheckController {
   @HealthCheck()
   check() {
     return this.health.check([() => this.db.pingCheck('database')]);
+  }
+
+  @ApiExcludeEndpoint()
+  @All('*')
+  handleNotFound(): Promise<NotFoundException> {
+    throw new NotFoundException('The requested resource could not be found.');
   }
 }

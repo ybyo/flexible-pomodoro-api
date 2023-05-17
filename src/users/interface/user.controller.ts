@@ -1,8 +1,10 @@
 import {
+  All,
   Body,
   Controller,
   Get,
   Inject,
+  NotFoundException,
   Post,
   Query,
   Req,
@@ -198,5 +200,11 @@ export class UserController {
     req.session.cookie.maxAge = 0;
 
     return req.session;
+  }
+
+  @ApiExcludeEndpoint()
+  @All('*')
+  handleNotFound(): Promise<NotFoundException> {
+    throw new NotFoundException('The requested resource could not be found.');
   }
 }

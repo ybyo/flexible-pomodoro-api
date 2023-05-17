@@ -1,11 +1,11 @@
 import {
+  All,
   Body,
   Controller,
   Delete,
   Get,
   Inject,
-  Logger,
-  LoggerService,
+  NotFoundException,
   Post,
   Req,
   Res,
@@ -127,12 +127,9 @@ export class AuthController {
     const { email } = body;
     const ttl = 1 * 60 * 60;
 
-    const result = await this.authService.addTokenAndSendMail(
-      email,
-      'signupToken',
-      ttl,
-    );
-
-    return result;
+  @ApiExcludeEndpoint()
+  @All('*')
+  handleNotFound(): Promise<NotFoundException> {
+    throw new NotFoundException('The requested resource could not be found.');
   }
 }
