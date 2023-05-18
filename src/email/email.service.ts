@@ -3,6 +3,7 @@ import { ConfigType } from '@nestjs/config';
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 import * as sgMail from '@sendgrid/mail';
 import * as ejs from 'ejs';
+import * as nodemailer from 'nodemailer';
 import * as path from 'path';
 
 import emailConfig from '@/config/email.config';
@@ -10,6 +11,7 @@ import emailConfig from '@/config/email.config';
 @Injectable()
 export class EmailService {
   private readonly host: string;
+  private transporter: nodemailer.Transporter;
 
   constructor(
     @Inject(emailConfig.KEY)
@@ -21,7 +23,58 @@ export class EmailService {
         ? '127.0.0.1:4000'
         : `${this.config.host}`;
 
-    sgMail.setApiKey(this.config.auth.sgMailApi);
+    if (this.config.auth.sgMailKey) {
+      sgMail.setApiKey(this.config.auth.sgMailKey);
+    } else {
+      this.transporter = nodemailer.createTransport({
+        service: config.auth.testService,
+        auth: {
+          user: config.auth.testUser,
+          pass: config.auth.testPassword,
+        },
+      });
+    }
+  }
+
+  private sendToken(email, subject, url, template): void {
+    let rendered;
+
+    const variables = {
+      app_name: 'Pipe Timer',
+      verification_url: url,
+    };
+
+    ejs.renderFile(template, variables, (err, data) => {
+      if (err) console.log(err);
+      rendered = data;
+    });
+
+    const mailOptions: MailDataRequired = {
+      to: email,
+      subject: `Pipe Timer - ${subject}`,
+      from: 'no-reply@pipetimer.com',
+      html: rendered,
+    };
+
+    const testMailOptions = {
+      to: email,
+      subject: `Pipe Timer - ${subject}`,
+      html: rendered,
+    };
+
+    if (this.config.auth.sgMailKey) {
+      sgMail.send(mailOptions).then(() => {
+        this.logger.verbose(
+          `Email sent successfully...\nTo: ${email}\nSubject: ${subject}`,
+        );
+      });
+    } else {
+      this.transporter.sendMail(testMailOptions).then(() => {
+        this.logger.verbose(
+          `[TEST] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`,
+        );
+      });
+    }
   }
 
   sendSignupEmailToken(email: string, token: string): void {
@@ -55,32 +108,5 @@ export class EmailService {
     );
 
     this.sendToken(email, subject, url, template);
-  }
-
-  private sendToken(email, subject, url, template): void {
-    let rendered;
-
-    const variables = {
-      app_name: 'Pipe Timer',
-      verification_url: url,
-    };
-
-    ejs.renderFile(template, variables, (err, data) => {
-      if (err) console.log(err);
-      rendered = data;
-    });
-
-    const mailOptions: MailDataRequired = {
-      to: email,
-      subject: `Pipe Timer - ${subject}`,
-      from: 'no-reply@pipetimer.com',
-      html: rendered,
-    };
-
-    sgMail.send(mailOptions).then(() => {
-      this.logger.verbose(
-        `Email sent successfully...\nTo: ${email}\nSubject: ${subject}`,
-      );
-    });
   }
 }
