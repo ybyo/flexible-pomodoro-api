@@ -1,4 +1,4 @@
-import { ACommonResponseDto } from '@/shared/abstract/common-response.base';
+import { ACommonResponseDto } from '@/shared/abstracts/common-response.base';
 import { UserJwt } from '@/users/domain/user.model';
 
 export class JwtResponseDto extends ACommonResponseDto {
