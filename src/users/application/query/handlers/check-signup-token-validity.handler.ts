@@ -1,7 +1,7 @@
-import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
-import { BadRequestException, Inject } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
+import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { UserWithoutPassword } from '@/users/domain/user.model';
 
@@ -17,10 +17,6 @@ export class CheckSignupTokenValidityHandler
   async execute(
     query: CheckSignupTokenValidityQuery,
   ): Promise<UserWithoutPassword | null> {
-    const user = await this.userRepository.findBySignupToken(query.token);
-
-    if (user) return user;
-
-    throw new BadRequestException('Invalid token');
+    return await this.userRepository.findBySignupToken(query.token);
   }
 }
