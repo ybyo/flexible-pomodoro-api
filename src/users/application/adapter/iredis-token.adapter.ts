@@ -1,8 +1,9 @@
 import Redis from 'ioredis';
 
 export interface IRedisTokenAdapter {
-  setValue: (key: string, value: string, duration?: number) => Promise<void>;
-  getValue: (key: string) => Promise<string | null>;
+  setPXAT: (key: string, value: string, duration?: number) => Promise<void>;
+  getPexpiretime: (key: string) => Promise<number>;
+  getValue: (key: string) => Promise<string>;
   deleteValue: (key: string) => Promise<number>;
   getClient: () => Promise<Redis>;
 }

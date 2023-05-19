@@ -19,7 +19,7 @@ export class RedisTokenService {
     }
   }
 
-  async getValue(key: string): Promise<string | null> {
+  async getValue(key: string): Promise<string> {
     return this.redisClient.get(key);
   }
 
