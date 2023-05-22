@@ -1,6 +1,5 @@
 FROM node:18-alpine as dev
 
-
 WORKDIR /app
 # Copying this first prevents re-running npm install on every code change.
 COPY --chown=node:node package*.json ./
