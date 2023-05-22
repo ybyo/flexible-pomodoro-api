@@ -69,7 +69,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'development') {
     app.use(
-      ['/api'],
+      ['/docs'],
       basicAuth({
         challenge: true,
         users: {
@@ -98,7 +98,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('docs', app, document);
   }
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
