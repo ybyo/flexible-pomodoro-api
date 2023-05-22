@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
@@ -34,6 +34,20 @@ describe('ChangeNameHandler', () => {
         { name: command.newName },
       );
       expect(result).toEqual({ success: true });
+    });
+
+    it('should throw BadRequestException when update fails', async () => {
+      userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 0 });
+
+      const command = new ChangeNameCommand('test@example.com', 'user1');
+      await expect(changeNameHandler.execute(command)).rejects.toThrow(
+        new BadRequestException('Cannot change username'),
+      );
+
+      expect(userRepository.updateUser).toHaveBeenCalledWith(
+        { email: command.email },
+        { name: command.newName },
+      );
     });
   });
 });
