@@ -213,20 +213,19 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
+  async verifySignupToken(id: string, token: string): Promise<void> {
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
+
     multi.del(`signupToken:${token}`);
 
-    try {
-      return await this.dataSource.transaction(async (manager) => {
-        await multi.exec();
-
-        return await manager.update(UserEntity, { id }, { signupToken: null });
+    await this.dataSource.transaction(async (manager) => {
+      await multi.exec(async (err) => {
+        if (err) await multi.discard();
       });
-    } catch (err) {
-      await multi.discard();
-    }
+
+      await manager.update(UserEntity, { id }, { signupToken: null });
+    });
   }
 
   async changePassword(
