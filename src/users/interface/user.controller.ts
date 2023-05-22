@@ -58,10 +58,8 @@ export class UserController {
   @UseGuards(RedisTokenGuard)
   @Get('verify-signup-token')
   @ApiOperation({ summary: 'Verify signup token' })
-  @ApiResponse({
-    description: 'Signup token verified successfully',
-  })
-  async verifySignupToken(@Req() req: Request): Promise<any> {
+  @ApiResponse({ type: SuccessDto })
+  async verifySignupToken(@Req() req: Request): Promise<SuccessDto> {
     return await this.authService.verifySignupToken(req);
   }
 
