@@ -24,11 +24,9 @@ export class ChangeNameHandler implements ICommandHandler<ChangeNameCommand> {
         { email: command.email },
         { name: command.newName },
       );
-
       return { success: !!result.affected };
     } catch (err) {
       this.logger.error(err);
-
       throw new BadRequestException('Cannot change username');
     }
   }
