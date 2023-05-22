@@ -102,7 +102,8 @@ export class UserRepository implements IUserRepository {
     const token = ulid();
     const userEntity = UserEntity.create({ ...user, id, signupToken: token });
     const expiredAt = new Date(
-      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
+      new Date().getTime() +
+        +process.env.VERIFICATION_LIFETIME * 60 * 60 * 1000,
     ).getTime();
 
     try {
