@@ -154,11 +154,11 @@ export class UserRepository implements IUserRepository {
     user: Partial<UserWithoutPassword>,
     column: Partial<UserWithoutPassword>,
   ): Promise<UpdateResult> {
-    return await this.dataSource.transaction(
-      async (manager): Promise<UpdateResult> => {
-        return await manager.update(UserEntity, { email: user.email }, column);
-      },
-    );
+    const updateResult = await this.dataSource.transaction(async (manager) => {
+      return await manager.update(UserEntity, { email: user.email }, column);
+    });
+
+    return updateResult;
   }
 
   async deleteUser(id: string): Promise<DeleteResult> {
@@ -256,7 +256,6 @@ export class UserRepository implements IUserRepository {
   async findByChangeEmailToken(
     token: string,
   ): Promise<UserWithoutPassword | null> {
-    console.log(token);
     const userEntity = await this.userRepository.findOneBy({
       changeEmailToken: token,
     });

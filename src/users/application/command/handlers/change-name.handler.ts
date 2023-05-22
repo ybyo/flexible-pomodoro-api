@@ -15,19 +15,16 @@ import { IUserRepository } from '@/users/domain/iuser.repository';
 export class ChangeNameHandler implements ICommandHandler<ChangeNameCommand> {
   constructor(
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private logger: Logger,
   ) {}
 
   async execute(command: ChangeNameCommand): Promise<SuccessDto> {
-    try {
-      const result = await this.userRepository.updateUser(
-        { email: command.email },
-        { name: command.newName },
-      );
-      return { success: !!result.affected };
-    } catch (err) {
-      this.logger.error(err);
-      throw new BadRequestException('Cannot change username');
-    }
+    const result = await this.userRepository.updateUser(
+      { email: command.email },
+      { name: command.newName },
+    );
+
+    if (result.affected) return { success: true };
+
+    throw new BadRequestException('Cannot change username');
   }
 }

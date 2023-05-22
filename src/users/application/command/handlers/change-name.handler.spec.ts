@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
