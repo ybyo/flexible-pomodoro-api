@@ -7,7 +7,7 @@ import * as path from 'path';
 
 import { EmailModule } from '@/email/email.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
-import { RedisTokenSubsService } from '@/redis/redis-token-subs.service';
+import { RedisTokenPubSubService } from '@/redis/redis-token-pub-sub.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteAccountHandler } from '@/users/application/command/handlers/delete-account.handler';
@@ -65,14 +65,14 @@ async function createRedisClient(): Promise<Redis> {
     ...repositories,
     Logger,
     RedisTokenService,
-    RedisTokenSubsService,
+    RedisTokenPubSubService,
   ],
   exports: [
     REDIS_AUTH,
     REDIS_TOKEN,
     REDIS_SUB,
     RedisTokenService,
-    RedisTokenSubsService,
+    RedisTokenPubSubService,
   ],
 })
 export class RedisModule {}
