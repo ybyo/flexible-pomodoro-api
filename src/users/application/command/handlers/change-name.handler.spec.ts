@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
@@ -10,7 +10,7 @@ describe('ChangeNameHandler', () => {
   let changeNameHandler: ChangeNameHandler;
   let userRepository: IUserRepository;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         ChangeNameHandler,
@@ -22,8 +22,12 @@ describe('ChangeNameHandler', () => {
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('execute', () => {
-    it('should update user name and return {success: true}', async () => {
+    it('should update user name', async () => {
       userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 1 });
 
       const command = new ChangeNameCommand('test@example.com', 'user1');
@@ -36,14 +40,14 @@ describe('ChangeNameHandler', () => {
       expect(result).toEqual({ success: true });
     });
 
-    it('should throw BadRequestException when update fails', async () => {
+    it('should throw InternalServerErrorException', async () => {
       userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 0 });
 
       const command = new ChangeNameCommand('test@example.com', 'user1');
-      await expect(changeNameHandler.execute(command)).rejects.toThrow(
-        new BadRequestException('Cannot change username'),
-      );
 
+      await expect(changeNameHandler.execute(command)).rejects.toThrow(
+        new InternalServerErrorException('Cannot change username'),
+      );
       expect(userRepository.updateUser).toHaveBeenCalledWith(
         { email: command.email },
         { name: command.newName },

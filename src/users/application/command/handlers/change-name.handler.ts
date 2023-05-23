@@ -1,8 +1,7 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
-  Logger,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
@@ -25,6 +24,6 @@ export class ChangeNameHandler implements ICommandHandler<ChangeNameCommand> {
 
     if (result.affected) return { success: true };
 
-    throw new BadRequestException('Cannot change username');
+    throw new InternalServerErrorException('Cannot change username');
   }
 }
