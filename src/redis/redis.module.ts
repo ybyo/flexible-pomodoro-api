@@ -10,7 +10,7 @@ import { RedisTokenService } from '@/redis/redis-token.service';
 import { RedisTokenPubSubService } from '@/redis/redis-token-pub-sub.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { DeleteAccountHandler } from '@/users/application/command/handlers/delete-account.handler';
+import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { UserFactory } from '@/users/domain/user.factory';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
@@ -25,7 +25,7 @@ dotenv.config({
 const externalService = [{ provide: 'EmailService', useClass: EmailService }];
 
 const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
-const commandHandlers = [DeleteAccountHandler];
+const commandHandlers = [DeleteUserHandler];
 const factories = [UserFactory];
 
 async function createRedisClient(): Promise<Redis> {

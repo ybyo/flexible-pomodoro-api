@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 import { UpdateResult } from 'typeorm';
 
 import { REDIS_SUB } from '@/redis/redis.constants';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
@@ -63,7 +63,7 @@ export class RedisTokenPubSubService {
     const user = await this.userRepository.findByToken(event, token);
 
     if (event === 'signupToken') {
-      const command = new DeleteAccountCommand(user.id);
+      const command = new DeleteUserCommand(user.id);
       await this.commandBus.execute(command);
       this.logger.verbose(
         `Unverified user data deleted...\n User email: ${JSON.stringify(

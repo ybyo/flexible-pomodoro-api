@@ -162,14 +162,13 @@ export class UserRepository implements IUserRepository {
   }
 
   async deleteUser(id: string): Promise<DeleteResult> {
-    const user = await this.userRepository.findOneBy({ id });
-    if (user === null)
-      throw new NotFoundException(`Cannot find user id: ${id}`);
-
-    return await this.dataSource.transaction(async (manager) => {
+    const deleteResult = await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
-      return await manager.delete(UserEntity, user.id);
+
+      return await manager.delete(UserEntity, id);
     });
+
+    return deleteResult;
   }
 
   async deleteRoutine(id: string): Promise<void> {
