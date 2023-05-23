@@ -31,7 +31,7 @@ import { REDIS_TOKEN } from '@/redis/redis.constants';
 import { Session } from '@/shared/types/common-types';
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
-import { DeleteAccountCommand } from '@/users/application/command/impl/delete-account.command';
+import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
 import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
 import { SendResetPasswordEmailCommand } from '@/users/application/command/impl/send-reset-password-email.command';
 import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
@@ -189,7 +189,7 @@ export class UserController {
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
   ): Promise<Session> {
-    const command = new DeleteAccountCommand(req.user.id);
+    const command = new DeleteUserCommand(req.user.id);
     await this.commandBus.execute(command);
 
     req.logout((err) => {

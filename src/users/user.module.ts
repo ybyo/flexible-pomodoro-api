@@ -13,7 +13,7 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 import { ChangeNameHandler } from '@/users/application/command/handlers/change-name.handler';
-import { DeleteAccountHandler } from '@/users/application/command/handlers/delete-account.handler';
+import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token-handler';
 import { SendResetPasswordEmailHandler } from '@/users/application/command/handlers/send-reset-password-email.handler';
 import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token-handler';
@@ -33,7 +33,7 @@ import { EmailService } from './infra/adapter/email.service';
 const commandHandlers = [
   ChangeNameHandler,
   CheckDuplicateEmailHandler,
-  DeleteAccountHandler,
+  DeleteUserHandler,
   ResendEmailHandler,
   SendChangeEmailTokenHandler,
   SendResetPasswordEmailHandler,
