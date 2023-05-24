@@ -11,8 +11,8 @@ export class RedisTokenService {
     @Inject(REDIS_TOKEN) private redisClient: Redis,
   ) {}
 
-  async setPXAT(key: string, value: string, expiredAt?: number): Promise<void> {
-    await this.redisClient.set(key, value, 'PXAT', expiredAt);
+  async setPXAT(key: string, value: string, expiredAt?: number): Promise<'OK'> {
+    return this.redisClient.set(key, value, 'PXAT', expiredAt);
   }
 
   async getPexpiretime(key: string): Promise<number> {
