@@ -1,4 +1,8 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
@@ -15,15 +19,12 @@ export class SendChangeEmailTokenHandler
   ) {}
 
   async execute(command: SendChangeEmailTokenCommand): Promise<SuccessDto> {
-    try {
-      const result = await this.userRepository.sendChangeEmailToken(
-        command.oldEmail,
-        command.newEmail,
-      );
+    const result = await this.userRepository.sendChangeEmailToken(
+      command.oldEmail,
+      command.newEmail,
+    );
+    if (result.affected) return { success: true };
 
-      return { success: !!result.affected };
-    } catch (err) {
-      throw new BadRequestException('Cannot change email');
-    }
+    throw new InternalServerErrorException('Cannot send change email token');
   }
 }

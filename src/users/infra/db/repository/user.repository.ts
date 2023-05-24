@@ -119,29 +119,38 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  private calculateExpirationTime(): number {
+    return new Date(
+      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
+    ).getTime();
+  }
+
   async sendChangeEmailToken(
     oldEmail: string,
     newEmail: string,
   ): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = new Date(
-      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
-    ).getTime();
+    const expiredAt = this.calculateExpirationTime();
 
-    return await this.dataSource.transaction(async (manager) => {
-      await this.emailService.sendChangeEmailToken(newEmail, token);
-      await this.redisService.setPXAT(
-        `changeEmailToken:${token}`,
-        '1',
-        expiredAt,
-      );
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        await this.emailService.sendChangeEmailToken(newEmail, token);
 
-      return await manager.update(
-        UserEntity,
-        { email: oldEmail },
-        { changeEmailToken: token, newEmail },
-      );
-    });
+        await this.redisService.setPXAT(
+          `changeEmailToken:${token}`,
+          '1',
+          expiredAt,
+        );
+
+        return await manager.update(
+          UserEntity,
+          { email: oldEmail },
+          { changeEmailToken: token, newEmail },
+        );
+      });
+    } catch (err) {
+      await this.redisService.deleteValue(`changeEmailToken:${token}`);
+    }
   }
 
   async updateUser(
