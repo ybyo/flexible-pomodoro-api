@@ -1,7 +1,7 @@
-import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
 import { BadRequestException, Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
+import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { UserWithoutPassword } from '@/users/domain/user.model';
 

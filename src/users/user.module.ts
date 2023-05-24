@@ -14,7 +14,7 @@ import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-time
 import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 import { ChangeNameHandler } from '@/users/application/command/handlers/change-name.handler';
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
-import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token-handler';
+import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token.handler';
 import { SendResetPasswordEmailHandler } from '@/users/application/command/handlers/send-reset-password-email.handler';
 import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token-handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handlers/verify-reset-password-token.handler';
