@@ -33,7 +33,7 @@ import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
 import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
-import { SendResetPasswordEmailCommand } from '@/users/application/command/impl/send-reset-password-email.command';
+import { SendResetPasswordTokenCommand } from '@/users/application/command/impl/send-reset-password-token.command';
 import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
 import { UserJwt } from '@/users/domain/user.model';
 import { ChangePasswordDto } from '@/users/interface/dto/change-password.dto';
@@ -70,7 +70,7 @@ export class UserController {
   async sendResetPasswordEmail(
     @Body() dto: SendResetPasswordEmailDto,
   ): Promise<SuccessDto> {
-    const command = new SendResetPasswordEmailCommand(dto.email);
+    const command = new SendResetPasswordTokenCommand(dto.email);
     return await this.commandBus.execute(command);
   }
 
