@@ -15,7 +15,7 @@ import { RoutineRepository } from '@/routines/infra/db/repository/routine.reposi
 import { ChangeNameHandler } from '@/users/application/command/handlers/change-name.handler';
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token.handler';
-import { SendResetPasswordEmailHandler } from '@/users/application/command/handlers/send-reset-password-email.handler';
+import { SendResetPasswordTokenHandler } from '@/users/application/command/handlers/send-reset-password-token.handler';
 import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token-handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handlers/verify-reset-password-token.handler';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
@@ -36,7 +36,7 @@ const commandHandlers = [
   DeleteUserHandler,
   ResendEmailHandler,
   SendChangeEmailTokenHandler,
-  SendResetPasswordEmailHandler,
+  SendResetPasswordTokenHandler,
   VerifyChangeEmailTokenHandler,
   VerifyResetPasswordTokenHandler,
   CheckResetPasswordTokenValidityHandler,
@@ -76,7 +76,6 @@ const factories = [UserFactory];
     AuthService,
     Logger,
     UserProfile,
-    RedisTokenStrategy,
   ],
 })
 export class UserModule {}
