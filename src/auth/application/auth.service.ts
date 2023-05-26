@@ -92,25 +92,25 @@ export class AuthService {
   }
 
   async verifySignupToken(req: Request): Promise<SuccessDto> {
-    const { token } = await this.splitEventToken(req.query);
-    const expiredAt = await this.redisService.getPexpiretime(
-      `signupToken:${token}`,
-    );
+    const { event, token } = await this.splitEventToken(req.query);
+    const key = `${event}:${token}`;
 
     const query = new CheckSignupTokenValidityQuery(token);
     const user = await this.queryBus.execute(query);
-    if (!user) {
-      await this.redisService.deleteValue(`signupToken:${token}`);
-      throw new BadRequestException('Invalid signup token');
+
+    if (user === null) {
+      await this.redisService.deleteValue(key);
+      throw new BadRequestException(`Invalid ${event}`);
     }
 
-    try {
-      await this.userRepository.verifySignupToken(user.id, token);
+    const expiredAt = await this.redisService.getPexpiretime(key);
+    const result = await this.userRepository.verifySignupToken(user.id, token);
+
+    if (result.affected) {
       return { success: true };
-    } catch (err) {
-      this.logger.error(err);
-      await this.redisService.setPXAT(`signupToken:${token}`, '1', expiredAt);
-      throw new InternalServerErrorException('Cannot verify signup token');
+    } else {
+      await this.redisService.setPXAT(key, '1', expiredAt);
+      throw new InternalServerErrorException(`Cannot verify ${event}`);
     }
   }
 
