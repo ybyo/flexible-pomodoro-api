@@ -91,14 +91,17 @@ export class UserRepository implements IUserRepository {
     return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
   }
 
+  private calculateExpirationTime(): number {
+    return new Date(
+      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000,
+    ).getTime();
+  }
+
   async registerUser(user: User): Promise<UserEntity | null> {
     const id = ulid();
     const token = ulid();
     const userEntity = UserEntity.create({ ...user, id, signupToken: token });
-    const expiredAt = new Date(
-      new Date().getTime() +
-        +process.env.VERIFICATION_LIFETIME * 60 * 60 * 1000,
-    ).getTime();
+    const expiredAt = this.calculateExpirationTime();
 
     try {
       return await this.dataSource.transaction(
@@ -117,12 +120,6 @@ export class UserRepository implements IUserRepository {
       this.logger.log(err);
       return null;
     }
-  }
-
-  private calculateExpirationTime(): number {
-    return new Date(
-      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
-    ).getTime();
   }
 
   async sendChangeEmailToken(
@@ -157,11 +154,11 @@ export class UserRepository implements IUserRepository {
     user: Partial<UserWithoutPassword>,
     column: Partial<UserWithoutPassword>,
   ): Promise<UpdateResult> {
-    const updateResult = await this.dataSource.transaction(async (manager) => {
-      return await manager.update(UserEntity, { email: user.email }, column);
-    });
-
-    return updateResult;
+    return await this.dataSource.transaction(
+      async (manager): Promise<UpdateResult> => {
+        return await manager.update(UserEntity, user, column);
+      },
+    );
   }
 
   async deleteUser(id: string): Promise<DeleteResult> {
@@ -195,9 +192,7 @@ export class UserRepository implements IUserRepository {
 
   async sendResetPasswordToken(email: string): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = new Date(
-      new Date().getTime() + +process.env.TOKEN_EXPIREDAT,
-    ).getTime();
+    const expiredAt = this.calculateExpirationTime();
 
     return await this.dataSource.transaction(async (manager) => {
       await this.emailService.sendResetPasswordToken(email, token);
@@ -215,18 +210,11 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async verifySignupToken(id: string, token: string): Promise<void> {
-    const redis = await this.redisService.getClient();
-    const multi = redis.multi();
+  async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
+    return await this.dataSource.transaction(async (manager) => {
+      await this.redisService.deleteValue(`signupToken:${token}`);
 
-    multi.del(`signupToken:${token}`);
-
-    await this.dataSource.transaction(async (manager) => {
-      await multi.exec(async (err) => {
-        if (err) await multi.discard();
-      });
-
-      await manager.update(UserEntity, { id }, { signupToken: null });
+      return await manager.update(UserEntity, { id }, { signupToken: null });
     });
   }
 

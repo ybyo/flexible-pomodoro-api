@@ -29,7 +29,7 @@ export interface IUserRepository {
     password: string,
     token: string,
   ) => Promise<UpdateResult>;
-  verifySignupToken: (id: string, token: string) => Promise<void>;
+  verifySignupToken: (id: string, token: string) => Promise<UpdateResult>;
   changeEmail: (
     id: string,
     newEmail: string,
