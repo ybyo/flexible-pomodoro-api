@@ -22,8 +22,8 @@ export class RedisTokenStrategy extends PassportStrategy(
     const { event, token } = await this.authService.splitEventToken(req.query);
 
     const isValid = await this.redisService.getValue(`${event}:${token}`);
-    if (isValid) return true;
+    if (isValid !== null) return true;
 
-    throw new BadRequestException('Invalid signup token');
+    throw new BadRequestException(`Invalid ${event}`);
   }
 }
