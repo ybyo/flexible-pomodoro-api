@@ -77,7 +77,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 })
 export class AppModule implements NestModule {
   constructor(
-    @Inject(REDIS_AUTH) private readonly redis: RedisClient,
+    @Inject(REDIS_AUTH) private redisClient: RedisClient,
     @Inject(refreshTokenConfig.KEY)
     private refreshTokenConf: ConfigType<typeof refreshTokenConfig>,
   ) {}
@@ -87,7 +87,7 @@ export class AppModule implements NestModule {
       .apply(
         session({
           store: new (RedisStore(session))({
-            client: this.redis,
+            client: this.redisClient,
             logErrors: true,
           }),
           name: 'refreshToken',
