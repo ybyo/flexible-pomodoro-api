@@ -1,10 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
-import { UpdateResult } from 'typeorm';
+import { DeleteResult, UpdateResult } from 'typeorm';
 
 import { REDIS_SUB } from '@/redis/redis.constants';
-import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
@@ -17,39 +16,39 @@ export class RedisTokenPubSubService {
   ) {
     const tokenList = ['signupToken', 'changeEmailToken', 'resetPasswordToken'];
 
-    const client = this.initRedisTokenSub('Ex');
-    this.subRedisToken(client, '__keyevent@0__:expired', tokenList);
-  }
-
-  private initRedisTokenSub(option: string): Redis {
     const client = new Redis({
       port: +process.env.REDIS_PORT,
       host: process.env.REDIS_URL,
     });
 
+    this.setRedisTokenNotify(client, 'Ex');
+    this.subRedisToken(client, '__keyevent@0__:expired', tokenList);
+  }
+
+  private setRedisTokenNotify(client: Redis, option: string): void {
     if (process.env.NODE_ENV === 'development') {
       client.config('SET', 'notify-keyspace-events', option);
     }
-
-    return client;
   }
 
   private subRedisToken(
     client: Redis,
-    event: string,
-    tokenList: string[],
+    message: string,
+    eventList: string[],
   ): void {
-    client.subscribe(event);
+    client.subscribe(message);
     client.on('message', async (channel, key): Promise<void> => {
-      if (channel === event) {
+      if (channel === message) {
         const event = key.split(':')[0];
         const token = key.split(':')[1];
 
-        if (tokenList.includes(event)) {
-          try {
-            await this.expireToken(event, token);
-          } catch (err) {
+        if (eventList.includes(event)) {
+          const result = await this.expireToken(event, token);
+
+          if (!result.affected) {
             this.logger.error(`Cannot expire token. ${event}:${token}`);
+          } else {
+            this.logger.verbose(`Token expired. ${event}:${token}`);
           }
         }
       }
@@ -59,22 +58,12 @@ export class RedisTokenPubSubService {
   private async expireToken(
     event: string,
     token: string,
-  ): Promise<UpdateResult> {
+  ): Promise<UpdateResult | DeleteResult> {
     const user = await this.userRepository.findByToken(event, token);
 
     if (event === 'signupToken') {
-      const command = new DeleteUserCommand(user.id);
-      await this.commandBus.execute(command);
-      this.logger.verbose(
-        `Unverified user data deleted...\n User email: ${JSON.stringify(
-          user.email,
-        )}`,
-      );
+      return await this.userRepository.deleteUser(user.email);
     } else {
-      this.logger.verbose(
-        `${event} expired...\n User email: ${JSON.stringify(user.email)}`,
-      );
-
       return await this.userRepository.updateUser(
         { id: user.id },
         { [event]: null },
