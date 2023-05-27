@@ -1,4 +1,8 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
@@ -35,6 +39,6 @@ export class VerifyChangeEmailTokenHandler
       }
     }
 
-    throw new BadRequestException('Cannot verify change email token');
+    throw new InternalServerErrorException('Cannot verify change email token');
   }
 }

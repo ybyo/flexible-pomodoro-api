@@ -16,7 +16,7 @@ import { ChangeNameHandler } from '@/users/application/command/handlers/change-n
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token.handler';
 import { SendResetPasswordTokenHandler } from '@/users/application/command/handlers/send-reset-password-token.handler';
-import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token-handler';
+import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token.handler';
 import { VerifyResetPasswordTokenHandler } from '@/users/application/command/handlers/verify-reset-password-token.handler';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { CheckSignupTokenValidityHandler } from '@/users/application/query/handlers/check-signup-token-validity.handler';
