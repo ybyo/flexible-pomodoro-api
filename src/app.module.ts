@@ -13,13 +13,13 @@ import * as session from 'express-session';
 import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
 import * as passport from 'passport';
 import * as path from 'path';
-import { DataSource } from 'typeorm';
 
 import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/accessTokenConfig';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { validationSchema } from '@/config/validationSchema';
+import { ormConfig } from '@/db/ormconfig';
 import { ExceptionModule } from '@/exception/exception-module';
 import { HealthCheckController } from '@/health-check/health-check.controller';
 import { LoggingModule } from '@/logging/logging.module';
@@ -47,11 +47,7 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({}),
-      dataSourceFactory: async (): Promise<DataSource> => {
-        const { default: ormConfig } = await import('./db/ormconfig');
-        await ormConfig.initialize();
-        return ormConfig;
-      },
+      dataSourceFactory: () => ormConfig.initialize(),
     }),
     ThrottlerModule.forRoot({
       ttl: 60,

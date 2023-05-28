@@ -14,9 +14,9 @@ dotenv.config({
   ),
 });
 
-const ormConfig = new DataSource({
+export const ormConfig = new DataSource({
   type: 'mysql',
-  host: process.env.DATABASE_HOST,
+  host: process.env.DATABASE_HOST || '0.0.0.0',
   port: 3306,
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
