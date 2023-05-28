@@ -14,9 +14,9 @@ export class UserProfile extends AutomapperProfile {
 
   override get profile() {
     return (mapper) => {
-      createMap(mapper, UserEntity, UserJwt);
-      createMap(mapper, UserEntity, UserWithoutPassword);
       createMap(mapper, UserEntity, User);
+      createMap(mapper, UserEntity, UserWithoutPassword);
+      createMap(mapper, UserEntity, UserJwt);
     };
   }
 }
