@@ -1,3 +1,3 @@
-export abstract class ACommonResponseDto {
+export abstract class ASuccessDto {
   abstract success: boolean;
 }

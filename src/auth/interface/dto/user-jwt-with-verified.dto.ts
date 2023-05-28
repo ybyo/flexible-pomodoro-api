@@ -1,8 +1,8 @@
-import { AGenerateUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
+import { AUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
 
-export class UserJwtWithVerifiedDto extends AGenerateUserJwt {
-  id: string;
+export class UserJwtWithVerifiedDto extends AUserJwt {
+  uid: string;
   email: string;
-  name: string;
+  username: string;
   isVerified: boolean;
 }

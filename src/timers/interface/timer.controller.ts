@@ -28,7 +28,7 @@ export class TimerController {
   @Get('fetch')
   async fetch(@Req() req: Request): Promise<Timer[]> {
     const user = req.user as JwtPayload & UserJwt;
-    const command = new GetTimerCommand(user.id);
+    const command = new GetTimerCommand(user.uid);
 
     return await this.commandBus.execute(command);
   }
@@ -37,7 +37,7 @@ export class TimerController {
   @Post('save')
   async commit(@Req() req: Request, @Body() timer: Timer[]): Promise<any> {
     const user = req.user as JwtPayload & UserJwt;
-    const command = new SaveTimerCommand(user.id, timer);
+    const command = new SaveTimerCommand(user.uid, timer);
 
     return await this.commandBus.execute(command);
   }

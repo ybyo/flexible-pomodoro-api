@@ -14,13 +14,13 @@ export class AuthSerializer extends PassportSerializer {
     user: UserJwt,
     done: (
       err: Error,
-      user: { id: string; email: string; name: string },
+      user: { uid: string; email: string; username: string },
     ) => void,
   ) {
     done(null, {
-      id: user.id,
+      uid: user.uid,
       email: user.email,
-      name: user.name,
+      username: user.username,
     });
   }
 

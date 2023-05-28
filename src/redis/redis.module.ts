@@ -33,9 +33,6 @@ async function createRedisClient(): Promise<Redis> {
     port: +process.env.REDIS_PORT,
     host: process.env.REDIS_URL,
   });
-  client.on('error', (err) => {
-    console.error(err);
-  });
 
   return client;
 }

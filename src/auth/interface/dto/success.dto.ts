@@ -1,5 +1,5 @@
-import { ACommonResponseDto } from '@/shared/abstracts/common-response.base';
+import { ASuccessDto } from '@/shared/abstracts/common-response.base';
 
-export class SuccessDto extends ACommonResponseDto {
+export class SuccessDto extends ASuccessDto {
   success: boolean;
 }

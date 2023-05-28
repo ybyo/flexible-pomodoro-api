@@ -56,9 +56,9 @@ export class AuthService {
     }
 
     return {
-      id: storedUser.id,
+      uid: storedUser.uid,
       email: storedUser.email,
-      name: storedUser.name,
+      username: storedUser.username,
     };
   }
 
@@ -81,9 +81,9 @@ export class AuthService {
       return {
         success: true,
         data: {
-          id: payload.id,
+          uid: payload.id,
           email: payload.email,
-          name: payload.name,
+          username: payload.name,
         },
       };
     } catch (err) {
@@ -104,7 +104,7 @@ export class AuthService {
     }
 
     const expiredAt = await this.redisService.getPexpiretime(key);
-    const result = await this.userRepository.verifySignupToken(user.id, token);
+    const result = await this.userRepository.verifySignupToken(user.uid, token);
 
     if (result.affected) {
       return { success: true };
@@ -122,9 +122,9 @@ export class AuthService {
 
     if (user !== null) {
       const jwt = await this.issueJWT({
-        id: user.id,
+        uid: user.uid,
         email: user.email,
-        name: user.name,
+        username: user.username,
       });
 
       return jwt;
@@ -153,7 +153,7 @@ export class AuthService {
     if (result.success) {
       try {
         const updateResult = await this.userRepository.changePassword(
-          result.data.id,
+          result.data.uid,
           newPassword,
           token,
         );
@@ -178,9 +178,9 @@ export class AuthService {
       await this.commandBus.execute(command);
 
       const newAccessToken = await this.issueJWT({
-        id,
+        uid: id,
         email,
-        name: newName,
+        username: newName,
       });
 
       return {
@@ -195,7 +195,7 @@ export class AuthService {
   async registerUser(user: RegisterUserDto): Promise<SuccessDto> {
     const newUser = new User();
     newUser.email = user.email;
-    newUser.name = user.name;
+    newUser.username = user.username;
     newUser.password = user.password;
 
     try {

@@ -1,5 +1,5 @@
-export abstract class AGenerateUserJwt {
-  abstract id: string;
+export abstract class AUserJwt {
+  abstract uid: string;
   abstract email: string;
-  abstract name: string;
+  abstract username: string;
 }

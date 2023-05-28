@@ -30,8 +30,8 @@ export class RoutineController {
 
     let routine;
 
-    if ('id' in user) {
-      const command = new GetRoutineCommand(user.id);
+    if ('uid' in user) {
+      const command = new GetRoutineCommand(user.uid);
       routine = await this.commandBus.execute(command);
     }
 
@@ -43,7 +43,7 @@ export class RoutineController {
   async save(@Req() req, @Body() routine) {
     const user = req.user as JwtPayload & UserJwt;
 
-    const command = new SaveRoutineCommand(user.id, routine);
+    const command = new SaveRoutineCommand(user.uid, routine);
 
     return await this.commandBus.execute(command);
   }
