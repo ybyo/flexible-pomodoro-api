@@ -145,7 +145,7 @@ export class UserController {
     const command = new VerifyChangeEmailTokenCommand(token);
     const result = await this.commandBus.execute(command);
 
-    const accessToken = await this.authService.issueJWT(result.data as UserJwt);
+    const accessToken = await this.authService.issueJWT(result);
     res.cookie('accessToken', accessToken, this.accessConf);
 
     return result.data;
@@ -166,7 +166,7 @@ export class UserController {
     @Res({ passthrough: true }) res,
   ): Promise<any> {
     const result = await this.authService.changeNameAndJWT(
-      req.user.id,
+      req.user.uid,
       req.user.email,
       body.newName,
     );
@@ -189,7 +189,7 @@ export class UserController {
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
   ): Promise<Session> {
-    const command = new DeleteUserCommand(req.user.id);
+    const command = new DeleteUserCommand(req.user.uid);
     await this.commandBus.execute(command);
 
     req.logout((err) => {

@@ -17,7 +17,7 @@ export class DeleteUserHandler implements ICommandHandler<DeleteUserCommand> {
   ) {}
 
   async execute(command: DeleteUserCommand): Promise<SuccessDto> {
-    const result = await this.userRepository.deleteUser(command.id);
+    const result = await this.userRepository.deleteUser(command.uid);
     if (result.affected) return { success: true };
 
     throw new InternalServerErrorException('Cannot delete user');

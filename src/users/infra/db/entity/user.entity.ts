@@ -19,13 +19,13 @@ import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 @Entity('User')
 export class UserEntity extends BaseEntity {
   @PrimaryColumn({ unique: true })
-  id: string;
-
-  @Column({ unique: true, length: 39 })
-  name: string;
+  uid: string;
 
   @Column({ unique: true, length: 320 })
   email: string;
+
+  @Column({ unique: true, length: 39 })
+  username: string;
 
   @Column()
   password: string;

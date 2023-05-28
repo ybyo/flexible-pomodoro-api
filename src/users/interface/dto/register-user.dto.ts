@@ -43,7 +43,7 @@ export class RegisterUserDto {
   @MinLength(3)
   @MaxLength(39)
   @Matches(/^[A-Za-z0-9]+$/)
-  name: string;
+  username: string;
 
   @IsString()
   @MinLength(8)
