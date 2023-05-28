@@ -1,19 +1,11 @@
-import { AGenerateUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
+import { MapperOmitType } from '@automapper/classes/mapped-types';
 
-export class UserWithoutPassword extends AGenerateUserJwt {
-  id: string;
-  email: string;
-  name: string;
-  newEmail: string;
-  signupToken: string;
-  changePasswordToken: string;
-  changeEmailToken: string;
-}
+import { AUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
 
-export class User extends UserWithoutPassword {
-  id: string;
+export class User extends AUserJwt {
+  uid: string;
   email: string;
-  name: string;
+  username: string;
   password: string;
   newEmail: string;
   signupToken: string;
@@ -21,8 +13,10 @@ export class User extends UserWithoutPassword {
   changeEmailToken: string;
 }
 
-export class UserJwt extends AGenerateUserJwt {
-  id: string;
+export class UserWithoutPassword extends MapperOmitType(User, ['password']) {}
+
+export class UserJwt extends AUserJwt {
+  uid: string;
   email: string;
-  name: string;
+  username: string;
 }
