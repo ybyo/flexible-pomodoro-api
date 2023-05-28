@@ -141,7 +141,7 @@ export class UserController {
     @Req() req: Request,
     @Query('changeEmailToken') token: string,
     @Res({ passthrough: true }) res,
-  ): Promise<void> {
+  ): Promise<UserJwt> {
     const command = new VerifyChangeEmailTokenCommand(token);
     const result = await this.commandBus.execute(command);
 
