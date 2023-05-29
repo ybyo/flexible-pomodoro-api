@@ -26,32 +26,30 @@ describe('ChangeNameHandler', () => {
     jest.clearAllMocks();
   });
 
-  describe('execute', () => {
-    it('should update user name', async () => {
-      userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 1 });
+  it('should update user name', async () => {
+    userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 1 });
 
-      const command = new ChangeNameCommand('test@example.com', 'user1');
-      const result = await changeNameHandler.execute(command);
+    const command = new ChangeNameCommand('test@example.com', 'user1');
+    const result = await changeNameHandler.execute(command);
 
-      expect(userRepository.updateUser).toHaveBeenCalledWith(
-        { email: command.email },
-        { name: command.newName },
-      );
-      expect(result).toEqual({ success: true });
-    });
+    expect(userRepository.updateUser).toHaveBeenCalledWith(
+      { email: command.email },
+      { name: command.newName },
+    );
+    expect(result).toEqual({ success: true });
+  });
 
-    it('should throw InternalServerErrorException', async () => {
-      userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 0 });
+  it('should throw InternalServerErrorException', async () => {
+    userRepository.updateUser = jest.fn().mockResolvedValue({ affected: 0 });
 
-      const command = new ChangeNameCommand('test@example.com', 'user1');
+    const command = new ChangeNameCommand('test@example.com', 'user1');
 
-      await expect(changeNameHandler.execute(command)).rejects.toThrow(
-        new InternalServerErrorException('Cannot change username'),
-      );
-      expect(userRepository.updateUser).toHaveBeenCalledWith(
-        { email: command.email },
-        { name: command.newName },
-      );
-    });
+    await expect(changeNameHandler.execute(command)).rejects.toThrow(
+      new InternalServerErrorException('Cannot change username'),
+    );
+    expect(userRepository.updateUser).toHaveBeenCalledWith(
+      { email: command.email },
+      { name: command.newName },
+    );
   });
 });
