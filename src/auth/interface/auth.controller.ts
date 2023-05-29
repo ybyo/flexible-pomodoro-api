@@ -72,9 +72,7 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register user' })
   @ApiBody({ type: RegisterUserDto })
-  @ApiResponse({
-    description: 'Register user successfully',
-  })
+  @ApiResponse({ type: SuccessDto })
   async registerUser(
     @Req() req: Request,
     @Body() body: RegisterUserDto,
@@ -86,19 +84,12 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginUserDto })
-  @ApiResponse({
-    description: 'Logged in successfully and return access token',
-  })
-  async login(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<Session> {
-    const user = req.user;
-    const token = await this.authService.issueJWT(user);
+  @ApiResponse({ type: UserJwtWithVerifiedDto })
+  async login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = await this.authService.issueJWT(req.user);
 
     res.cookie('accessToken', token, this.accessConf);
-
-    return req.session;
+    return req.user;
   }
 
   @UseGuards(LoggedInGuard)
@@ -113,7 +104,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<Session> {
     const token = await this.authService.issueJWT(req.user);
-
     res.cookie('accessToken', token, this.accessConf);
 
     return req.session;
@@ -132,9 +122,9 @@ export class AuthController {
     const result = await this.queryBus.execute(query);
 
     return {
-      uid: result.data.id,
+      uid: result.data.uid,
       email: result.data.email,
-      username: result.data.name,
+      username: result.data.username,
       isVerified: !result.data.signupToken,
     };
   }
@@ -156,8 +146,8 @@ export class AuthController {
       if (err) return err;
     });
 
-    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
-    req.session.cookie.maxAge = 1;
+    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 0 });
+    req.session.cookie.maxAge = 0;
 
     return req.session;
   }

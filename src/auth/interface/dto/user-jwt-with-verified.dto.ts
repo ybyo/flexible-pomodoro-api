@@ -1,8 +1,5 @@
-import { AUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
+import { UserJwt } from '@/users/domain/user.model';
 
-export class UserJwtWithVerifiedDto extends AUserJwt {
-  uid: string;
-  email: string;
-  username: string;
+export class UserJwtWithVerifiedDto extends UserJwt {
   isVerified: boolean;
 }
