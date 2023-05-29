@@ -42,7 +42,7 @@ services:
     env_file:
       - ./env/.${NODE_ENV}.env
     environment:
-      - DATABASE_HOST=mysql
+      - DB_BASE_URL=mysql
       - REDIS_URL=redis
       - NODE_ENV=${NODE_ENV}
     container_name: backend

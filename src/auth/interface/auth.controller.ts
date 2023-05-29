@@ -36,8 +36,8 @@ import { UserJwtWithVerifiedDto } from '@/auth/interface/dto/user-jwt-with-verif
 import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/interface/guard/local.guard';
 import { LoggedInGuard } from '@/auth/interface/guard/logged-in.guard';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
+import accessTokenConfig from '@/config/access-token.config';
+import refreshTokenConfig from '@/config/refresh-token.config';
 import { Session } from '@/shared/types/common-types';
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { CheckDuplicateEmailDto } from '@/users/interface/dto/check-duplicate-email.dto';

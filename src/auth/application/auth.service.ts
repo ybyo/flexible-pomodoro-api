@@ -15,8 +15,8 @@ import { ulid } from 'ulid';
 
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
-import accessTokenConfig from '@/config/accessTokenConfig';
-import jwtConfig, { jwtExpConfig } from '@/config/jwtConfig';
+import accessTokenConfig from '@/config/access-token.config';
+import jwtConfig, { jwtExpConfig } from '@/config/jwt.config';
 import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';

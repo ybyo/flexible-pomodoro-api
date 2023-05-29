@@ -15,11 +15,11 @@ import * as passport from 'passport';
 import * as path from 'path';
 
 import { AuthModule } from '@/auth/auth.module';
-import accessTokenConfig from '@/config/accessTokenConfig';
+import accessTokenConfig from '@/config/access-token.config';
 import emailConfig from '@/config/email.config';
-import refreshTokenConfig from '@/config/refreshTokenConfig';
-import { validationSchema } from '@/config/validationSchema';
-import { ormConfig, ormTestConfig } from '@/db/ormconfig';
+import refreshTokenConfig from '@/config/refresh-token.config';
+import { validationSchema } from '@/config/validation.schema';
+import { ormConfig, ormTestConfig } from '@/db/orm.config';
 import { ExceptionModule } from '@/exception/exception-module';
 import { HealthCheckController } from '@/health-check/health-check.controller';
 import { LoggingModule } from '@/logging/logging.module';
@@ -29,7 +29,7 @@ import { RoutineModule } from '@/routines/routine.module';
 import { TimerModule } from '@/timers/timer.module';
 import { UserModule } from '@/users/user.module';
 
-import jwtConfig from './config/jwtConfig';
+import jwtConfig from './config/jwt.config';
 
 const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
 
