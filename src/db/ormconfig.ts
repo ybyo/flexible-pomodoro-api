@@ -16,13 +16,13 @@ dotenv.config({
 
 export const ormConfig = new DataSource({
   type: 'mysql',
-  host: process.env.DATABASE_HOST || '0.0.0.0',
-  port: 3306,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_NAME,
+  host: process.env.DATABASE_HOST,
+  port: +process.env.DB_PORT,
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   entities: ['dist/**/*.entity{.ts,.js}'],
-  synchronize: Boolean(process.env.DATABASE_SYNCHRONIZE),
+  synchronize: Boolean(process.env.DB_SYNCHRONIZE),
   migrations: ['dist/migration/*{.ts,.js}'],
   timezone: 'Z',
 });

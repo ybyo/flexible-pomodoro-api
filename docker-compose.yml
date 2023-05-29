@@ -11,10 +11,10 @@ services:
       - ./env/.${NODE_ENV}.env
     container_name: mysql
     environment:
-      MYSQL_DATABASE: ${DATABASE_NAME}
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - ${DATABASE_PORT}:${DATABASE_PORT}
+      - ${DB_PORT}:${DB_PORT}
     volumes:
       - ./mysql:/var/lib/mysql
     networks:
@@ -61,12 +61,12 @@ services:
       dockerfile: ./Dockerfile
       args:
         ENV_NAME_ARG: ${NODE_ENV}
-        FRONT_URL_ARG: ${FRONT_URL}
+        HOST_URL_ARG: ${HOST_URL}
     env_file:
       - ../pipe-timer-frontend/env/.${NODE_ENV}.env
     environment:
       NODE_ENV: ${NODE_ENV}
-      FRONT_URL: ${FRONT_URL}
+      HOST_URL: ${HOST_URL}
       UPSTREAM_BACKEND: ${UPSTREAM_BACKEND}
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend
@@ -78,3 +78,29 @@ services:
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt, backend-pt]
+
+  mysql-test:
+    image: mysql:8
+    env_file:
+      - ./env/.${NODE_ENV}.env
+    container_name: mysql-test
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - ${DB_TEST_PORT}:${DB_PORT}
+    networks:
+      - app-tier
+
+
+  redis-test:
+    image: bitnami/redis:latest
+    env_file:
+      - ./env/.${NODE_ENV}.env
+    environment:
+      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
+    container_name: redis-test
+    ports:
+      - ${REDIS_TEST_PORT}:${REDIS_PORT}
+    networks:
+      - app-tier
