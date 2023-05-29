@@ -30,8 +30,11 @@ const factories = [UserFactory];
 
 async function createRedisClient(): Promise<Redis> {
   const client = await new Redis({
-    port: +process.env.REDIS_PORT,
     host: process.env.REDIS_URL,
+    port:
+      process.env.TEST === 'true'
+        ? +process.env.REDIS_TEST_PORT
+        : +process.env.REDIS_PORT,
   });
 
   return client;

@@ -26,7 +26,7 @@ import { Request, Response } from 'express';
 import { AuthService } from '@/auth/application/auth.service';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
 import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
-import accessTokenConfig from '@/config/accessTokenConfig';
+import accessTokenConfig from '@/config/access-token.config';
 import { REDIS_TOKEN } from '@/redis/redis.constants';
 import { Session } from '@/shared/types/common-types';
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
@@ -195,8 +195,7 @@ export class UserController {
     req.logout((err) => {
       if (err) return err;
     });
-
-    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 1 });
+    res.clearCookie('accessToken', { ...this.accessConf, maxAge: 0 });
     req.session.cookie.maxAge = 0;
 
     return req.session;
