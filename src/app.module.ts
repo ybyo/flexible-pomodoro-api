@@ -19,7 +19,7 @@ import accessTokenConfig from '@/config/accessTokenConfig';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refreshTokenConfig';
 import { validationSchema } from '@/config/validationSchema';
-import { ormConfig } from '@/db/ormconfig';
+import { ormConfig, ormTestConfig } from '@/db/ormconfig';
 import { ExceptionModule } from '@/exception/exception-module';
 import { HealthCheckController } from '@/health-check/health-check.controller';
 import { LoggingModule } from '@/logging/logging.module';
@@ -47,7 +47,10 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({}),
-      dataSourceFactory: () => ormConfig.initialize(),
+      dataSourceFactory: () =>
+        process.env.TEST === 'true'
+          ? ormTestConfig.initialize()
+          : ormConfig.initialize(),
     }),
     ThrottlerModule.forRoot({
       ttl: 60,
