@@ -1,73 +1,57 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/yidoyoon/pipe_timer">
+    <img                             src="https://img.yidoyoon.com/public/dummy-logo-black.png"
+ alt="Logo" height="150px">
+  </a>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<h3 align="center">Pipe Timer</h3>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+  <p align="center">
+    타이머 간 자유로운 조합이 가능한 타이머 앱
+    <br />
+    <a href="https://pipetimer.com"><strong>View Demo »</strong></a>
+    <br />
+    <br />
+  </p>
+</div>
 
-## Description
+## 프로젝트 설명
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수 있는 앱입니다. 사용자는 "루틴"이라고 불리는 연속된 구성하여 규칙적이고 세분화된 업무 및 휴식 시간을 계획할 수 있습니다.
 
-## Installation
+각각의 타이머가 만료되면 데스크톱 알림을 통해 사용자에게 알림을 제공하여 알림을 놓치는 가능성을 최소화합니다. Pipe Timer는 회원가입 없이도 사용할 수 있지만, 회원으로 가입하면 타이머와 루틴을 저장하는 기능도 제공합니다. 이를 통해 다른 환경에서도 루틴을 다시 구성하지 않고도 사용할 수 있습니다.
 
-```bash
-$ npm install
-```
+## 시작하기
 
-## Running the app
+[Pipe Timer](https://pipetimer.com)에서 바로 사용하거나 도커를 활용하여 로컬에서 직접 호스팅할 수 있습니다.
 
-```bash
-# development
-$ npm run start
+### 필요 사항
 
-# watch mode
-$ npm run start:dev
+- Docker
+- Docker Compose
 
-# production mode
-$ npm run start:prod
-```
+## 구동 화면
 
-## Test
+<img src="images/pipe_timer_example.png" alt="pipe_timer_example" width="800px">
 
-```bash
-# unit tests
-$ npm run test
+## 로드맵
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- [ ] 사용량 통계 기능
+- [ ] 타이머 데이터 공유
+  - [ ] 웹에서 직접 공유
+  - [ ] 파일로 추출
+- [ ] 스마트폰 플랫폼 최적화
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+Distributed under the `GPL-3.0`
+
+## Credits
+
+- [NestJS](https://nestjs.com/)
+- [Quasar](https://quasar.dev/)
+- [NestJS로 배우는 백엔드 프로그래밍](https://wikidocs.net/book/7059)
+
+[product-screenshot]: images/run_routine_example.png
