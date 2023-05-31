@@ -44,8 +44,8 @@ export class UserRepository implements IUserRepository {
     return this.mapper.map(userEntity, UserEntity, User);
   }
 
-  async findById(uid: string): Promise<UserJwt | null> {
-    const userEntity = await this.userRepository.findOneBy({ uid });
+  async findById(id: string): Promise<UserJwt | null> {
+    const userEntity = await this.userRepository.findOneBy({ id });
     if (!userEntity) return null;
 
     return this.mapper.map(userEntity, UserEntity, UserJwt);
@@ -98,9 +98,9 @@ export class UserRepository implements IUserRepository {
   }
 
   async registerUser(user: User): Promise<UserEntity | null> {
-    const uid = ulid();
+    const id = ulid();
     const token = ulid();
-    const userEntity = UserEntity.create({ ...user, uid, signupToken: token });
+    const userEntity = UserEntity.create({ ...user, id, signupToken: token });
     const expiredAt = this.calculateExpirationTime();
 
     try {
@@ -161,20 +161,20 @@ export class UserRepository implements IUserRepository {
     );
   }
 
-  async deleteUser(uid: string): Promise<DeleteResult> {
+  async deleteUser(id: string): Promise<DeleteResult> {
     const deleteResult = await this.dataSource.transaction(async (manager) => {
-      await this.deleteRoutine(uid);
+      await this.deleteRoutine(id);
 
-      return await manager.delete(UserEntity, uid);
+      return await manager.delete(UserEntity, id);
     });
 
     return deleteResult;
   }
 
-  async deleteRoutine(uid: string): Promise<void> {
+  async deleteRoutine(id: string): Promise<void> {
     await this.dataSource.transaction(async (manager): Promise<void> => {
       const routines = await manager.find(RoutineEntity, {
-        where: { userId: uid },
+        where: { userId: id },
       });
 
       if (routines.length !== 0) {
@@ -210,16 +210,16 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async verifySignupToken(uid: string, token: string): Promise<UpdateResult> {
+  async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
     return await this.dataSource.transaction(async (manager) => {
       await this.redisService.deleteValue(`signupToken:${token}`);
 
-      return await manager.update(UserEntity, { uid }, { signupToken: null });
+      return await manager.update(UserEntity, { id }, { signupToken: null });
     });
   }
 
   async changePassword(
-    uid: string,
+    id: string,
     password: string,
     token: string,
   ): Promise<UpdateResult> {
@@ -234,7 +234,7 @@ export class UserRepository implements IUserRepository {
         await multi.exec();
         return await manager.update(
           UserEntity,
-          { uid },
+          { id },
           { password: hashed, resetPasswordToken: null },
         );
       });
@@ -256,7 +256,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async changeEmail(
-    uid: string,
+    id: string,
     newEmail: string,
     token: string,
   ): Promise<UpdateResult> {
@@ -270,7 +270,7 @@ export class UserRepository implements IUserRepository {
 
         return await manager.update(
           UserEntity,
-          { uid },
+          { id },
           { email: newEmail, changeEmailToken: null, newEmail: null },
         );
       });

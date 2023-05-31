@@ -46,6 +46,6 @@ describe('DeleteUserHandler', () => {
     await expect(deleteUserHandler.execute(command)).rejects.toThrowError(
       new InternalServerErrorException('Cannot delete user'),
     );
-    expect(userRepository.deleteUser).toHaveBeenCalledWith(command.uid);
+    expect(userRepository.deleteUser).toHaveBeenCalledWith(command.id);
   });
 });

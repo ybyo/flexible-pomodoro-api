@@ -45,7 +45,7 @@ describe('VerifyChangeEmailTokenHandler', () => {
     const result = await verifyChangeEmailTokenHandler.execute(command);
 
     expect(result).toEqual({
-      uid: user.uid,
+      id: user.id,
       email: user.newEmail,
       username: user.username,
     });
@@ -54,7 +54,7 @@ describe('VerifyChangeEmailTokenHandler', () => {
       command.changeEmailToken,
     );
     expect(userRepository.changeEmail).toHaveBeenCalledWith(
-      user.uid,
+      user.id,
       user.newEmail,
       command.changeEmailToken,
     );

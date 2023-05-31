@@ -9,7 +9,7 @@ export class CreateRandomObject {
 
   static RandomUserWithoutPassword(): UserWithoutPassword {
     const user = new UserWithoutPassword();
-    user.uid = ulid();
+    user.id = ulid();
     user.email = `${ulid().toLowerCase()}@example.com`;
     user.username = this.chance.string({
       alpha: true,

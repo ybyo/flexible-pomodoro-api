@@ -166,7 +166,7 @@ export class UserController {
     @Res({ passthrough: true }) res,
   ): Promise<any> {
     const result = await this.authService.changeNameAndJWT(
-      req.user.uid,
+      req.user.id,
       req.user.email,
       body.newName,
     );
@@ -189,7 +189,7 @@ export class UserController {
     @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res,
   ): Promise<Session> {
-    const command = new DeleteUserCommand(req.user.uid);
+    const command = new DeleteUserCommand(req.user.id);
     await this.commandBus.execute(command);
 
     req.logout((err) => {

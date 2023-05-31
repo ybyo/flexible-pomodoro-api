@@ -14,18 +14,18 @@ export class AuthSerializer extends PassportSerializer {
     user: UserJwt,
     done: (
       err: Error,
-      user: { uid: string; email: string; username: string },
+      user: { id: string; email: string; username: string },
     ) => void,
   ) {
     done(null, {
-      uid: user.uid,
+      id: user.id,
       email: user.email,
       username: user.username,
     });
   }
 
   async deserializeUser(
-    payload: { id: string; email: string; name: string },
+    payload: { id: string; email: string; username: string },
     done: (err: Error, user: Omit<UserJwt, 'password'>) => void,
   ) {
     const query = new GetUserByIdQuery(payload.id);

@@ -24,14 +24,14 @@ export class VerifyChangeEmailTokenHandler
 
     if (user !== null) {
       const result = await this.userRepository.changeEmail(
-        user.uid,
+        user.id,
         user.newEmail,
         command.changeEmailToken,
       );
 
       if (result.affected !== 0) {
         return {
-          uid: user.uid,
+          id: user.id,
           email: user.newEmail,
           username: user.username,
         };

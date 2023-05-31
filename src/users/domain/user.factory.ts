@@ -5,7 +5,7 @@ import { UserWithoutPassword } from '@/users/domain/user.model';
 @Injectable()
 export class UserFactory {
   create(
-    uid: string,
+    id: string,
     username: string,
     email: string,
     password: string,
@@ -14,7 +14,7 @@ export class UserFactory {
     changeEmailToken: string,
   ): UserWithoutPassword {
     const user = new UserWithoutPassword();
-    user.uid = uid;
+    user.id = id;
     user.username = username;
     user.email = email;
     user.signupToken = signupToken;
