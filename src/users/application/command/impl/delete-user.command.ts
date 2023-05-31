@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
 
 export class DeleteUserCommand implements ICommand {
-  constructor(readonly uid: string) {}
+  constructor(readonly id: string) {}
 }

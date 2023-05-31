@@ -122,7 +122,7 @@ export class AuthController {
     const result = await this.queryBus.execute(query);
 
     return {
-      uid: result.data.uid,
+      id: result.data.id,
       email: result.data.email,
       username: result.data.username,
       isVerified: !result.data.signupToken,

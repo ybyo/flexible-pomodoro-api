@@ -3,7 +3,7 @@ import { MapperOmitType } from '@automapper/classes/mapped-types';
 import { AUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
 
 export class User extends AUserJwt {
-  uid: string;
+  id: string;
   email: string;
   username: string;
   password: string;
@@ -16,7 +16,7 @@ export class User extends AUserJwt {
 export class UserWithoutPassword extends MapperOmitType(User, ['password']) {}
 
 export class UserJwt extends AUserJwt {
-  uid: string;
+  id: string;
   email: string;
   username: string;
 }

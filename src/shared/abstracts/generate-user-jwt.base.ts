@@ -1,5 +1,5 @@
 export abstract class AUserJwt {
-  abstract uid: string;
+  abstract id: string;
   abstract email: string;
   abstract username: string;
 }

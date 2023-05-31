@@ -56,7 +56,7 @@ export class AuthService {
     }
 
     return {
-      uid: storedUser.uid,
+      id: storedUser.id,
       email: storedUser.email,
       username: storedUser.username,
     };
@@ -81,9 +81,9 @@ export class AuthService {
       return {
         success: true,
         data: {
-          uid: payload.id,
+          id: payload.id,
           email: payload.email,
-          username: payload.name,
+          username: payload.username,
         },
       };
     } catch (err) {
@@ -104,7 +104,7 @@ export class AuthService {
     }
 
     const expiredAt = await this.redisService.getPexpiretime(key);
-    const result = await this.userRepository.verifySignupToken(user.uid, token);
+    const result = await this.userRepository.verifySignupToken(user.id, token);
 
     if (result.affected) {
       return { success: true };
@@ -122,7 +122,7 @@ export class AuthService {
 
     if (user !== null) {
       const jwt = await this.issueJWT({
-        uid: user.uid,
+        id: user.id,
         email: user.email,
         username: user.username,
       });
@@ -153,7 +153,7 @@ export class AuthService {
     if (result.success) {
       try {
         const updateResult = await this.userRepository.changePassword(
-          result.data.uid,
+          result.data.id,
           newPassword,
           token,
         );
@@ -178,7 +178,7 @@ export class AuthService {
       await this.commandBus.execute(command);
 
       const newAccessToken = await this.issueJWT({
-        uid: id,
+        id: id,
         email,
         username: newName,
       });

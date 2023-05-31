@@ -69,7 +69,7 @@ export class RedisTokenPubSubService {
       return await this.userRepository.deleteUser(user.email);
     } else {
       return await this.userRepository.updateUser(
-        { id: user.uid },
+        { id: user.id },
         { [event]: null },
       );
     }
