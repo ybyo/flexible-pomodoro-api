@@ -46,8 +46,8 @@ services:
     env_file:
       - ./env/.${NODE_ENV}.env
     environment:
-      - DB_BASE_URL=mysql
-      - REDIS_URL=redis
+      - DB_BASE_URL=${DB_BASE_URL}
+      - REDIS_URL=${REDIS_URL}
       - NODE_ENV=${NODE_ENV}
     container_name: backend
     ports:
@@ -75,7 +75,7 @@ services:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend
     ports:
-      - ${NGINX_EXTERNAL_PORT}:${NGINX_INTERNAL_PORT}
+      - "4000:443"
     volumes:
       - ../pipe-timer-frontend/certs/:/etc/nginx/certs/:ro
       - ./public:/public:ro
