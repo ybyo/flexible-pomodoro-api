@@ -40,7 +40,7 @@ services:
     image: backend-pt
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: ../frontend/Dockerfile
       args:
         NODE_ENV: ${NODE_ENV}
     env_file:
