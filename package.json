@@ -1,0 +1,30 @@
+{
+  "name": "pipe-timer",
+  "version": "0.0.1",
+  "description": "One app for flexible piping of timers to enhance productivity",
+  "scripts": {
+    "install": "(npm install -w backend) && (npm install -w frontend)",
+    "dev:db": "npm run start:db -w backend",
+    "dev:backend": "npm run start:dev -w backend",
+    "dev:front": "npm run start:dev -w frontend",
+    "dev:compose:build": "docker compose --profile=local --env-file=./backend/env/.development.env build --no-cache",
+    "dev:compose:up": "docker compose --profile=local --env-file=./backend/env/.development.env up"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/yidoyoon/pipe-timer"
+  },
+  "author": "Yi Doyoon",
+  "license": "GPL-3.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "dependencies": {
+    "backend": "^0.0.1",
+    "frontend": "^0.0.1"
+  },
+  "devDependencies": {
+    "@quasar/cli": "^2.2.1"
+  }
+}
