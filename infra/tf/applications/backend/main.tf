@@ -13,37 +13,37 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
-provider "aws" {
-  region = var.region
-}
-
 provider "cloudflare" {
   api_token = var.cf_token
 }
 
+provider "aws" {
+  region = var.region
+}
+
 resource "null_resource" "remove_docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/remove-images.sh"
+    command     = "../common-scripts/remove-images.sh ${var.registry_url}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 }
 
+## Build
 resource "null_resource" "build-docker" {
   provisioner "local-exec" {
-    command = "../common-scripts/login-docker-registry.sh ${var.registry_url} ${var.registry_id} ${var.registry_password}"
-
+    command     = "../common-scripts/login-docker-registry.sh ${var.registry_url} ${var.registry_id} ${var.registry_password}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 
   provisioner "local-exec" {
-    command = templatefile("./shell-scripts/build-push-registry.sh", {
-      "REGISTRY_URL" = var.registry_url
-      "ENV"          = "staging"
-      "PATH"         = "../../../../pipe-timer-frontend"
-      "FRONT_URL"    = "pipetimer.com"
-    })
+    command = templatefile("./shell-scripts/build-push-registry.sh",
+      {
+        "REGISTRY_URL" = var.registry_url
+        "ENV"          = "staging"
+        "PATH"         = "../../../../pipe-timer-backend"
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -69,8 +69,8 @@ data "terraform_remote_state" "network" {
   }
 }
 
-resource "aws_security_group" "sg_pipe_timer_frontend" {
-  name   = "sg_pipe_timer_frontend"
+resource "aws_security_group" "sg_pipe_timer_backend" {
+  name   = "sg_pipe_timer_backend"
   vpc_id = data.terraform_remote_state.network.outputs.vpc_id
 
   # SSH access from the VPC
@@ -88,6 +88,13 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -100,11 +107,11 @@ data "template_file" "user_data" {
   template = file("../../scripts/add-ssh-web-app.yaml")
 }
 
-resource "aws_instance" "pipe-timer-frontend" {
+resource "aws_instance" "pipe-timer-backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
   subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_frontend.id]
+  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_backend.id]
   associate_public_ip_address = true
   user_data                   = data.template_file.user_data.rendered
 
@@ -121,7 +128,7 @@ resource "aws_instance" "pipe-timer-frontend" {
     type        = "ssh"
     user        = "ubuntu"
     private_key = file("../../scripts/ssh")
-    host        = aws_instance.pipe-timer-frontend.public_ip
+    host        = aws_instance.pipe-timer-backend.public_ip
   }
 
   provisioner "remote-exec" {
@@ -142,23 +149,13 @@ resource "aws_instance" "pipe-timer-frontend" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/shell-scripts"
+    source      = "./shell-scripts"
     destination = var.cicd_path
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/templates/nginx.conf"
-    destination = "${var.cicd_path}/nginx.conf"
-  }
-
-  provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/env"
+    source      = "${path.module}/../../../../pipe-timer-backend/env"
     destination = "${var.cicd_path}/env"
-  }
-
-  provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/public"
-    destination = "${var.cicd_path}/public"
   }
 
   provisioner "remote-exec" {
@@ -181,28 +178,20 @@ resource "aws_instance" "pipe-timer-frontend" {
 
   provisioner "remote-exec" {
     inline = [
-      "${var.cicd_path}/shell-scripts/run-docker.sh ${var.registry_url} ${var.cicd_path} ${var.env} ${var.host_url} ${var.upstream_backend}",
+      "${var.cicd_path}/shell-scripts/run-docker.sh ${var.registry_url} ${var.cicd_path} ${var.env}",
     ]
   }
 
   tags = {
-    Name = "pipe-timer-frontend"
+    Name = "pipe-timer-backend"
   }
 }
 
-# Add frontend record to DNS
-resource "cloudflare_record" "pipetimer_com" {
+# Add backend record to DNS
+resource "cloudflare_record" "api_pipetimer_com" {
   zone_id = var.cf_zone_id
-  name    = "www.pipetimer.com"
-  value   = aws_instance.pipe-timer-frontend.public_ip
+  name    = "api.pipetimer.com"
+  value   = aws_instance.pipe-timer-backend.public_ip
   type    = "A"
-  proxied = true
-}
-
-resource "cloudflare_record" "root_pipetimer_com" {
-  zone_id = var.cf_zone_id
-  name    = "@"
-  value   = aws_instance.pipe-timer-frontend.public_ip
-  type    = "A"
-  proxied = true
+  proxied = false
 }

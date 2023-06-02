@@ -1,5 +1,5 @@
-import requireAuth        from 'src/router/middleware/requireAuth';
-import skipAuth           from 'src/router/middleware/skipAuth';
+import requireAuth from 'src/router/middleware/requireAuth';
+import skipAuth from 'src/router/middleware/skipAuth';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [

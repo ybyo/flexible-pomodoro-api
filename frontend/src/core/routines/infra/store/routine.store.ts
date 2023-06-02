@@ -1,11 +1,11 @@
 import { api } from 'boot/axios';
 import _ from 'lodash-es';
 import { defineStore } from 'pinia';
-import { LocalStorage }    from 'quasar';
-import { usePanelStore }   from 'src/core/panel/infra/store/panel.store';
-import { IRoutine }        from 'src/core/routines/domain/routine.model';
+import { LocalStorage } from 'quasar';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
 import { IRoutineToTimer } from 'src/core/timers/domain/timer.model';
-import { useUserStore }    from 'src/core/users/infra/store/user.store';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
 
 export interface RoutineState {
   // TODO: 자료형 변경(Draggable sort)

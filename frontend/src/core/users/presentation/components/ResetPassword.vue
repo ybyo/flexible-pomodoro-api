@@ -56,12 +56,12 @@ import {
   CHECK_EMPTY,
   userMsg,
   userVar,
-}                               from 'src/core/users/domain/user.const';
-import { changePassword }       from 'src/core/users/infra/http/user.api';
-import { isEmptyObj }           from 'src/util/is-empty-object.util';
-import * as zod                 from 'zod';
+} from 'src/core/users/domain/user.const';
+import { changePassword } from 'src/core/users/infra/http/user.api';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
+import * as zod from 'zod';
 import { IChangePasswordInput } from 'src/type-defs/userTypes';
-import { ref }                  from 'vue';
+import { ref } from 'vue';
 import { toFormValidator } from '@vee-validate/zod';
 import { useField, useForm } from 'vee-validate';
 import { useMutation } from '@tanstack/vue-query';

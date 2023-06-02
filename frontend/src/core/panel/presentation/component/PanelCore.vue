@@ -79,11 +79,11 @@ import dayjs from 'dayjs';
 import _ from 'lodash-es';
 import { storeToRefs } from 'pinia';
 import { useMeta, useQuasar } from 'quasar';
-import { usePanelStore }      from 'src/core/panel/infra/store/panel.store';
-import { IRoutine }           from 'src/core/routines/domain/routine.model';
-import { useRoutineStore }    from 'src/core/routines/infra/store/routine.store';
-import { ITimer }             from 'src/core/timers/domain/timer.model';
-import { useTimerStore }      from 'src/core/timers/infra/store/timer.store';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { ITimer } from 'src/core/timers/domain/timer.model';
+import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
 import {
   computed,
   onBeforeMount,
@@ -93,7 +93,7 @@ import {
   ref,
   watch,
   watchEffect,
-}                             from 'vue';
+} from 'vue';
 import {onBeforeRouteLeave} from 'vue-router';
 
 const $q = useQuasar();

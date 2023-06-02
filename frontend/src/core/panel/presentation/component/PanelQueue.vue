@@ -118,12 +118,12 @@ import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import _ from 'lodash-es';
 import { storeToRefs } from 'pinia';
-import { useQuasar }           from 'quasar';
-import { usePanelStore }       from 'src/core/panel/infra/store/panel.store';
-import { useRoutineStore }     from 'src/core/routines/infra/store/routine.store';
-import { ITimer }              from 'src/core/timers/domain/timer.model';
-import { useTimerStore }       from 'src/core/timers/infra/store/timer.store';
-import { isEmptyObj }          from 'src/util/is-empty-object.util';
+import { useQuasar } from 'quasar';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { ITimer } from 'src/core/timers/domain/timer.model';
+import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { computed, onUpdated } from 'vue';
 
 dayjs.extend(duration);

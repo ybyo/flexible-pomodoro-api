@@ -9,7 +9,7 @@ RUN npm i -g @quasar/cli && \
     npm ci && \
     npm cache clean --force
 
-COPY --chown=node:node .. .
+COPY --chown=node:node . .
 
 USER node
 
@@ -25,7 +25,7 @@ WORKDIR /app
 
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
-COPY --chown=node:node .. .
+COPY --chown=node:node . .
 
 USER root
 

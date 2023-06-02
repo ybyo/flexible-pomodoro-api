@@ -131,12 +131,12 @@ import dayjs from 'dayjs';
 import _ from 'lodash-es';
 import { storeToRefs } from 'pinia';
 import { LocalStorage, useQuasar } from 'quasar';
-import { useBuilderStore }         from 'src/core/builder/infra/store/builder.store';
-import { usePanelStore }           from 'src/core/panel/infra/store/panel.store';
-import { IRoutine }                from 'src/core/routines/domain/routine.model';
-import { useRoutineStore }         from 'src/core/routines/infra/store/routine.store';
-import { ITimer }                  from 'src/core/timers/domain/timer.model';
-import { computed, ref }           from 'vue';
+import { useBuilderStore } from 'src/core/builder/infra/store/builder.store';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { ITimer } from 'src/core/timers/domain/timer.model';
+import { computed, ref } from 'vue';
 
 const $q = useQuasar();
 

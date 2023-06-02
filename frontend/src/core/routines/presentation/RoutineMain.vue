@@ -35,13 +35,13 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs }     from 'pinia';
+import { storeToRefs } from 'pinia';
 import { useBuilderStore } from 'src/core/builder/infra/store/builder.store';
-import BuilderMain         from 'src/core/builder/presentation/BuilderMain.vue';
-import { usePanelStore }   from 'src/core/panel/infra/store/panel.store';
+import BuilderMain from 'src/core/builder/presentation/BuilderMain.vue';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
-import RoutineLoader       from 'src/core/routines/presentation/components/RoutineLoader.vue';
-import { useUserStore }    from 'src/core/users/infra/store/user.store';
+import RoutineLoader from 'src/core/routines/presentation/components/RoutineLoader.vue';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
 
 const routineStore = useRoutineStore();
 const routineStoreRefs = storeToRefs(routineStore);

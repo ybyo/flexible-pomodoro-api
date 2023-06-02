@@ -137,11 +137,11 @@
 <script setup lang="ts">
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
-import { LocalStorage }            from 'quasar';
-import { useBuilderStore }         from 'src/core/builder/infra/store/builder.store';
-import { IRoutine }                from 'src/core/routines/domain/routine.model';
-import { ITimer }                  from 'src/core/timers/domain/timer.model';
-import { isEmptyObj }              from 'src/util/is-empty-object.util';
+import { LocalStorage } from 'quasar';
+import { useBuilderStore } from 'src/core/builder/infra/store/builder.store';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
+import { ITimer } from 'src/core/timers/domain/timer.model';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { computed, reactive, ref } from 'vue';
 import _ from 'lodash';
 import draggable from 'vuedraggable';

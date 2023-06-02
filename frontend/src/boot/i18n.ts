@@ -1,5 +1,5 @@
-import { boot }       from 'quasar/wrappers';
-import messages       from 'src/i18n';
+import { boot } from 'quasar/wrappers';
+import messages from 'src/i18n';
 import { createI18n } from 'vue-i18n';
 
 export type MessageLanguages = keyof typeof messages;

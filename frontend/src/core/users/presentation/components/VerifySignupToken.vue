@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useQuasar }              from 'quasar';
+import { useQuasar } from 'quasar';
 import { getMeFn, verifyEmailFn } from 'src/core/users/infra/http/user.api';
-import { useUserStore }           from 'src/core/users/infra/store/user.store';
-import { onBeforeMount }          from 'vue';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { onBeforeMount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();

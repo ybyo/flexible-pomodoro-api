@@ -2,11 +2,11 @@ import { api } from 'boot/axios';
 import _ from 'lodash-es';
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
-import { Notify }           from 'quasar';
+import { Notify } from 'quasar';
 import { useSelectorStore } from 'src/core/common/infra/store/selector.store';
-import { usePanelStore }    from 'src/core/panel/infra/store/panel.store';
-import { ITimer }           from 'src/core/timers/domain/timer.model';
-import { useUserStore }     from 'src/core/users/infra/store/user.store';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { ITimer } from 'src/core/timers/domain/timer.model';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
 
 export interface TimerState {
   timers: Record<string, ITimer>;

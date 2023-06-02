@@ -53,17 +53,17 @@
 </template>
 
 <script setup lang="ts">
-import { usePanelStore }                      from 'src/core/panel/infra/store/panel.store';
-import { useRoutineStore }                    from 'src/core/routines/infra/store/routine.store';
-import { useTimerStore }                      from 'src/core/timers/infra/store/timer.store';
-import { CHECK_EMPTY, userMsg }               from 'src/core/users/domain/user.const';
-import * as zod                               from 'zod';
-import { ILoginInput }                        from 'src/type-defs/userTypes';
-import { getMeFn, loginUserFn }               from 'src/core/users/infra/http/user.api';
+import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import { CHECK_EMPTY, userMsg } from 'src/core/users/domain/user.const';
+import * as zod from 'zod';
+import { ILoginInput } from 'src/type-defs/userTypes';
+import { getMeFn, loginUserFn } from 'src/core/users/infra/http/user.api';
 import { onBeforeMount, onBeforeUpdate, ref } from 'vue';
-import { toFormValidator }                    from '@vee-validate/zod';
-import { useUserStore }                       from 'src/core/users/infra/store/user.store';
-import { useField, useForm }                  from 'vee-validate';
+import { toFormValidator } from '@vee-validate/zod';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { useField, useForm } from 'vee-validate';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';

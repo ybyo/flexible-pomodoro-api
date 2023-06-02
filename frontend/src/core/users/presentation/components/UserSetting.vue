@@ -112,13 +112,13 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs }                    from 'pinia';
-import { useRoutineStore }                from 'src/core/routines/infra/store/routine.store';
-import { useUserStore }                   from 'src/core/users/infra/store/user.store';
-import ChangeEmailPrompt                  from 'src/core/users/presentation/components/prompts/ChangeEmailPrompt.vue';
-import ChangeNamePrompt                   from 'src/core/users/presentation/components/prompts/ChangeNamePrompt.vue';
-import DeleteAccountPrompt                from 'src/core/users/presentation/components/prompts/DeleteAccountPrompt.vue';
-import PasswordResetPrompt                from 'src/core/users/presentation/components/prompts/PasswordResetPrompt.vue';
+import { storeToRefs } from 'pinia';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import ChangeEmailPrompt from 'src/core/users/presentation/components/prompts/ChangeEmailPrompt.vue';
+import ChangeNamePrompt from 'src/core/users/presentation/components/prompts/ChangeNamePrompt.vue';
+import DeleteAccountPrompt from 'src/core/users/presentation/components/prompts/DeleteAccountPrompt.vue';
+import PasswordResetPrompt from 'src/core/users/presentation/components/prompts/PasswordResetPrompt.vue';
 import { onBeforeMount, onBeforeUnmount } from 'vue';
 
 onBeforeMount(() => {

@@ -143,7 +143,7 @@ resource "null_resource" "update_env" {
         "MYSQL_DB_NAME"  = var.mysql_db_name
         "MYSQL_USERNAME" = var.mysql_username
         "MYSQL_PASSWORD" = var.mysql_password
-        "REDIS_URL"      = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
+        "REDIS_BASE_URL"      = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
         "ENV_PATH"       = "../../../../pipe-timer-backend/env"
         "ENV"            = var.env
       })

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { userMsg }             from 'src/core/users/domain/user.const';
-import { useUserStore }        from 'src/core/users/infra/store/user.store';
-import { onMounted }           from 'vue';
+import { userMsg } from 'src/core/users/domain/user.const';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import {
   getMeFn,
   verifyChangeEmailTokenFn,
-}                              from 'src/core/users/infra/http/user.api';
+} from 'src/core/users/infra/http/user.api';
 
 const router = useRouter();
 const route = useRoute();

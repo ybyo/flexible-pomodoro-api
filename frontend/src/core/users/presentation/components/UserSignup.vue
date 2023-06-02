@@ -74,16 +74,16 @@
 import { useMutation } from '@tanstack/vue-query';
 import { toFormValidator } from '@vee-validate/zod';
 import * as filter from 'leo-profanity';
-import { useQuasar }         from 'quasar';
+import { useQuasar } from 'quasar';
 import {
   CHECK_EMPTY,
   userMsg,
   userVar,
-}                            from 'src/core/users/domain/user.const';
-import { signUpUserFn }      from 'src/core/users/infra/http/user.api';
-import { useUserStore }      from 'src/core/users/infra/store/user.store';
-import { ISignupInput }      from 'src/type-defs/userTypes';
-import { isEmptyObj }        from 'src/util/is-empty-object.util';
+} from 'src/core/users/domain/user.const';
+import { signUpUserFn } from 'src/core/users/infra/http/user.api';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { ISignupInput } from 'src/type-defs/userTypes';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { useField, useForm } from 'vee-validate';
 import { onBeforeMount, ref } from 'vue';
 import { useRouter } from 'vue-router';

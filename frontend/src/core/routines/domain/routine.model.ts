@@ -1,6 +1,6 @@
-import { plainToClass }    from 'class-transformer';
+import { plainToClass } from 'class-transformer';
 import { IRoutineToTimer } from 'src/core/timers/domain/timer.model';
-import { ulid }            from 'ulid';
+import { ulid } from 'ulid';
 
 export interface IRoutine {
   id: string;

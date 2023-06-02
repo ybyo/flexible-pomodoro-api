@@ -1,10 +1,10 @@
 import { api } from 'boot/axios';
-import { Notify }        from 'quasar';
+import { Notify } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
-import { ITimer }        from 'src/core/timers/domain/timer.model';
+import { ITimer } from 'src/core/timers/domain/timer.model';
 import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
-import { userMsg }       from 'src/core/users/domain/user.const';
-import { useUserStore }  from 'src/core/users/infra/store/user.store';
+import { userMsg } from 'src/core/users/domain/user.const';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
 import {
   IChangePasswordInput,
   IEmailInput,
@@ -14,7 +14,7 @@ import {
   ISignupInput,
   IUser,
   IValidationInput,
-}                        from 'src/type-defs/userTypes';
+} from 'src/type-defs/userTypes';
 
 export const refreshAccessTokenFn = () => {
   return api.get<IRes<IUser>>('auth/refresh');

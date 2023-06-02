@@ -1,5 +1,5 @@
 import { ITimerRepository } from 'src/core/timers/domain/itimer.repository';
-import { Timer }            from 'src/core/timers/domain/timer.model';
+import { Timer } from 'src/core/timers/domain/timer.model';
 
 export class TimerService {
   constructor(

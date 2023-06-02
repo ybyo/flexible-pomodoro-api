@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useQuasar }                  from 'quasar';
-import { userMsg }                    from 'src/core/users/domain/user.const';
+import { useQuasar } from 'quasar';
+import { userMsg } from 'src/core/users/domain/user.const';
 import { verifyResetPasswordTokenFn } from 'src/core/users/infra/http/user.api';
-import { onMounted }                  from 'vue';
+import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();

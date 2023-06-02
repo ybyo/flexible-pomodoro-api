@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
-import { IUser }        from 'src/type-defs/userTypes';
+import { IUser } from 'src/type-defs/userTypes';
 
 interface UserState {
   user: IUser | null;

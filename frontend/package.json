@@ -1,16 +1,17 @@
 {
-  "name": "pipe-timer-frontend",
+  "name": "frontend",
   "version": "0.0.1",
   "description": "A Time-stackable Pomodoro Timer",
   "productName": "Pipe Timer",
   "author": "Yi Doyoon <yidoyoon@yidoyoon.com>",
   "private": true,
+  "license": "GPL-3.0",
   "scripts": {
     "start:dev": "cross-env ENV_NAME=development quasar dev -m pwa",
     "build:dev": "cross-env ENV_NAME=development quasar build -m pwa --history",
-    "serve:dev": "cross-env ENV_NAME=development quasar serve ./dist/pwa --hostname 127.0.0.1 --history --https --port 443 -m pwa -K certs/key.pem -C certs/cert.pem",
-    "lint": "eslint --ext .js,.ts,.vue ..",
-    "format": "prettier --write \\\"**/*.{js,ts,vue,scss,html,md,json}\\\" --ignore-path .gitignore",
+    "serve:dev": "cross-env ENV_NAME=development quasar serve ./dist/pwa --hostname 127.0.0.1 --history --https --port 443 -m pwa -K certs/dev-key.pem -C certs/dev-cert.pem",
+    "lint": "eslint --ext .js,.ts,.vue ./",
+    "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
     "icon-svg": "fantasticon src/svg-icons -o public/icon-font --normalize -t woff woff2 -g css"
   },

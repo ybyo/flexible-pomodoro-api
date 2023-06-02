@@ -36,12 +36,12 @@
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
 import { toFormValidator } from '@vee-validate/zod';
-import { useQuasar }            from 'quasar';
+import { useQuasar } from 'quasar';
 import { CHECK_EMPTY, userMsg } from 'src/core/users/domain/user.const';
-import { checkEmailFn }         from 'src/core/users/infra/http/user.api';
-import { useUserStore }         from 'src/core/users/infra/store/user.store';
-import { IEmailInput }          from 'src/type-defs/userTypes';
-import { useField, useForm }    from 'vee-validate';
+import { checkEmailFn } from 'src/core/users/infra/http/user.api';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { IEmailInput } from 'src/type-defs/userTypes';
+import { useField, useForm } from 'vee-validate';
 import { useRouter } from 'vue-router';
 import * as zod from 'zod';
 

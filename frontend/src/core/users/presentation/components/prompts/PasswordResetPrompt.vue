@@ -22,11 +22,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useQuasar }                from 'quasar';
-import { userMsg }                  from 'src/core/users/domain/user.const';
+import { useQuasar } from 'quasar';
+import { userMsg } from 'src/core/users/domain/user.const';
 import { sendResetPasswordEmailFn } from 'src/core/users/infra/http/user.api';
-import { useUserStore }             from 'src/core/users/infra/store/user.store';
-import { useRouter }                from 'vue-router';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { useRouter } from 'vue-router';
 
 const $q = useQuasar();
 const $router = useRouter();

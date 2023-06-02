@@ -36,12 +36,12 @@
 import { useMutation } from '@tanstack/vue-query';
 import { toFormValidator } from '@vee-validate/zod';
 import * as filter from 'leo-profanity';
-import { useQuasar }         from 'quasar';
-import { userMsg }           from 'src/core/users/domain/user.const';
-import { changeNameFn }      from 'src/core/users/infra/http/user.api';
-import { useUserStore }      from 'src/core/users/infra/store/user.store';
+import { useQuasar } from 'quasar';
+import { userMsg } from 'src/core/users/domain/user.const';
+import { changeNameFn } from 'src/core/users/infra/http/user.api';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
 import { INameInput, IUser } from 'src/type-defs/userTypes';
-import { isEmptyObj }        from 'src/util/is-empty-object.util';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { useField, useForm } from 'vee-validate';
 import { useRouter } from 'vue-router';
 import * as zod from 'zod';

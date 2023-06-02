@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import PanelCore  from 'src/core/panel/presentation/component/PanelCore.vue';
+import PanelCore from 'src/core/panel/presentation/component/PanelCore.vue';
 import PanelQueue from 'src/core/panel/presentation/component/PanelQueue.vue';
 
 </script>

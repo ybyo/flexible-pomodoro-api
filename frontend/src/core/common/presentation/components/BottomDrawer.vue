@@ -156,15 +156,15 @@
 <script setup lang="ts">
 import _ from 'lodash-es';
 import { storeToRefs } from 'pinia';
-import { useQuasar }                                 from 'quasar';
-import { useBuilderStore }                           from 'src/core/builder/infra/store/builder.store';
-import { useSelectorStore }                          from 'src/core/common/infra/store/selector.store';
-import { IRoutine }                                  from 'src/core/routines/domain/routine.model';
-import { useRoutineStore }                           from 'src/core/routines/infra/store/routine.store';
-import RoutineMain                                   from 'src/core/routines/presentation/RoutineMain.vue';
-import { useTimerStore }                             from 'src/core/timers/infra/store/timer.store';
-import { useUserStore }                              from 'src/core/users/infra/store/user.store';
-import { isEmptyObj }                                from 'src/util/is-empty-object.util';
+import { useQuasar } from 'quasar';
+import { useBuilderStore } from 'src/core/builder/infra/store/builder.store';
+import { useSelectorStore } from 'src/core/common/infra/store/selector.store';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import RoutineMain from 'src/core/routines/presentation/RoutineMain.vue';
+import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 

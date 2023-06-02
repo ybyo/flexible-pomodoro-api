@@ -8,8 +8,8 @@
 
 <script setup lang="ts">
 import { useBuilderStore } from 'src/core/builder/infra/store/builder.store';
-import BuilderCore         from 'src/core/builder/presentation/components/BuilderCore.vue';
-import { computed }        from 'vue';
+import BuilderCore from 'src/core/builder/presentation/components/BuilderCore.vue';
+import { computed } from 'vue';
 
 const builderStore = useBuilderStore();
 

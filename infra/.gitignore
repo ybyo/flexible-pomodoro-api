@@ -1,6 +1,7 @@
-### Project related
-pipe-timer-backend
-pipe-timer-frontend
+### EC2 template
+add-ssh-web-app.yaml
+ssh
+ssh.pub
 
 ### dotenv template
 .env

@@ -212,17 +212,17 @@
 <script setup lang="ts">
 import { toFormValidator } from '@vee-validate/zod';
 import { storeToRefs } from 'pinia';
-import { useQuasar }         from 'quasar';
-import { useRoutineStore }   from 'src/core/routines/infra/store/routine.store';
-import { Timer }             from 'src/core/timers/domain/timer.model';
-import { useTimerStore }     from 'src/core/timers/infra/store/timer.store';
-import TimerCore             from 'src/core/timers/presentation/components/TimerCore.vue';
+import { useQuasar } from 'quasar';
+import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
+import { Timer } from 'src/core/timers/domain/timer.model';
+import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import TimerCore from 'src/core/timers/presentation/components/TimerCore.vue';
 import {
   resendSignupEmailFn,
   saveTimerFn,
-}                            from 'src/core/users/infra/http/user.api';
-import { useUserStore }      from 'src/core/users/infra/store/user.store';
-import { isEmptyObj }        from 'src/util/is-empty-object.util';
+} from 'src/core/users/infra/http/user.api';
+import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { useField, useForm } from 'vee-validate';
 import { ref, watch } from 'vue';
 import * as zod from 'zod';

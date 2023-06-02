@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
-import { IRoutine }     from 'src/core/routines/domain/routine.model';
-import { ITimer }       from 'src/core/timers/domain/timer.model';
+import { IRoutine } from 'src/core/routines/domain/routine.model';
+import { ITimer } from 'src/core/timers/domain/timer.model';
 
 export interface PanelState {
   timer: ITimer;
