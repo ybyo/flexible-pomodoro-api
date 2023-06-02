@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY --chown=node:node package*.json ./
 RUN npm ci
-COPY --chown=node:node .. .
+COPY --chown=node:node . .
 USER node
 
 FROM node:18-alpine as build
@@ -20,7 +20,7 @@ COPY --chown=node:node package*.json ./
 
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 COPY --chown=node:node --from=dev /app/public ./public
-COPY --chown=node:node .. .
+COPY --chown=node:node . .
 
 RUN NODE_ENV=$NODE_ENV npm run build
 
