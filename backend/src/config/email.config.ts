@@ -18,7 +18,7 @@ export default registerAs('email', (): IEmailConfig => {
     api_port: +process.env.API_PORT || 3000,
     front_port: +process.env.FRONT_PORT || 4000,
     auth: {
-      sgMailKey: process.env.TEST ? null : process.env.SENDGRID_API,
+      sgMailKey: process.env.TEST ? null : process.env.SENDGRID_KEY,
       testService: process.env.EMAIL_SERVICE,
       testUser: process.env.EMAIL_AUTH_USER,
       testPassword: process.env.EMAIL_AUTH_PASSWORD,
