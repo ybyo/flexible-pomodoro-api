@@ -3,7 +3,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-import { REDIS_SUB }       from '@/redis/redis.constants';
+import { REDIS_SUB } from '@/redis/redis.constants';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()

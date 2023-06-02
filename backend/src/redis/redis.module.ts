@@ -5,16 +5,16 @@ import * as dotenv from 'dotenv';
 import Redis from 'ioredis';
 import * as path from 'path';
 
-import { EmailModule }             from '@/email/email.module';
-import { RedisTokenService }       from '@/redis/redis-token.service';
+import { EmailModule } from '@/email/email.module';
+import { RedisTokenService } from '@/redis/redis-token.service';
 import { RedisTokenPubSubService } from '@/redis/redis-token-pub-sub.service';
-import { RoutineEntity }           from '@/routines/infra/db/entity/routine.entity';
-import { RoutineToTimerEntity }    from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { DeleteUserHandler }       from '@/users/application/command/handlers/delete-user.handler';
-import { UserFactory }             from '@/users/domain/user.factory';
-import { EmailService }            from '@/users/infra/adapter/email.service';
-import { UserEntity }              from '@/users/infra/db/entity/user.entity';
-import { UserRepository }          from '@/users/infra/db/repository/user.repository';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
+import { UserFactory } from '@/users/domain/user.factory';
+import { EmailService } from '@/users/infra/adapter/email.service';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
+import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
 import { REDIS_AUTH, REDIS_SUB, REDIS_TOKEN } from './redis.constants';
 
@@ -30,7 +30,7 @@ const factories = [UserFactory];
 
 async function createRedisClient(): Promise<Redis> {
   const client = await new Redis({
-    host: process.env.REDIS_URL,
+    host: process.env.REDIS_BASE_URL,
     port:
       process.env.TEST === 'true'
         ? +process.env.REDIS_TEST_PORT
