@@ -5,39 +5,109 @@ networks:
     driver: bridge
 
 services:
-  nginx-for-registry:
-    image: nginx:latest
-    container_name: nginx-for-registry
+  mysql-pt:
+    image: mysql:8
     env_file:
-      - ./env/.env
+      - ./backend/env/.${NODE_ENV}.env
+    container_name: mysql
     environment:
-      DOMAIN: ${REGISTRY_DOMAIN}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "443:443"
+      - ${DB_PORT}:${DB_PORT}
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
+      - ./backend/mysql:/var/lib/mysql
     networks:
       - app-tier
-    restart: on-failure
+    profiles:
+      - local
 
-  registry:
-    image: registry:2
-    container_name: registry
+  redis-pt:
+    image: bitnami/redis:latest
     env_file:
-      - ./env/.env
+      - ./backend/env/.${NODE_ENV}.env
     environment:
-      REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
-      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/cert.pem
-      REGISTRY_HTTP_TLS_KEY: /certs/key.pem
-      REGISTRY_STORAGE_DELETE_ENABLED: true
+      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
+    container_name: redis
     ports:
-      - ${REGISTRY_PORT}:${REGISTRY_PORT}
+      - ${REDIS_PORT}:${REDIS_PORT}
     networks:
       - app-tier
+    profiles:
+      - local
+
+  backend-pt:
+    image: backend-pt
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV}
+    env_file:
+      - ./backend/env/.${NODE_ENV}.env
+    environment:
+      - DB_BASE_URL=mysql
+      - REDIS_BASE_URL=redis
+      - NODE_ENV=${NODE_ENV}
+    container_name: backend
+    ports:
+      - ${API_PORT}:${API_PORT}
     volumes:
-      - ./registry/auth:/auth
-      - ./certs:/certs
-    restart: on-failure
+      - ./backend/certs/:/certs:ro
+    networks:
+      - app-tier
+    depends_on: [mysql-pt, redis-pt]
+
+  nginx-pt:
+    image: nginx-pt
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        ENV_NAME_ARG: ${NODE_ENV}
+        HOST_URL_ARG: ${HOST_URL}
+    env_file:
+      - ./frontend/env/.${NODE_ENV}.env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      HOST_URL: ${HOST_URL}
+      UPSTREAM_BACKEND: ${UPSTREAM_BACKEND}
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+    container_name: frontend
+    ports:
+      - "4000:443"
+    volumes:
+      - ./backend/certs/:/etc/nginx/certs/:ro
+      - ./frontend/public:/public:ro
+    networks:
+      - app-tier
+    depends_on: [mysql-pt, redis-pt, backend-pt]
+
+  mysql-test:
+    image: mysql:8
+    env_file:
+      - ./backend/env/.${NODE_ENV}.env
+    container_name: mysql-test
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - ${DB_TEST_PORT}:${DB_PORT}
+    networks:
+      - app-tier
+    profiles:
+      - test
+
+  redis-test:
+    image: bitnami/redis:latest
+    env_file:
+      - ./backend/env/.${NODE_ENV}.env
+    environment:
+      - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
+    container_name: redis-test
+    ports:
+      - ${REDIS_TEST_PORT}:${REDIS_PORT}
+    networks:
+      - app-tier
+    profiles:
+      - test
