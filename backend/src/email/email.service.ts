@@ -56,7 +56,7 @@ export class EmailService {
       html: rendered,
     };
 
-    const testMailOptions = {
+    const nodemailerOptions = {
       to: email,
       subject: `Pipe Timer - ${subject}`,
       html: rendered,
@@ -69,9 +69,9 @@ export class EmailService {
         );
       });
     } else {
-      this.transporter.sendMail(testMailOptions).then(() => {
+      this.transporter.sendMail(nodemailerOptions).then(() => {
         this.logger.verbose(
-          `[TEST] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`,
+          `[Nodemailer] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`,
         );
       });
     }
