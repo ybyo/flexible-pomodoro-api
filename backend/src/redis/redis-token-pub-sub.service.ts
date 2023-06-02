@@ -17,7 +17,7 @@ export class RedisTokenPubSubService {
     const tokenList = ['signupToken', 'changeEmailToken', 'resetPasswordToken'];
 
     const client = new Redis({
-      host: process.env.REDIS_URL,
+      host: process.env.REDIS_BASE_URL,
       port:
         process.env.TEST === 'true'
           ? +process.env.REDIS_TEST_PORT
