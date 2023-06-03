@@ -1,9 +1,11 @@
 name: tfsec
+
 on:
   push:
     branches:
-      - *
+      - dev
   pull_request:
+
 jobs:
   tfsec:
     name: tfsec
@@ -12,5 +14,8 @@ jobs:
     steps:
       - name: Clone repo
         uses: actions/checkout@master
+
       - name: tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true

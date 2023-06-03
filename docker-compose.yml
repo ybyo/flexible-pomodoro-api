@@ -8,7 +8,7 @@ services:
   mysql-pt:
     image: mysql:8
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - ./backend/env/.${NODE_ENV}.env
     container_name: mysql
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -16,7 +16,7 @@ services:
     ports:
       - ${DB_PORT}:${DB_PORT}
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ./backend/mysql:/var/lib/mysql
     networks:
       - app-tier
     profiles:
@@ -25,7 +25,7 @@ services:
   redis-pt:
     image: bitnami/redis:latest
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - ./backend/env/.${NODE_ENV}.env
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: redis
@@ -39,21 +39,21 @@ services:
   backend-pt:
     image: backend-pt
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
       args:
         NODE_ENV: ${NODE_ENV}
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - ./backend/env/.${NODE_ENV}.env
     environment:
-      - DB_BASE_URL=${DB_BASE_URL}
-      - REDIS_URL=${REDIS_URL}
+      - DB_BASE_URL=mysql
+      - REDIS_BASE_URL=redis
       - NODE_ENV=${NODE_ENV}
     container_name: backend
     ports:
       - ${API_PORT}:${API_PORT}
     volumes:
-      - ./certs/:/certs:ro
+      - ./backend/certs/:/certs:ro
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt]
@@ -61,13 +61,13 @@ services:
   nginx-pt:
     image: nginx-pt
     build:
-      context: ../pipe-timer-frontend
-      dockerfile: ./Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
       args:
         ENV_NAME_ARG: ${NODE_ENV}
         HOST_URL_ARG: ${HOST_URL}
     env_file:
-      - ../pipe-timer-frontend/env/.${NODE_ENV}.env
+      - ./frontend/env/.${NODE_ENV}.env
     environment:
       NODE_ENV: ${NODE_ENV}
       HOST_URL: ${HOST_URL}
@@ -77,8 +77,8 @@ services:
     ports:
       - "4000:443"
     volumes:
-      - ../pipe-timer-frontend/certs/:/etc/nginx/certs/:ro
-      - ./public:/public:ro
+      - ./backend/certs/:/etc/nginx/certs/:ro
+      - ./frontend/public:/public:ro
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt, backend-pt]
@@ -86,7 +86,7 @@ services:
   mysql-test:
     image: mysql:8
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - ./backend/env/.${NODE_ENV}.env
     container_name: mysql-test
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -101,7 +101,7 @@ services:
   redis-test:
     image: bitnami/redis:latest
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - ./backend/env/.${NODE_ENV}.env
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: redis-test

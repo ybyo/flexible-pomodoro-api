@@ -34,7 +34,7 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 
 ## 구동 화면
 
-<img src="images/demo_screenshot.png" alt="pipe_timer_example" width="800px">
+<img src="backend/images/demo_screenshot.png" alt="pipe_timer_example" width="800px">
 
 ## 로드맵
 
