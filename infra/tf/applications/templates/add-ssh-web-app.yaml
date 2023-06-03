@@ -1,0 +1,15 @@
+groups:
+  - ubuntu: [root, sys]
+
+users:
+  - default
+  - name: ubuntu
+    shell: /bin/bash
+    primary_group: root
+    sudo:
+    groups: users, admin
+    lock_passwd: false
+    ssh_authorized_keys:
+
+runcmd:
+  - sudo apt update -y && sudo apt upgrade -y,
