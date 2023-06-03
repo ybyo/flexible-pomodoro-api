@@ -116,8 +116,8 @@ module.exports = configure(function (ctx) {
       host: '127.0.0.1',
       port: 4000,
       https: {
-        key: fs.readFileSync(path.resolve(__dirname, './certs/key.pem')),
-        cert: fs.readFileSync(path.resolve(__dirname, './certs/cert.pem')),
+        key: fs.readFileSync(path.resolve(__dirname, './certs/dev-key.pem')),
+        cert: fs.readFileSync(path.resolve(__dirname, './certs/dev-cert.pem')),
       },
       pwa: true,
       open: false, // opens browser window automatically

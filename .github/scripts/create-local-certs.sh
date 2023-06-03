@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-certs_path="../../shared/certs"
+certs_path="$PWD/shared/certs"
 auto_agree="false"
 
 if [[ "$1" == "-y" ]]; then
@@ -142,8 +142,8 @@ copy_certs() {
     read -r answer
   fi
   if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-    cp -r $certs_path ../../backend
-    cp -r $certs_path ../../frontend
+    cp -r $certs_path "$PWD"/backend
+    cp -r $certs_path "$PWD"/frontend
     echo "인증서를 backend/certs와 frontend/certs에 복사했습니다."
   fi
 }
