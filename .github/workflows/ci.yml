@@ -1,13 +1,9 @@
 name: ci-main
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types: [opened, synchronize]
     branches:
-      - main
+      - dev
 
 jobs:
   build:
@@ -17,6 +13,8 @@ jobs:
       matrix:
         os: [ubuntu-latest] # macos-latest, windows-latest
         node: [18]
+
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v3
