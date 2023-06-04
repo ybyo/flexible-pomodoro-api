@@ -41,7 +41,7 @@ resource "null_resource" "build-docker" {
     command = templatefile("./shell-scripts/build-push-registry.sh", {
       "REGISTRY_URL" = var.registry_url
       "ENV"          = "staging"
-      "PATH"         = "../../../../pipe-timer-frontend"
+      "PATH"         = "../../../../frontend"
       "FRONT_URL"    = "pipetimer.com"
     })
     working_dir = path.module
@@ -147,17 +147,17 @@ resource "aws_instance" "pipe-timer-frontend" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/templates/nginx.conf"
+    source      = "${path.module}/../../../../frontend/templates/nginx.conf"
     destination = "${var.cicd_path}/nginx.conf"
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/env"
+    source      = "${path.module}/../../../../frontend/env"
     destination = "${var.cicd_path}/env"
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-frontend/public"
+    source      = "${path.module}/../../../../frontend/public"
     destination = "${var.cicd_path}/public"
   }
 

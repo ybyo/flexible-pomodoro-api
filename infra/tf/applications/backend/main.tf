@@ -42,8 +42,8 @@ resource "null_resource" "build-docker" {
       {
         "REGISTRY_URL" = var.registry_url
         "ENV"          = "staging"
-        "PATH"         = "../../../../pipe-timer-backend"
-      })
+        "PATH"         = "../../../../backend"
+    })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -154,7 +154,7 @@ resource "aws_instance" "pipe-timer-backend" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../../pipe-timer-backend/env"
+    source      = "${path.module}/../../../../backend/env"
     destination = "${var.cicd_path}/env"
   }
 
