@@ -14,7 +14,7 @@ interface IEmailConfig {
 
 export default registerAs('email', (): IEmailConfig => {
   const emailConfig: IEmailConfig = {
-    host: process.env.HOST_URL || '127.0.0.1',
+    host: process.env.HOST_URL,
     api_port: +process.env.API_PORT || 3000,
     front_port: +process.env.FRONT_PORT || 4000,
     auth: {

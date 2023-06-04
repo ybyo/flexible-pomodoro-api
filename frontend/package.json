@@ -9,7 +9,7 @@
   "scripts": {
     "start:dev": "cross-env ENV_NAME=development quasar dev -m pwa",
     "build:dev": "cross-env ENV_NAME=development quasar build -m pwa --history",
-    "serve:dev": "cross-env ENV_NAME=development quasar serve ./dist/pwa --hostname 127.0.0.1 --history --https --port 443 -m pwa -K certs/dev-key.pem -C certs/dev-cert.pem",
+    "serve:dev": "cross-env ENV_NAME=development quasar serve ./dist/pwa --hostname localhost --history --https --port 443 -m pwa -K certs/dev-key.pem -C certs/dev-cert.pem",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\"",
     "test": "echo \"No test specified\" && exit 0",

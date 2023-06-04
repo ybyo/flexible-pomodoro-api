@@ -22,11 +22,7 @@ import { AppModule } from './app.module';
 const certPath = path.join(__dirname, '..', 'certs');
 
 const corsOption = {
-  origin: [
-    process.env.NODE_ENV === 'development'
-      ? 'https://127.0.0.1:4000'
-      : `https://${process.env.DOMAIN_URL}:4000`,
-  ],
+  origin: `https://${process.env.HOST_URL}:4000`,
   credentials: true,
   optionsSuccessStatus: 200,
 };
