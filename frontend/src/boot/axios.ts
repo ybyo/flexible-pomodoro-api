@@ -63,11 +63,7 @@ export default boot(({ app }) => {
     Pragma: 'no-cache',
     Expires: '0',
   };
-  api.defaults.headers.post['Access-Control-Allow-Origin'] = [
-    process.env.ENV_NAME === 'development'
-      ? 'https://127.0.0.1'
-      : 'https://pipetimer.com',
-  ];
+  api.defaults.headers.post['Access-Control-Allow-Origin'] = `https://${process.env.HOST_URL}`;
 });
 
 export { api, axios };

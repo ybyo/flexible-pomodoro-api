@@ -7,7 +7,7 @@
     "dev:db": "npm run start:db -w backend",
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run start:dev -w frontend",
-    "dev:compose:build": "docker compose --profile=local --env-file=./backend/env/.development.env build --no-cache",
+    "dev:compose:build": "docker compose --profile=local --env-file=./backend/env/.development.env build --no-cache --progress=plain",
     "dev:compose:up": "docker compose --profile=local --env-file=./backend/env/.development.env up"
   },
   "repository": {
