@@ -20,7 +20,7 @@ export class EmailService {
   ) {
     this.host =
       process.env.NODE_ENV === 'development'
-        ? '127.0.0.1:4000'
+        ? 'localhost:4000'
         : `${this.config.host}`;
 
     if (this.config.auth.sgMailKey) {

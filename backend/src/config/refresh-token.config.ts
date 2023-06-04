@@ -6,7 +6,6 @@ export default registerAs<CookieOptions>('refreshToken', () => ({
   httpOnly: true,
   secure: true,
   sameSite: 'lax',
-  domain:
-    process.env.NODE_ENV === 'development' ? '127.0.0.1' : 'pipetimer.com',
+  domain: process.env.HOST_URL,
   path: '/',
 }));
