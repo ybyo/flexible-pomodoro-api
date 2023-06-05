@@ -8,7 +8,8 @@
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run start:dev -w frontend",
     "dev:compose:build": "docker compose --profile=local --env-file=./backend/env/.development.env build --no-cache --progress=plain",
-    "dev:compose:up": "docker compose --profile=local --env-file=./backend/env/.development.env up"
+    "dev:compose:up": "docker compose --profile=local --env-file=./backend/env/.development.env up",
+    "dev:cert:init": "sh ./.github/scripts/create-local-certs.sh"
   },
   "repository": {
     "type": "git",
