@@ -3,7 +3,7 @@ import { ulid } from 'ulid';
 export const entityFormatter = <T>(
   arr: T[],
   prefix: string,
-  newProperty?: object,
+  newProperty?: object
 ) => {
   let formatResult = [];
   const ids = [];
@@ -19,7 +19,7 @@ export const entityFormatter = <T>(
         const data = entityFormatter(
           item[key],
           prefix,
-          newProperty,
+          newProperty
         ).formatResult;
         delete newItem[key];
         newItem[newKey] = data;

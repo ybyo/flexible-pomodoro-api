@@ -12,14 +12,14 @@ import {
 } from 'typeorm';
 import { ulid } from 'ulid';
 
-import { RedisTokenService }                  from '@/redis/redis-token.service';
-import { RoutineEntity }                      from '@/routines/infra/db/entity/routine.entity';
-import { RoutineToTimerEntity }               from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { IEmailAdapter }                      from '@/users/application/adapter/iemail.adapter';
-import { IUserRepository }                    from '@/users/domain/iuser.repository';
-import { UserFactory }                        from '@/users/domain/user.factory';
+import { RedisTokenService } from '@/redis/redis-token.service';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
+import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
+import { IUserRepository } from '@/users/domain/iuser.repository';
+import { UserFactory } from '@/users/domain/user.factory';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { UserEntity }                         from '@/users/infra/db/entity/user.entity';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -35,7 +35,7 @@ export class UserRepository implements IUserRepository {
     private userFactory: UserFactory,
     @Inject(Logger) private logger: LoggerService,
     @Inject('EmailService') private emailService: IEmailAdapter,
-    private redisService: RedisTokenService,
+    private redisService: RedisTokenService
   ) {}
   async findByEmail(email: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ email });
@@ -53,7 +53,7 @@ export class UserRepository implements IUserRepository {
 
   async findByEmailAndPassword(
     email: string,
-    password: string,
+    password: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
       email: email,
@@ -74,7 +74,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByResetPasswordToken(
-    token: string,
+    token: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
       resetPasswordToken: token,
@@ -93,7 +93,7 @@ export class UserRepository implements IUserRepository {
 
   private calculateExpirationTime(): number {
     return new Date(
-      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000,
+      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
     ).getTime();
   }
 
@@ -110,11 +110,11 @@ export class UserRepository implements IUserRepository {
           await this.redisService.setPXAT(
             `signupToken:${token}`,
             '1',
-            expiredAt,
+            expiredAt
           );
 
           return await manager.save(userEntity);
-        },
+        }
       );
     } catch (err) {
       this.logger.log(err);
@@ -124,7 +124,7 @@ export class UserRepository implements IUserRepository {
 
   async sendChangeEmailToken(
     oldEmail: string,
-    newEmail: string,
+    newEmail: string
   ): Promise<UpdateResult> {
     const token = ulid();
     const expiredAt = this.calculateExpirationTime();
@@ -136,13 +136,13 @@ export class UserRepository implements IUserRepository {
         await this.redisService.setPXAT(
           `changeEmailToken:${token}`,
           '1',
-          expiredAt,
+          expiredAt
         );
 
         return await manager.update(
           UserEntity,
           { email: oldEmail },
-          { changeEmailToken: token, newEmail },
+          { changeEmailToken: token, newEmail }
         );
       });
     } catch (err) {
@@ -152,12 +152,12 @@ export class UserRepository implements IUserRepository {
 
   async updateUser(
     user: Partial<UserWithoutPassword>,
-    column: Partial<UserWithoutPassword>,
+    column: Partial<UserWithoutPassword>
   ): Promise<UpdateResult> {
     return await this.dataSource.transaction(
       async (manager): Promise<UpdateResult> => {
         return await manager.update(UserEntity, user, column);
-      },
+      }
     );
   }
 
@@ -199,13 +199,13 @@ export class UserRepository implements IUserRepository {
       await this.redisService.setPXAT(
         `resetPasswordToken:${token}`,
         '1',
-        expiredAt,
+        expiredAt
       );
 
       return await manager.update(
         UserEntity,
         { email },
-        { resetPasswordToken: token },
+        { resetPasswordToken: token }
       );
     });
   }
@@ -221,7 +221,7 @@ export class UserRepository implements IUserRepository {
   async changePassword(
     id: string,
     password: string,
-    token: string,
+    token: string
   ): Promise<UpdateResult> {
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
@@ -235,7 +235,7 @@ export class UserRepository implements IUserRepository {
         return await manager.update(
           UserEntity,
           { id },
-          { password: hashed, resetPasswordToken: null },
+          { password: hashed, resetPasswordToken: null }
         );
       });
     } catch (err) {
@@ -244,7 +244,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByChangeEmailToken(
-    token: string,
+    token: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
       changeEmailToken: token,
@@ -258,7 +258,7 @@ export class UserRepository implements IUserRepository {
   async changeEmail(
     id: string,
     newEmail: string,
-    token: string,
+    token: string
   ): Promise<UpdateResult> {
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
@@ -271,7 +271,7 @@ export class UserRepository implements IUserRepository {
         return await manager.update(
           UserEntity,
           { id },
-          { email: newEmail, changeEmailToken: null, newEmail: null },
+          { email: newEmail, changeEmailToken: null, newEmail: null }
         );
       });
     } catch (err) {
@@ -281,7 +281,7 @@ export class UserRepository implements IUserRepository {
 
   async findByToken(
     column: string,
-    token: string,
+    token: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({ [column]: token });
     if (!userEntity) return null;
@@ -291,7 +291,7 @@ export class UserRepository implements IUserRepository {
 
   async renewSignupToken(
     email: string,
-    oldToken: string,
+    oldToken: string
   ): Promise<UpdateResult> {
     const redis = await this.redisService.getClient();
     const multi = redis.multi();
@@ -306,7 +306,7 @@ export class UserRepository implements IUserRepository {
       return await manager.update(
         UserEntity,
         { email },
-        { signupToken: newToken },
+        { signupToken: newToken }
       );
     });
   }

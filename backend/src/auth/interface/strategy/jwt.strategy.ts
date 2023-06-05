@@ -3,7 +3,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { AuthService } from '@/auth/application/auth.service';
-import { UserJwt }     from '@/users/domain/user.model';
+import { UserJwt } from '@/users/domain/user.model';
 
 const cookieExtractor = (req) => {
   let token = null;

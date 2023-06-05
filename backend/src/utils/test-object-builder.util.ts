@@ -2,7 +2,7 @@ import * as Chance from 'chance';
 import { ulid } from 'ulid';
 
 import { UserWithoutPassword } from '@/users/domain/user.model';
-import { RegisterUserDto }     from '@/users/interface/dto/register-user.dto';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
 export class CreateRandomObject {
   private static chance = new Chance();

@@ -7,7 +7,7 @@ import {
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
-import { Timer }       from '@/timers/domain/timer.model';
+import { Timer } from '@/timers/domain/timer.model';
 import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class TimerProfile extends AutomapperProfile {
         mapper,
         TimerEntity,
         Timer,
-        namingConventions(new CamelCaseNamingConvention()),
+        namingConventions(new CamelCaseNamingConvention())
       );
     };
   }

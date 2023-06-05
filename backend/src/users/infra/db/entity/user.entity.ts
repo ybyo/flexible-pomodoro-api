@@ -11,10 +11,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Routine }       from '@/routines/domain/routine.model';
+import { Routine } from '@/routines/domain/routine.model';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
-import { Timer }         from '@/timers/domain/timer.model';
-import { TimerEntity }   from '@/timers/infra/db/entity/timer.entity';
+import { Timer } from '@/timers/domain/timer.model';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {

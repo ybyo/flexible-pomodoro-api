@@ -9,7 +9,7 @@ import { ITimerRepository } from '@/timers/domain/itimer.repository';
 export class SaveTimerHandler implements ICommandHandler<SaveTimerCommand> {
   constructor(
     @Inject('TimerRepository')
-    private timerRepository: ITimerRepository,
+    private timerRepository: ITimerRepository
   ) {}
   async execute(command: SaveTimerCommand) {
     const { id, timer } = command;

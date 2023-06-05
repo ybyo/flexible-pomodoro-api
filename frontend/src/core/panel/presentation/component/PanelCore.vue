@@ -94,7 +94,7 @@ import {
   watch,
   watchEffect,
 } from 'vue';
-import {onBeforeRouteLeave} from 'vue-router';
+import { onBeforeRouteLeave } from 'vue-router';
 
 const $q = useQuasar();
 

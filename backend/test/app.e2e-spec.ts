@@ -4,8 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 
-import { AppModule }          from '@/app.module';
-import { UserEntity }         from '@/users/infra/db/entity/user.entity';
+import { AppModule } from '@/app.module';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
 jest.setTimeout(30000);

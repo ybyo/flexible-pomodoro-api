@@ -4,7 +4,7 @@ import * as Chance from 'chance';
 
 import { SendChangeEmailTokenHandler } from '@/users/application/command/handlers/send-change-email-token.handler';
 import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
-import { IUserRepository }             from '@/users/domain/iuser.repository';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 
 describe('SendChangeEmailTokenHandler', () => {
   let sendChangeEmailTokenHandler: SendChangeEmailTokenHandler;
@@ -34,7 +34,7 @@ describe('SendChangeEmailTokenHandler', () => {
     }).compile();
 
     sendChangeEmailTokenHandler = moduleRef.get<SendChangeEmailTokenHandler>(
-      SendChangeEmailTokenHandler,
+      SendChangeEmailTokenHandler
     );
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
   });
@@ -50,13 +50,13 @@ describe('SendChangeEmailTokenHandler', () => {
 
     const command = new SendChangeEmailTokenCommand(
       randomEmail.oldEmail,
-      randomEmail.newEmail,
+      randomEmail.newEmail
     );
     const result = await sendChangeEmailTokenHandler.execute(command);
 
     expect(userRepository.sendChangeEmailToken).toHaveBeenCalledWith(
       command.oldEmail,
-      command.newEmail,
+      command.newEmail
     );
     expect(result).toEqual({ success: true });
   });
@@ -68,17 +68,17 @@ describe('SendChangeEmailTokenHandler', () => {
 
     const command = new SendChangeEmailTokenCommand(
       randomEmail.oldEmail,
-      randomEmail.newEmail,
+      randomEmail.newEmail
     );
 
     await expect(
-      sendChangeEmailTokenHandler.execute(command),
+      sendChangeEmailTokenHandler.execute(command)
     ).rejects.toThrowError(
-      new InternalServerErrorException('Cannot send change email token'),
+      new InternalServerErrorException('Cannot send change email token')
     );
     expect(userRepository.sendChangeEmailToken).toHaveBeenCalledWith(
       command.oldEmail,
-      command.newEmail,
+      command.newEmail
     );
   });
 });

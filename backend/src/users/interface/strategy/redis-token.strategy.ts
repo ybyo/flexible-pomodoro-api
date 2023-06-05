@@ -3,17 +3,17 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 
-import { AuthService }       from '@/auth/application/auth.service';
+import { AuthService } from '@/auth/application/auth.service';
 import { RedisTokenService } from '@/redis/redis-token.service';
 
 @Injectable()
 export class RedisTokenStrategy extends PassportStrategy(
   Strategy,
-  'redis-token',
+  'redis-token'
 ) {
   constructor(
     private authService: AuthService,
-    private redisService: RedisTokenService,
+    private redisService: RedisTokenService
   ) {
     super();
   }

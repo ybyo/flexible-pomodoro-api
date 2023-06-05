@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 
 import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handlers/verify-change-email-token.handler';
 import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
-import { IUserRepository }               from '@/users/domain/iuser.repository';
-import { CreateRandomObject }            from '@/utils/test-object-builder.util';
+import { IUserRepository } from '@/users/domain/iuser.repository';
+import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
 describe('VerifyChangeEmailTokenHandler', () => {
   let verifyChangeEmailTokenHandler: VerifyChangeEmailTokenHandler;
@@ -28,7 +28,7 @@ describe('VerifyChangeEmailTokenHandler', () => {
 
     verifyChangeEmailTokenHandler =
       moduleRef.get<VerifyChangeEmailTokenHandler>(
-        VerifyChangeEmailTokenHandler,
+        VerifyChangeEmailTokenHandler
       );
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
   });
@@ -51,12 +51,12 @@ describe('VerifyChangeEmailTokenHandler', () => {
     });
 
     expect(userRepository.findByChangeEmailToken).toHaveBeenCalledWith(
-      command.changeEmailToken,
+      command.changeEmailToken
     );
     expect(userRepository.changeEmail).toHaveBeenCalledWith(
       user.id,
       user.newEmail,
-      command.changeEmailToken,
+      command.changeEmailToken
     );
   });
 
@@ -65,13 +65,13 @@ describe('VerifyChangeEmailTokenHandler', () => {
 
     const command = new VerifyChangeEmailTokenCommand(user.changeEmailToken);
     await expect(
-      verifyChangeEmailTokenHandler.execute(command),
+      verifyChangeEmailTokenHandler.execute(command)
     ).rejects.toThrow(
-      new InternalServerErrorException('Cannot verify change email token'),
+      new InternalServerErrorException('Cannot verify change email token')
     );
 
     expect(userRepository.findByChangeEmailToken).toHaveBeenCalledWith(
-      command.changeEmailToken,
+      command.changeEmailToken
     );
   });
 
@@ -81,13 +81,13 @@ describe('VerifyChangeEmailTokenHandler', () => {
 
     const command = new VerifyChangeEmailTokenCommand(user.changeEmailToken);
     await expect(
-      verifyChangeEmailTokenHandler.execute(command),
+      verifyChangeEmailTokenHandler.execute(command)
     ).rejects.toThrow(
-      new InternalServerErrorException('Cannot verify change email token'),
+      new InternalServerErrorException('Cannot verify change email token')
     );
 
     expect(userRepository.findByChangeEmailToken).toHaveBeenCalledWith(
-      command.changeEmailToken,
+      command.changeEmailToken
     );
   });
 });

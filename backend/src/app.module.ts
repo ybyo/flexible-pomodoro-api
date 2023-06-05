@@ -14,20 +14,20 @@ import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
 import * as passport from 'passport';
 import * as path from 'path';
 
-import { AuthModule }               from '@/auth/auth.module';
-import accessTokenConfig            from '@/config/access-token.config';
-import emailConfig                  from '@/config/email.config';
-import refreshTokenConfig           from '@/config/refresh-token.config';
-import { validationSchema }         from '@/config/validation.schema';
+import { AuthModule } from '@/auth/auth.module';
+import accessTokenConfig from '@/config/access-token.config';
+import emailConfig from '@/config/email.config';
+import refreshTokenConfig from '@/config/refresh-token.config';
+import { validationSchema } from '@/config/validation.schema';
 import { ormConfig, ormTestConfig } from '@/db/orm.config';
-import { ExceptionModule }          from '@/exception/exception-module';
-import { HealthCheckController }    from '@/health-check/health-check.controller';
-import { LoggingModule }            from '@/logging/logging.module';
-import { REDIS_AUTH }               from '@/redis/redis.constants';
-import { RedisModule }              from '@/redis/redis.module';
-import { RoutineModule }            from '@/routines/routine.module';
-import { TimerModule }              from '@/timers/timer.module';
-import { UserModule }               from '@/users/user.module';
+import { ExceptionModule } from '@/exception/exception-module';
+import { HealthCheckController } from '@/health-check/health-check.controller';
+import { LoggingModule } from '@/logging/logging.module';
+import { REDIS_AUTH } from '@/redis/redis.constants';
+import { RedisModule } from '@/redis/redis.module';
+import { RoutineModule } from '@/routines/routine.module';
+import { TimerModule } from '@/timers/timer.module';
+import { UserModule } from '@/users/user.module';
 
 import jwtConfig from './config/jwt.config';
 
@@ -78,7 +78,7 @@ export class AppModule implements NestModule {
   constructor(
     @Inject(REDIS_AUTH) private redisClient: RedisClient,
     @Inject(refreshTokenConfig.KEY)
-    private refreshTokenConf: ConfigType<typeof refreshTokenConfig>,
+    private refreshTokenConf: ConfigType<typeof refreshTokenConfig>
   ) {}
 
   configure(consumer: MiddlewareConsumer): void {
@@ -96,7 +96,7 @@ export class AppModule implements NestModule {
           cookie: this.refreshTokenConf,
         }),
         passport.initialize(),
-        passport.session(),
+        passport.session()
       )
       .forRoutes('*');
   }
