@@ -2,8 +2,8 @@ import { BadRequestException, Inject } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
-import { IUserRepository }                      from '@/users/domain/iuser.repository';
-import { UserWithoutPassword }                  from '@/users/domain/user.model';
+import { IUserRepository } from '@/users/domain/iuser.repository';
+import { UserWithoutPassword } from '@/users/domain/user.model';
 
 @QueryHandler(CheckResetPasswordTokenValidityQuery)
 export class CheckResetPasswordTokenValidityHandler
@@ -11,14 +11,14 @@ export class CheckResetPasswordTokenValidityHandler
 {
   constructor(
     @Inject('UserRepository')
-    private userRepository: IUserRepository,
+    private userRepository: IUserRepository
   ) {}
 
   async execute(
-    query: CheckResetPasswordTokenValidityQuery,
+    query: CheckResetPasswordTokenValidityQuery
   ): Promise<UserWithoutPassword | null> {
     const user = await this.userRepository.findByResetPasswordToken(
-      query.token,
+      query.token
     );
 
     if (user) return user;

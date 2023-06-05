@@ -10,13 +10,13 @@ import {
 import * as filter from 'leo-profanity';
 
 import { MatchPassword } from '@/utils/decorators/match-password.decorator';
-import { NotIn }         from '@/utils/decorators/not-in.decorator';
+import { NotIn } from '@/utils/decorators/not-in.decorator';
 
 export class RegisterUserDto {
   @Transform(({ value, obj }) => {
     if (obj.password.includes(value.trim())) {
       throw new BadRequestException(
-        'The email string is included in the password.',
+        'The email string is included in the password.'
       );
     }
     return value.trim();

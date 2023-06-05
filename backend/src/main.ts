@@ -49,7 +49,7 @@ async function bootstrap() {
             nestWinstonModuleUtilities.format.nestLike(process.env.NODE_ENV, {
               prettyPrint: true,
               colors: true,
-            }),
+            })
           ),
         }),
       ],
@@ -60,7 +60,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-    }),
+    })
   );
 
   if (process.env.NODE_ENV === 'development') {
@@ -71,7 +71,7 @@ async function bootstrap() {
         users: {
           [process.env.SWAGGER_ID]: process.env.SWAGGER_PASSWORD,
         },
-      }),
+      })
     );
 
     const options: SwaggerDocumentOptions = {
@@ -89,7 +89,7 @@ async function bootstrap() {
           type: 'apiKey',
           in: 'cookie',
         },
-        'accessToken',
+        'accessToken'
       )
       .build();
 

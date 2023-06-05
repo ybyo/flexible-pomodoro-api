@@ -4,7 +4,7 @@ import * as Chance from 'chance';
 
 import { SendResetPasswordTokenHandler } from '@/users/application/command/handlers/send-reset-password-token.handler';
 import { SendResetPasswordTokenCommand } from '@/users/application/command/impl/send-reset-password-token.command';
-import { IUserRepository }               from '@/users/domain/iuser.repository';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 
 const chance = new Chance();
 
@@ -29,7 +29,7 @@ describe('SendResetPasswordEmailHandler', () => {
 
     sendResetPasswordEmailHandler =
       moduleRef.get<SendResetPasswordTokenHandler>(
-        SendResetPasswordTokenHandler,
+        SendResetPasswordTokenHandler
       );
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
   });
@@ -47,7 +47,7 @@ describe('SendResetPasswordEmailHandler', () => {
     const result = await sendResetPasswordEmailHandler.execute(command);
 
     expect(userRepository.sendResetPasswordToken).toHaveBeenCalledWith(
-      randomEmail,
+      randomEmail
     );
     expect(result).toEqual({ success: true });
   });
@@ -60,12 +60,12 @@ describe('SendResetPasswordEmailHandler', () => {
     const command = new SendResetPasswordTokenCommand(randomEmail);
 
     await expect(
-      sendResetPasswordEmailHandler.execute(command),
+      sendResetPasswordEmailHandler.execute(command)
     ).rejects.toThrowError(
-      new InternalServerErrorException('Cannot send reset password email'),
+      new InternalServerErrorException('Cannot send reset password email')
     );
     expect(userRepository.sendResetPasswordToken).toHaveBeenCalledWith(
-      command.email,
+      command.email
     );
   });
 });

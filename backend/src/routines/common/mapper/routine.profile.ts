@@ -7,7 +7,7 @@ import {
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
-import { Routine }       from '@/routines/domain/routine.model';
+import { Routine } from '@/routines/domain/routine.model';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class RoutineProfile extends AutomapperProfile {
         mapper,
         RoutineEntity,
         Routine,
-        namingConventions(new CamelCaseNamingConvention()),
+        namingConventions(new CamelCaseNamingConvention())
       );
     };
   }

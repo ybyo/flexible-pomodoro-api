@@ -3,7 +3,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { PassportSerializer } from '@nestjs/passport';
 
 import { GetUserByIdQuery } from '@/auth/application/query/impl/get-user-by-id.query';
-import { UserJwt }          from '@/users/domain/user.model';
+import { UserJwt } from '@/users/domain/user.model';
 
 @Injectable()
 export class AuthSerializer extends PassportSerializer {
@@ -14,8 +14,8 @@ export class AuthSerializer extends PassportSerializer {
     user: UserJwt,
     done: (
       err: Error,
-      user: { id: string; email: string; username: string },
-    ) => void,
+      user: { id: string; email: string; username: string }
+    ) => void
   ) {
     done(null, {
       id: user.id,
@@ -26,7 +26,7 @@ export class AuthSerializer extends PassportSerializer {
 
   async deserializeUser(
     payload: { id: string; email: string; username: string },
-    done: (err: Error, user: Omit<UserJwt, 'password'>) => void,
+    done: (err: Error, user: Omit<UserJwt, 'password'>) => void
   ) {
     const query = new GetUserByIdQuery(payload.id);
     const user = await this.queryBus.execute(query);

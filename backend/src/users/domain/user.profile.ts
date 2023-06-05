@@ -4,7 +4,7 @@ import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { UserEntity }                         from '@/users/infra/db/entity/user.entity';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Injectable()
 export class UserProfile extends AutomapperProfile {

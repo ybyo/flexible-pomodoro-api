@@ -13,19 +13,19 @@ import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { ulid } from 'ulid';
 
-import { CheckDuplicateNameQuery }              from '@/auth/application/query/impl/check-duplicate-name.query';
-import { SuccessDto }                           from '@/auth/interface/dto/success.dto';
-import accessTokenConfig                        from '@/config/access-token.config';
-import jwtConfig, { jwtExpConfig }              from '@/config/jwt.config';
-import { IRedisTokenAdapter }                   from '@/users/application/adapter/iredis-token.adapter';
-import { ChangeNameCommand }                    from '@/users/application/command/impl/change-name.command';
+import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
+import { SuccessDto } from '@/auth/interface/dto/success.dto';
+import accessTokenConfig from '@/config/access-token.config';
+import jwtConfig, { jwtExpConfig } from '@/config/jwt.config';
+import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
+import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
-import { CheckSignupTokenValidityQuery }        from '@/users/application/query/impl/check-signup-token-validity.query';
-import { IUserRepository }                      from '@/users/domain/iuser.repository';
-import { User, UserJwt, UserWithoutPassword }   from '@/users/domain/user.model';
-import { JwtResponseDto }                       from '@/users/interface/dto/jwt-response.dto';
-import { LoginUserDto }                         from '@/users/interface/dto/login-user.dto';
-import { RegisterUserDto }                      from '@/users/interface/dto/register-user.dto';
+import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
+import { IUserRepository } from '@/users/domain/iuser.repository';
+import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
+import { JwtResponseDto } from '@/users/interface/dto/jwt-response.dto';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +37,7 @@ export class AuthService {
     private queryBus: QueryBus,
     @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private logger: Logger,
+    private logger: Logger
   ) {}
 
   async login(dto: LoginUserDto): Promise<UserJwt> {
@@ -49,7 +49,7 @@ export class AuthService {
 
     const isValid = await this.verifyPassword(
       storedUser.password,
-      dto.password,
+      dto.password
     );
     if (!isValid) {
       throw new UnauthorizedException('Incorrect email or password');
@@ -64,7 +64,7 @@ export class AuthService {
 
   async verifyPassword(
     hashedPassword: string,
-    password: string,
+    password: string
   ): Promise<boolean> {
     return await argon2.verify(hashedPassword, password);
   }
@@ -75,7 +75,7 @@ export class AuthService {
     try {
       payload = jwt.verify(
         jwtString,
-        this.jwtConf.jwtSecret,
+        this.jwtConf.jwtSecret
       ) as jwt.JwtPayload & UserWithoutPassword;
 
       return {
@@ -146,7 +146,7 @@ export class AuthService {
 
   async changePassword(
     token: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<SuccessDto> {
     const result = await this.verifyJWT(token);
 
@@ -155,7 +155,7 @@ export class AuthService {
         const updateResult = await this.userRepository.changePassword(
           result.data.id,
           newPassword,
-          token,
+          token
         );
 
         if (updateResult.affected) return { success: true };
@@ -168,7 +168,7 @@ export class AuthService {
   async changeNameAndJWT(
     id: string,
     email: string,
-    newName: string,
+    newName: string
   ): Promise<any> {
     const query = new CheckDuplicateNameQuery(newName);
     const result = await this.queryBus.execute(query);

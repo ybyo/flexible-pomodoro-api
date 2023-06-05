@@ -8,7 +8,7 @@ import { REDIS_TOKEN } from '@/redis/redis.constants';
 export class RedisTokenService {
   constructor(
     private commandBus: CommandBus,
-    @Inject(REDIS_TOKEN) private redisClient: Redis,
+    @Inject(REDIS_TOKEN) private redisClient: Redis
   ) {}
 
   async setPXAT(key: string, value: string, expiredAt?: number): Promise<'OK'> {

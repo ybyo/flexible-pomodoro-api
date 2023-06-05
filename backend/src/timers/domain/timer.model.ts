@@ -14,7 +14,7 @@ export class Timer {
         this,
         plainToClass(Timer, timer, {
           excludeExtraneousValues: false,
-        }),
+        })
       );
     }
   }

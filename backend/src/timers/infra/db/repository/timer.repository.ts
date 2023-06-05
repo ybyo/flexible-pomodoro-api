@@ -4,12 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
-import { RoutineEntity }        from '@/routines/infra/db/entity/routine.entity';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { ITimerRepository }     from '@/timers/domain/itimer.repository';
-import { Timer }                from '@/timers/domain/timer.model';
-import { TimerEntity }          from '@/timers/infra/db/entity/timer.entity';
-import { entityFormatter }      from '@/utils/entity-formatter.util';
+import { ITimerRepository } from '@/timers/domain/itimer.repository';
+import { Timer } from '@/timers/domain/timer.model';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
+import { entityFormatter } from '@/utils/entity-formatter.util';
 
 @Injectable()
 export class TimerRepository implements ITimerRepository {
@@ -21,7 +21,7 @@ export class TimerRepository implements ITimerRepository {
     @InjectRepository(RoutineToTimerEntity)
     private routineToTimerRepository: Repository<RoutineToTimerEntity>,
     @InjectRepository(RoutineEntity)
-    private routineRepository: Repository<RoutineEntity>,
+    private routineRepository: Repository<RoutineEntity>
   ) {}
   async fetchTimer(id: string): Promise<Timer[]> {
     const timerEntity = await this.timerRepository.find({
@@ -55,7 +55,7 @@ export class TimerRepository implements ITimerRepository {
 
         // 현재 사용자의 Timer 인벤토리에 저장된 Timer만을 반영
         const dataToRemove = data.filter(
-          (timer) => !ids.includes(timer.timerId),
+          (timer) => !ids.includes(timer.timerId)
         );
 
         if (dataToRemove.length > 0) {
@@ -69,7 +69,7 @@ export class TimerRepository implements ITimerRepository {
                 relations: ['routine'],
               });
             const routineId = routineToTimerEntities.map(
-              (entry) => entry.routine.id,
+              (entry) => entry.routine.id
             );
             routineIds.add(routineId[0]);
           }

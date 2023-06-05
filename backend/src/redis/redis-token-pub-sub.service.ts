@@ -12,7 +12,7 @@ export class RedisTokenPubSubService {
     private commandBus: CommandBus,
     @Inject(REDIS_SUB) private redisClient: Redis,
     @Inject('UserRepository') private userRepository: IUserRepository,
-    private logger: Logger,
+    private logger: Logger
   ) {
     const tokenList = ['signupToken', 'changeEmailToken', 'resetPasswordToken'];
 
@@ -37,7 +37,7 @@ export class RedisTokenPubSubService {
   private subRedisToken(
     client: Redis,
     message: string,
-    eventList: string[],
+    eventList: string[]
   ): void {
     client.subscribe(message);
     client.on('message', async (channel, key): Promise<void> => {
@@ -60,7 +60,7 @@ export class RedisTokenPubSubService {
 
   private async expireToken(
     event: string,
-    token: string,
+    token: string
   ): Promise<UpdateResult | DeleteResult> {
     const user = await this.userRepository.findByToken(event, token);
     console.log(user);
@@ -70,7 +70,7 @@ export class RedisTokenPubSubService {
     } else {
       return await this.userRepository.updateUser(
         { id: user.id },
-        { [event]: null },
+        { [event]: null }
       );
     }
   }

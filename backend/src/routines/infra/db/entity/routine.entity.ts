@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { UserEntity }           from '@/users/infra/db/entity/user.entity';
+import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Entity('Routine')
 export class RoutineEntity extends BaseEntity {
@@ -43,7 +43,7 @@ export class RoutineEntity extends BaseEntity {
     (routineToTimer) => routineToTimer.routine,
     {
       cascade: true,
-    },
+    }
   )
   routineToTimer: RoutineToTimerEntity[];
 }

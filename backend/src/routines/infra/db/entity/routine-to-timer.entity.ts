@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
-import { TimerEntity }   from '@/timers/infra/db/entity/timer.entity';
+import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Entity('RoutineToTimer')
 export class RoutineToTimerEntity {

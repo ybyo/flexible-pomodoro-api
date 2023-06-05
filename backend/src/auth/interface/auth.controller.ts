@@ -25,24 +25,24 @@ import {
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { AuthService }              from '@/auth/application/auth.service';
-import { ResendEmailCommand }       from '@/auth/application/command/impl/resend-email.command';
+import { AuthService } from '@/auth/application/auth.service';
+import { ResendEmailCommand } from '@/auth/application/command/impl/resend-email.command';
 import { CheckDuplicateEmailQuery } from '@/auth/application/query/impl/check-duplicate-email.query';
-import { GetUserByEmailQuery }      from '@/auth/application/query/impl/get-user-by-email.query';
-import { RequestWithUserDto }       from '@/auth/interface/dto/request-with-user.dto';
-import { ResendEmailDto }           from '@/auth/interface/dto/resend-email.dto';
-import { SuccessDto }               from '@/auth/interface/dto/success.dto';
-import { UserJwtWithVerifiedDto }   from '@/auth/interface/dto/user-jwt-with-verified.dto';
-import { JwtAuthGuard }             from '@/auth/interface/guard/jwt-auth.guard';
-import { LocalGuard }               from '@/auth/interface/guard/local.guard';
-import { LoggedInGuard }            from '@/auth/interface/guard/logged-in.guard';
-import accessTokenConfig            from '@/config/access-token.config';
-import refreshTokenConfig           from '@/config/refresh-token.config';
-import { Session }                  from '@/shared/types/common-types';
-import { IEmailAdapter }            from '@/users/application/adapter/iemail.adapter';
-import { CheckDuplicateEmailDto }   from '@/users/interface/dto/check-duplicate-email.dto';
-import { LoginUserDto }             from '@/users/interface/dto/login-user.dto';
-import { RegisterUserDto }          from '@/users/interface/dto/register-user.dto';
+import { GetUserByEmailQuery } from '@/auth/application/query/impl/get-user-by-email.query';
+import { RequestWithUserDto } from '@/auth/interface/dto/request-with-user.dto';
+import { ResendEmailDto } from '@/auth/interface/dto/resend-email.dto';
+import { SuccessDto } from '@/auth/interface/dto/success.dto';
+import { UserJwtWithVerifiedDto } from '@/auth/interface/dto/user-jwt-with-verified.dto';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
+import { LocalGuard } from '@/auth/interface/guard/local.guard';
+import { LoggedInGuard } from '@/auth/interface/guard/logged-in.guard';
+import accessTokenConfig from '@/config/access-token.config';
+import refreshTokenConfig from '@/config/refresh-token.config';
+import { Session } from '@/shared/types/common-types';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
+import { CheckDuplicateEmailDto } from '@/users/interface/dto/check-duplicate-email.dto';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -55,7 +55,7 @@ export class AuthController {
     @Inject('EmailService') private emailService: IEmailAdapter,
     private authService: AuthService,
     private commandBus: CommandBus,
-    private queryBus: QueryBus,
+    private queryBus: QueryBus
   ) {}
 
   @Patch('check-duplicate-email')
@@ -63,7 +63,7 @@ export class AuthController {
   @ApiBody({ type: CheckDuplicateEmailDto })
   @ApiResponse({ type: CheckDuplicateEmailDto })
   async CheckDuplicateEmail(
-    @Body() dto: CheckDuplicateEmailDto,
+    @Body() dto: CheckDuplicateEmailDto
   ): Promise<CheckDuplicateEmailDto> {
     const query = new CheckDuplicateEmailQuery(dto.email);
     return await this.commandBus.execute(query);
@@ -75,7 +75,7 @@ export class AuthController {
   @ApiResponse({ type: SuccessDto })
   async registerUser(
     @Req() req: Request,
-    @Body() body: RegisterUserDto,
+    @Body() body: RegisterUserDto
   ): Promise<SuccessDto> {
     return await this.authService.registerUser(body);
   }
@@ -101,7 +101,7 @@ export class AuthController {
   })
   async refreshAuth(
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ): Promise<Session> {
     const token = await this.authService.issueJWT(req.user);
     res.cookie('accessToken', token, this.accessConf);
@@ -140,7 +140,7 @@ export class AuthController {
   })
   async logout(
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ): Promise<Session> {
     req.logout((err) => {
       if (err) return err;

@@ -16,7 +16,7 @@ export class EmailService {
   constructor(
     @Inject(emailConfig.KEY)
     private config: ConfigType<typeof emailConfig>,
-    private logger: Logger,
+    private logger: Logger
   ) {
     this.host =
       process.env.NODE_ENV === 'development'
@@ -65,13 +65,13 @@ export class EmailService {
     if (this.config.auth.sgMailKey) {
       sgMail.send(mailOptions).then(() => {
         this.logger.verbose(
-          `Email sent successfully...\nTo: ${email}\nSubject: ${subject}`,
+          `Email sent successfully...\nTo: ${email}\nSubject: ${subject}`
         );
       });
     } else {
       this.transporter.sendMail(nodemailerOptions).then(() => {
         this.logger.verbose(
-          `[Nodemailer] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`,
+          `[Nodemailer] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`
         );
       });
     }
@@ -82,7 +82,7 @@ export class EmailService {
     const url = `https://${this.host}/users/verify-email?signupToken=${token}`;
     const template = path.join(
       __dirname,
-      '../../public/signup-email-inlined.ejs',
+      '../../public/signup-email-inlined.ejs'
     );
 
     this.sendToken(email, subject, url, template);
@@ -93,7 +93,7 @@ export class EmailService {
     const url = `https://${this.host}/users/verify-change-email-token?changeEmailToken=${token}`;
     const template = path.join(
       __dirname,
-      '../../public/change-email-inlined.ejs',
+      '../../public/change-email-inlined.ejs'
     );
 
     this.sendToken(email, subject, url, template);
@@ -104,7 +104,7 @@ export class EmailService {
     const url = `https://${this.host}/users/verify-reset-password?resetPasswordToken=${token}`;
     const template = path.join(
       __dirname,
-      '../../public/reset-password-inlined.ejs',
+      '../../public/reset-password-inlined.ejs'
     );
 
     this.sendToken(email, subject, url, template);

@@ -11,7 +11,7 @@ export class UserFactory {
     password: string,
     signupToken: string,
     changePasswordToken: string,
-    changeEmailToken: string,
+    changeEmailToken: string
   ): UserWithoutPassword {
     const user = new UserWithoutPassword();
     user.id = id;

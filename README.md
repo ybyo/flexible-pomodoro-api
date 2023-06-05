@@ -48,12 +48,13 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    npm run dev:cert:init
    ```
 3. 앱 구동에 필요한 필수 환경변수를 설정합니다. 환경 변수를 제공하는 파일은 `backend/env/.development.env`에 있습니다. `HOST_URL`은 자신의 환경, 도메인에 맞추어 설정합니다.
+
    ```dotenv
    # Nodemailer(Required)
    EMAIL_SERVICE=
    EMAIL_AUTH_USER=
    EMAIL_AUTH_PASSWORD=
-   
+
    # Frontend
    HOST_URL=
 
@@ -72,6 +73,7 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    ```
 
 4. 앱을 구동합니다.
+
    ```sh
    npm run dev:compse:up
    ```

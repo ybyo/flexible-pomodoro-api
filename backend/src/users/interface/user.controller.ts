@@ -23,25 +23,25 @@ import {
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { AuthService }                   from '@/auth/application/auth.service';
-import { SuccessDto }                    from '@/auth/interface/dto/success.dto';
-import { JwtAuthGuard }                  from '@/auth/interface/guard/jwt-auth.guard';
-import accessTokenConfig                 from '@/config/access-token.config';
-import { REDIS_TOKEN }                   from '@/redis/redis.constants';
-import { Session }                       from '@/shared/types/common-types';
-import { IEmailAdapter }                 from '@/users/application/adapter/iemail.adapter';
-import { IRedisTokenAdapter }            from '@/users/application/adapter/iredis-token.adapter';
-import { DeleteUserCommand }             from '@/users/application/command/impl/delete-user.command';
-import { SendChangeEmailTokenCommand }   from '@/users/application/command/impl/send-change-email-token.command';
+import { AuthService } from '@/auth/application/auth.service';
+import { SuccessDto } from '@/auth/interface/dto/success.dto';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
+import accessTokenConfig from '@/config/access-token.config';
+import { REDIS_TOKEN } from '@/redis/redis.constants';
+import { Session } from '@/shared/types/common-types';
+import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
+import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
+import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
+import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
 import { SendResetPasswordTokenCommand } from '@/users/application/command/impl/send-reset-password-token.command';
 import { VerifyChangeEmailTokenCommand } from '@/users/application/command/impl/verify-change-email-token.command';
-import { UserJwt }                       from '@/users/domain/user.model';
-import { ChangePasswordDto }             from '@/users/interface/dto/change-password.dto';
-import { ChangeUsernameDto }             from '@/users/interface/dto/change-username.dto';
-import { DeleteAccountDto }              from '@/users/interface/dto/delete-account.dto';
-import { SendChangeEmailTokenDto }       from '@/users/interface/dto/send-change-email-token.dto';
-import { SendResetPasswordEmailDto }     from '@/users/interface/dto/send-reset-password-email.dto';
-import { RedisTokenGuard }               from '@/users/interface/guard/redis-token.guard';
+import { UserJwt } from '@/users/domain/user.model';
+import { ChangePasswordDto } from '@/users/interface/dto/change-password.dto';
+import { ChangeUsernameDto } from '@/users/interface/dto/change-username.dto';
+import { DeleteAccountDto } from '@/users/interface/dto/delete-account.dto';
+import { SendChangeEmailTokenDto } from '@/users/interface/dto/send-change-email-token.dto';
+import { SendResetPasswordEmailDto } from '@/users/interface/dto/send-reset-password-email.dto';
+import { RedisTokenGuard } from '@/users/interface/guard/redis-token.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -52,7 +52,7 @@ export class UserController {
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
-    private commandBus: CommandBus,
+    private commandBus: CommandBus
   ) {}
 
   @UseGuards(RedisTokenGuard)
@@ -68,7 +68,7 @@ export class UserController {
   @ApiOperation({ summary: 'Send reset password email' })
   @ApiResponse({ type: SuccessDto })
   async sendResetPasswordEmail(
-    @Body() dto: SendResetPasswordEmailDto,
+    @Body() dto: SendResetPasswordEmailDto
   ): Promise<SuccessDto> {
     const command = new SendResetPasswordTokenCommand(dto.email);
     return await this.commandBus.execute(command);
@@ -82,7 +82,7 @@ export class UserController {
   })
   async verifyResetPasswordToken(
     @Req() req,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ): Promise<void> {
     const token = await this.authService.verifyResetPasswordToken(req);
 
@@ -100,11 +100,11 @@ export class UserController {
   async changePassword(
     @Req() req: Request,
     @Body() body: ChangePasswordDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ): Promise<void> {
     await this.authService.changePassword(
       req.cookies.resetPasswordToken,
-      body.password,
+      body.password
     );
 
     res.cookie('resetPasswordToken', null, {
@@ -122,7 +122,7 @@ export class UserController {
   })
   async sendChangeEmailToken(
     @Req() req: Request,
-    @Body() body: SendChangeEmailTokenDto,
+    @Body() body: SendChangeEmailTokenDto
   ): Promise<SuccessDto> {
     const command = new SendChangeEmailTokenCommand(req.user.email, body.email);
     return await this.commandBus.execute(command);
@@ -140,7 +140,7 @@ export class UserController {
   async verifyChangeEmailToken(
     @Req() req: Request,
     @Query('changeEmailToken') token: string,
-    @Res({ passthrough: true }) res,
+    @Res({ passthrough: true }) res
   ): Promise<UserJwt> {
     const command = new VerifyChangeEmailTokenCommand(token);
     const result = await this.commandBus.execute(command);
@@ -163,12 +163,12 @@ export class UserController {
   async changeName(
     @Req() req: Request,
     @Body() body: ChangeUsernameDto,
-    @Res({ passthrough: true }) res,
+    @Res({ passthrough: true }) res
   ): Promise<any> {
     const result = await this.authService.changeNameAndJWT(
       req.user.id,
       req.user.email,
-      body.newName,
+      body.newName
     );
 
     res.cookie('accessToken', result.data, this.accessConf);
@@ -187,7 +187,7 @@ export class UserController {
   async deleteAccount(
     @Req() req: Request,
     @Body() body: DeleteAccountDto,
-    @Res({ passthrough: true }) res,
+    @Res({ passthrough: true }) res
   ): Promise<Session> {
     const command = new DeleteUserCommand(req.user.id);
     await this.commandBus.execute(command);

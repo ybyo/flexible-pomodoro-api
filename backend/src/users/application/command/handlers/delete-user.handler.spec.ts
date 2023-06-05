@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
-import { IUserRepository }   from '@/users/domain/iuser.repository';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 
 describe('DeleteUserHandler', () => {
   let deleteUserHandler: DeleteUserHandler;
@@ -44,7 +44,7 @@ describe('DeleteUserHandler', () => {
     const command = new DeleteUserCommand('test');
 
     await expect(deleteUserHandler.execute(command)).rejects.toThrowError(
-      new InternalServerErrorException('Cannot delete user'),
+      new InternalServerErrorException('Cannot delete user')
     );
     expect(userRepository.deleteUser).toHaveBeenCalledWith(command.id);
   });

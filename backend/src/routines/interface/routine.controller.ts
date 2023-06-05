@@ -12,11 +12,11 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { JwtAuthGuard }         from '@/auth/interface/guard/jwt-auth.guard';
-import { GetRoutineCommand }    from '@/routines/application/command/impl/get-routine.command';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
+import { GetRoutineCommand } from '@/routines/application/command/impl/get-routine.command';
 import { RemoveRoutineCommand } from '@/routines/application/command/impl/remove-routine.command';
-import { SaveRoutineCommand }   from '@/routines/application/command/impl/save-routine.command';
-import { UserJwt }              from '@/users/domain/user.model';
+import { SaveRoutineCommand } from '@/routines/application/command/impl/save-routine.command';
+import { UserJwt } from '@/users/domain/user.model';
 
 @ApiTags('routine')
 @Controller('routine')

@@ -15,7 +15,7 @@ export class Routine {
         this,
         plainToClass(Routine, routine, {
           excludeExtraneousValues: false,
-        }),
+        })
       );
     }
   }

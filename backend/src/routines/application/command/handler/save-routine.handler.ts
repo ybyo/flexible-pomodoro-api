@@ -9,7 +9,7 @@ import { IRoutineRepository } from '@/routines/domain/iroutine.repository';
 export class SaveRoutineHandler implements ICommandHandler<SaveRoutineCommand> {
   constructor(
     @Inject('RoutineRepository')
-    private routineRepository: IRoutineRepository,
+    private routineRepository: IRoutineRepository
   ) {}
   async execute(command: SaveRoutineCommand) {
     const { id, routine } = command;

@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 
 import { CheckDuplicateEmailQuery } from '@/auth/application/query/impl/check-duplicate-email.query';
-import { GetUserByEmailQuery }      from '@/auth/application/query/impl/get-user-by-email.query';
-import { IUserRepository }          from '@/users/domain/iuser.repository';
+import { GetUserByEmailQuery } from '@/auth/application/query/impl/get-user-by-email.query';
+import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
 @QueryHandler(GetUserByEmailQuery)
@@ -11,7 +11,7 @@ export class GetUserByEmailHandler
   implements IQueryHandler<GetUserByEmailQuery>
 {
   constructor(
-    @Inject('UserRepository') private userRepository: IUserRepository,
+    @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
 
   async execute(command: CheckDuplicateEmailQuery): Promise<any> {

@@ -13,11 +13,11 @@ import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { JwtAuthGuard }     from '@/auth/interface/guard/jwt-auth.guard';
-import { GetTimerCommand }  from '@/timers/application/command/impl/get-timer.command';
+import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
+import { GetTimerCommand } from '@/timers/application/command/impl/get-timer.command';
 import { SaveTimerCommand } from '@/timers/application/command/impl/save-timer.command';
-import { Timer }            from '@/timers/domain/timer.model';
-import { UserJwt }          from '@/users/domain/user.model';
+import { Timer } from '@/timers/domain/timer.model';
+import { UserJwt } from '@/users/domain/user.model';
 
 @ApiTags('timer')
 @Controller('timer')

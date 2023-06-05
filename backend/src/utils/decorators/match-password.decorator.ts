@@ -8,7 +8,7 @@ import {
 
 export function MatchPassword(
   property: string,
-  validationOptions?: ValidationOptions,
+  validationOptions?: ValidationOptions
 ) {
   return (object: any, propertyName: string) => {
     registerDecorator({

@@ -4,11 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
-import { IRoutineRepository }   from '@/routines/domain/iroutine.repository';
-import { Routine }              from '@/routines/domain/routine.model';
-import { RoutineEntity }        from '@/routines/infra/db/entity/routine.entity';
+import { IRoutineRepository } from '@/routines/domain/iroutine.repository';
+import { Routine } from '@/routines/domain/routine.model';
+import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
-import { entityFormatter }      from '@/utils/entity-formatter.util';
+import { entityFormatter } from '@/utils/entity-formatter.util';
 
 @Injectable()
 export class RoutineRepository implements IRoutineRepository {
@@ -18,7 +18,7 @@ export class RoutineRepository implements IRoutineRepository {
     @InjectRepository(RoutineEntity)
     private routineRepository: Repository<RoutineEntity>,
     @InjectRepository(RoutineToTimerEntity)
-    private routineToTimerRepository: Repository<RoutineToTimerEntity>,
+    private routineToTimerRepository: Repository<RoutineToTimerEntity>
   ) {}
   // TODO: 리턴 타입 수정
   async fetchRoutine(id: string): Promise<any> {
