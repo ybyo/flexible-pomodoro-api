@@ -1,12 +1,12 @@
 # Develop stage
-FROM node:18-alpine as dev
+FROM --platform=linux/amd64 node:18-alpine as dev
 
 WORKDIR /app
 
 COPY --chown=node:node package*.json ./
 
 RUN npm i -g @quasar/cli && \
-    npm ci && \
+    npm i && \
     npm cache clean --force
 
 COPY --chown=node:node . .
@@ -14,7 +14,7 @@ COPY --chown=node:node . .
 USER node
 
 # Build stage
-FROM dev as build
+FROM --platform=linux/amd64 dev as build
 
 ARG ENV_NAME_ARG
 ENV ENV_NAME $ENV_NAME_ARG
@@ -31,7 +31,7 @@ USER root
 
 RUN ENV_NAME=$ENV_NAME_ARG quasar build -m pwa --history
 
-FROM nginx:alpine as prod
+FROM --platform=linux/amd64 nginx:alpine as prod
 
 COPY --from=build /app/dist/pwa /usr/share/nginx/html
 COPY templates/nginx.conf /etc/nginx/templates/nginx.conf.template
