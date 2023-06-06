@@ -70,7 +70,7 @@ resource "aws_security_group" "redis" {
 }
 
 resource "aws_db_subnet_group" "pipe-timer" {
-  name = "pipe-timer"
+  name       = "pipe-timer"
   subnet_ids = [
     data.terraform_remote_state.network.outputs.public_subnet_1_id,
     data.terraform_remote_state.network.outputs.public_subnet_2_id
@@ -98,7 +98,7 @@ resource "aws_db_instance" "mysql" {
 }
 
 resource "aws_elasticache_subnet_group" "pipe-timer" {
-  name = "redis"
+  name       = "redis"
   subnet_ids = [
     data.terraform_remote_state.network.outputs.public_subnet_1_id,
     data.terraform_remote_state.network.outputs.public_subnet_2_id
@@ -143,10 +143,10 @@ resource "null_resource" "update_env" {
         "MYSQL_DB_NAME"  = var.mysql_db_name
         "MYSQL_USERNAME" = var.mysql_username
         "MYSQL_PASSWORD" = var.mysql_password
-        "REDIS_BASE_URL" = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
+        "REDIS_BASE_URL"      = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
         "ENV_PATH"       = "../../../../backend/env"
         "ENV"            = var.env
-    })
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
