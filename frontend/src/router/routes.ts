@@ -48,11 +48,18 @@ const routes: RouteRecordRaw[] = [
           else next();
         },
       },
-      // {
-      //   path: 'guide',
-      //   component: () => import('../core/guide/presentation/AppGuide.vue'),
-      //   name: 'guide',
-      // },
+    ],
+  },
+  {
+    path: '/',
+    component: () =>
+      import('../core/common/presentation/layouts/AppLayout.vue'),
+    children: [
+      {
+        path: 'guide',
+        component: () => import('../core/guide/presentation/UserGuide.vue'),
+        name: 'guide',
+      },
     ],
   },
   {

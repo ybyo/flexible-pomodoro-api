@@ -14,9 +14,15 @@
       "
     >
       <q-list padding>
-        <q-tabs v-model="tab" vertical class="text-teal">
+        <q-tabs v-model="tab" vertical class="text-black">
           <q-space style="height: 250px"></q-space>
           <q-route-tab name="timers" icon="alarm" label="timers" to="/" />
+          <q-route-tab
+            name="guide"
+            icon="menu_book"
+            label="guide"
+            to="/guide"
+          />
         </q-tabs>
       </q-list>
     </q-scroll-area>
