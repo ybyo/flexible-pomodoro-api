@@ -22,7 +22,7 @@ COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 COPY --chown=node:node --from=dev /app/public ./public
 COPY --chown=node:node . .
 
-RUN NODE_ENV=$NODE_ENV npm run build:dev
+RUN NODE_ENV=$NODE_ENV npm run build:staging
 
 RUN npm ci --only=prod && \
     npm cache clean --force

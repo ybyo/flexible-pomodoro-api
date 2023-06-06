@@ -97,7 +97,7 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
 }
 
 data "template_file" "user_data" {
-  template = file("../../scripts/add-ssh-web-app.yaml")
+  template = file("../scripts/add-ssh-web-app.yaml")
 }
 
 resource "aws_instance" "pipe-timer-frontend" {
@@ -120,7 +120,7 @@ resource "aws_instance" "pipe-timer-frontend" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("../../scripts/ssh")
+    private_key = file("../scripts/ssh")
     host        = aws_instance.pipe-timer-frontend.public_ip
   }
 
@@ -188,6 +188,8 @@ resource "aws_instance" "pipe-timer-frontend" {
   tags = {
     Name = "pipe-timer-frontend"
   }
+
+  depends_on = [null_resource.build-docker]
 }
 
 # Add frontend record to DNS

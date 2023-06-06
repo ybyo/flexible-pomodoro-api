@@ -43,7 +43,7 @@ resource "null_resource" "build-docker" {
         "REGISTRY_URL" = var.registry_url
         "ENV"          = "staging"
         "PATH"         = "../../../../backend"
-    })
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -57,7 +57,7 @@ data "http" "ip" {
 data "aws_ami" "ubuntu" {
   filter {
     name   = "image-id"
-    values = ["ami-0e735aba742568824"] # AMI ID 지정
+    values = ["ami-0ac62099928d25fec"] # Ubuntu 20.04 LTS
   }
 }
 
@@ -104,12 +104,12 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
 }
 
 data "template_file" "user_data" {
-  template = file("../../scripts/add-ssh-web-app.yaml")
+  template = file("../scripts/add-ssh-web-app.yaml")
 }
 
 resource "aws_instance" "pipe-timer-backend" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t2.micro"
+  instance_type               = "t4g.nano"
   subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_1_id
   vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_backend.id]
   associate_public_ip_address = true
@@ -127,7 +127,7 @@ resource "aws_instance" "pipe-timer-backend" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("../../scripts/ssh")
+    private_key = file("../scripts/ssh")
     host        = aws_instance.pipe-timer-backend.public_ip
   }
 
@@ -181,6 +181,8 @@ resource "aws_instance" "pipe-timer-backend" {
       "${var.cicd_path}/shell-scripts/run-docker.sh ${var.registry_url} ${var.cicd_path} ${var.env}",
     ]
   }
+
+  depends_on = [null_resource.build-docker]
 
   tags = {
     Name = "pipe-timer-backend"
