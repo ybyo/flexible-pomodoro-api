@@ -53,7 +53,7 @@ services:
     ports:
       - ${API_PORT}:${API_PORT}
     volumes:
-      - ./backend/certs/:/certs:ro
+      - ./backend/certs/:/dist/certs:ro
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt]
