@@ -78,7 +78,7 @@ services:
       - ${NGINX_PORT_1}:${NGINX_PORT_2}
       - ${NGINX_PORT_3}:${NGINX_PORT_4}
     volumes:
-      - ./backend/certs/:/etc/nginx/certs/:ro
+      - ./frontend/certs/:/etc/nginx/certs/:ro
       - ./frontend/public:/public:ro
     networks:
       - app-tier
