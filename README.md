@@ -9,7 +9,7 @@
 <h3 align="center">Pipe Timer</h3>
 
   <p align="center">
-    타이머 간 자유로운 조합이 가능한 타이머 앱
+    One app for flexible piping of timers to enhance productivity
     <br />
     <a href="https://pipetimer.com"><strong>View Demo »</strong></a>
     <br />
