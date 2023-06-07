@@ -19,7 +19,7 @@ import * as winston from 'winston';
 
 import { AppModule } from './app.module';
 
-const certPath = path.join(__dirname, '..', 'certs');
+const certPath = path.join(__dirname, '../..', 'certs');
 
 const corsOption = {
   origin: `https://${process.env.HOST_URL}:4000`,

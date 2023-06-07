@@ -57,7 +57,7 @@ data "http" "ip" {
 data "aws_ami" "ubuntu" {
   filter {
     name   = "image-id"
-    values = ["ami-0ac62099928d25fec"] # Ubuntu 20.04 LTS
+    values = ["ami-0ac62099928d25fec"] # Ubuntu 20.04 LTS for ARM
   }
 }
 

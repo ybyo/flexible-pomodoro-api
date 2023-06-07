@@ -57,7 +57,7 @@ data "http" "ip" {
 data "aws_ami" "ubuntu" {
   filter {
     name   = "image-id"
-    values = ["ami-0e735aba742568824"] # AMI ID 지정
+    values = ["ami-0ac62099928d25fec"] # Ubuntu 20.04 LTS for ARM
   }
 }
 
@@ -88,6 +88,13 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -102,7 +109,7 @@ data "template_file" "user_data" {
 
 resource "aws_instance" "pipe-timer-frontend" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t2.micro"
+  instance_type               = "t4g.nano"
   subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_1_id
   vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_frontend.id]
   associate_public_ip_address = true
