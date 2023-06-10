@@ -63,6 +63,8 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
+        LOCAL: process.env.LOCAL,
+        API_PORT_0: process.env.API_PORT_0,
         NODE_ENV: process.env.NODE_ENV,
         HOST_URL: process.env.HOST_URL,
       },

@@ -19,10 +19,13 @@ declare module '@vue/runtime-core' {
 // for each client)
 // const api = axios.create({ baseURL: 'https://api.example.com' });
 
-const apiURL =
-  process.env.ENV_NAME === 'development'
-    ? `https://${process.env.HOST_URL}:3000`
-    : `https://${process.env.HOST_URL}/api`;
+let apiURL;
+
+if (process.env.LOCAL === 'true' || process.env.NODE_ENV === 'development') {
+  apiURL = `https://${process.env.HOST_URL}:${process.env.API_PORT_0}`;
+} else {
+  apiURL = `https://${process.env.HOST_URL}/api`;
+}
 
 const api = axios.create({
   baseURL: apiURL,
