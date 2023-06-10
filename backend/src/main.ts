@@ -19,7 +19,7 @@ import * as winston from 'winston';
 
 import { AppModule } from './app.module';
 
-const certPath = path.join(__dirname, '../..', 'certs');
+const certPath = path.join(__dirname, '..', 'certs');
 
 const httpsOptions =
   process.env.NODE_ENV === 'development'
@@ -42,10 +42,13 @@ async function bootstrap() {
           level: process.env.NODE_ENV === 'staging' ? 'info' : 'silly',
           format: winston.format.combine(
             winston.format.timestamp(),
-            nestWinstonModuleUtilities.format.nestLike(process.env.NODE_ENV, {
-              prettyPrint: true,
-              colors: true,
-            })
+            nestWinstonModuleUtilities.format.nestLike(
+              `${process.env.NODE_ENV}${isTest}`,
+              {
+                prettyPrint: true,
+                colors: true,
+              }
+            )
           ),
         }),
       ],
