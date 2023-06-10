@@ -31,8 +31,6 @@ import { UserModule } from '@/users/user.module';
 
 import jwtConfig from './config/jwt.config';
 
-const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
-
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -40,7 +38,9 @@ const envPath = path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`);
       strategyInitializer: classes(),
     }),
     ConfigModule.forRoot({
-      envFilePath: [envPath],
+      envFilePath: [
+        path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
+      ],
       load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
       isGlobal: true,
       validationSchema,

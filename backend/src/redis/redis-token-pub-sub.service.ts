@@ -40,19 +40,19 @@ export class RedisTokenPubSubService {
     eventList: string[]
   ): void {
     client.subscribe(message);
+
     client.on('message', async (channel, key): Promise<void> => {
       if (channel === message) {
-        const event = key.split(':')[0];
-        const token = key.split(':')[1];
+        const [event, token] = key.split(':');
 
         if (eventList.includes(event)) {
           const result = await this.expireToken(event, token);
 
-          if (!result.affected) {
+          if (result === null) {
             this.logger.error(`Cannot expire token. ${event}:${token}`);
-          } else {
-            this.logger.verbose(`Token expired. ${event}:${token}`);
           }
+
+          this.logger.verbose(`Token expired. ${event}:${token}`);
         }
       }
     });
@@ -61,9 +61,12 @@ export class RedisTokenPubSubService {
   private async expireToken(
     event: string,
     token: string
-  ): Promise<UpdateResult | DeleteResult> {
+  ): Promise<UpdateResult | DeleteResult | null> {
     const user = await this.userRepository.findByToken(event, token);
-    console.log(user);
+
+    if (user === null) {
+      return null;
+    }
 
     if (event === 'signupToken') {
       return await this.userRepository.deleteUser(user.email);

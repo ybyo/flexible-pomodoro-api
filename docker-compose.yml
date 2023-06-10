@@ -8,7 +8,7 @@ services:
   mysql-pt:
     image: mysql:8
     env_file:
-      - ./backend/env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}.env
     container_name: mysql
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -25,7 +25,7 @@ services:
   redis-pt:
     image: bitnami/redis:latest
     env_file:
-      - ./backend/env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}.env
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: redis
@@ -43,17 +43,21 @@ services:
       dockerfile: Dockerfile
       args:
         NODE_ENV: ${NODE_ENV}
+        API_PORT_1: ${API_PORT_1}
+        API_PORT_2: ${API_PORT_2}
+        API_PORT_3: ${API_PORT_3}
+
     env_file:
-      - ./backend/env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}.env
     environment:
       - DB_BASE_URL=mysql
       - REDIS_BASE_URL=redis
       - NODE_ENV=${NODE_ENV}
     container_name: backend
     ports:
-      - ${API_PORT}:${API_PORT}
+      - ${API_PORT_0}:${API_PORT_0}
     volumes:
-      - ./backend/certs/:/certs:ro
+      - ./backend/certs:/certs:ro
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt]
@@ -64,10 +68,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        ENV_NAME_ARG: ${NODE_ENV}
-        HOST_URL_ARG: ${HOST_URL}
+        LOCAL: ${LOCAL}
+        HOST_URL: ${HOST_URL}
+        FRONT_PORT_1: ${FRONT_PORT_1}
+        FRONT_PORT_2: ${FRONT_PORT_2}
     env_file:
-      - ./frontend/env/.${NODE_ENV}.env
+      - ./env/.${NODE_ENV}.env
     environment:
       NODE_ENV: ${NODE_ENV}
       HOST_URL: ${HOST_URL}
@@ -75,9 +81,9 @@ services:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend
     ports:
-      - '4000:443'
+      - ${FRONT_PORT_0}:${FRONT_PORT_2}
     volumes:
-      - ./backend/certs/:/etc/nginx/certs/:ro
+      - ./frontend/certs/:/etc/nginx/certs/:ro
       - ./frontend/public:/public:ro
     networks:
       - app-tier
@@ -86,7 +92,7 @@ services:
   mysql-test:
     image: mysql:8
     env_file:
-      - ./backend/env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}.env
     container_name: mysql-test
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -101,7 +107,7 @@ services:
   redis-test:
     image: bitnami/redis:latest
     env_file:
-      - ./backend/env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}.env
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: redis-test

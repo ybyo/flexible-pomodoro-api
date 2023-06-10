@@ -20,7 +20,7 @@ export class EmailService {
   ) {
     this.host =
       process.env.NODE_ENV === 'development'
-        ? 'localhost:4000'
+        ? `${this.config.host}:${process.env.FRONT_PORT_0}`
         : `${this.config.host}`;
 
     if (this.config.auth.sgMailKey) {
@@ -80,10 +80,7 @@ export class EmailService {
   sendSignupEmailToken(email: string, token: string): void {
     const subject = '회원가입 인증';
     const url = `https://${this.host}/users/verify-email?signupToken=${token}`;
-    const template = path.join(
-      __dirname,
-      '../../public/signup-email-inlined.ejs'
-    );
+    const template = path.join(__dirname, '../public/signup-email-inlined.ejs');
 
     this.sendToken(email, subject, url, template);
   }
@@ -91,10 +88,7 @@ export class EmailService {
   sendChangeEmailToken(email: string, token: string): void {
     const subject = '이메일 변경';
     const url = `https://${this.host}/users/verify-change-email-token?changeEmailToken=${token}`;
-    const template = path.join(
-      __dirname,
-      '../../public/change-email-inlined.ejs'
-    );
+    const template = path.join(__dirname, '../public/change-email-inlined.ejs');
 
     this.sendToken(email, subject, url, template);
   }
@@ -104,8 +98,10 @@ export class EmailService {
     const url = `https://${this.host}/users/verify-reset-password?resetPasswordToken=${token}`;
     const template = path.join(
       __dirname,
-      '../../public/reset-password-inlined.ejs'
+      '../public/reset-password-inlined.ejs'
     );
+
+    console.log(template);
 
     this.sendToken(email, subject, url, template);
   }

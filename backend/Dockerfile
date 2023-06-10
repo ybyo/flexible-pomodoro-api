@@ -33,7 +33,7 @@ FROM node:18-alpine As prod
 
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
-COPY --chown=node:node --from=build /app/public ./public
+COPY --chown=node:node --from=build /app/public ./dist/public
 
 EXPOSE 3000
 

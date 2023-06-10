@@ -21,12 +21,6 @@ import { AppModule } from './app.module';
 
 const certPath = path.join(__dirname, '..', 'certs');
 
-const corsOption = {
-  origin: `https://${process.env.HOST_URL}:4000`,
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-
 const httpsOptions =
   process.env.NODE_ENV === 'development'
     ? {
@@ -39,6 +33,8 @@ const httpsOptions =
       };
 
 async function bootstrap() {
+  const isTest = process.env.TEST === 'true' ? '-TEST' : '';
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
       transports: [
@@ -46,10 +42,13 @@ async function bootstrap() {
           level: process.env.NODE_ENV === 'staging' ? 'info' : 'silly',
           format: winston.format.combine(
             winston.format.timestamp(),
-            nestWinstonModuleUtilities.format.nestLike(process.env.NODE_ENV, {
-              prettyPrint: true,
-              colors: true,
-            })
+            nestWinstonModuleUtilities.format.nestLike(
+              `${process.env.NODE_ENV}${isTest}`,
+              {
+                prettyPrint: true,
+                colors: true,
+              }
+            )
           ),
         }),
       ],
@@ -99,10 +98,15 @@ async function bootstrap() {
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
-
   app.setViewEngine('ejs');
-  app.use(cookieParser());
+
+  const corsOption = {
+    origin: `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
   app.enableCors(corsOption);
+  app.use(cookieParser());
   app.use(helmet());
 
   await app.listen(3000);

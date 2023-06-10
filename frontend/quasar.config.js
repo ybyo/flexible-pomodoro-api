@@ -14,12 +14,12 @@ const fs = require('fs');
 
 try {
   require('dotenv').config({
-    path: path.join(__dirname, `./env/.${process.env.ENV_NAME}.env`),
+    path: path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
     override: true,
   });
 } catch (err) {
   throw new Error(
-    `${err} Error occurred while load env file ${process.env.ENV_NAME}`
+    `${err} Error occurred while load env file ${process.env.NODE_ENV}`
   );
 }
 
@@ -63,7 +63,7 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        ENV_NAME: process.env.ENV_NAME,
+        NODE_ENV: process.env.NODE_ENV,
         HOST_URL: process.env.HOST_URL,
       },
 
