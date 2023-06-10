@@ -21,12 +21,6 @@ import { AppModule } from './app.module';
 
 const certPath = path.join(__dirname, '../..', 'certs');
 
-const corsOption = {
-  origin: `https://${process.env.HOST_URL}:4000`,
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-
 const httpsOptions =
   process.env.NODE_ENV === 'development'
     ? {
@@ -101,10 +95,15 @@ async function bootstrap() {
 
   app.useStaticAssets(path.join(__dirname, '..', 'public'));
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
-
   app.setViewEngine('ejs');
-  app.use(cookieParser());
+
+  const corsOption = {
+    origin: `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
   app.enableCors(corsOption);
+  app.use(cookieParser());
   app.use(helmet());
 
   await app.listen(3000);
