@@ -13,5 +13,5 @@ export class ChangePasswordDto {
   @MinLength(8)
   @MaxLength(32)
   @MatchPassword('password', { message: 'Password does not match.' })
-  readonly passwordConfirm: string;
+  readonly confirmPassword: string;
 }
