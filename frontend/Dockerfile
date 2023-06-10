@@ -14,12 +14,12 @@ COPY --chown=node:node . .
 USER node
 
 # Build stage
-FROM --platform=linux/amd64 dev as build
+FROM dev as build
 
-ARG ENV_NAME_ARG
-ENV ENV_NAME $ENV_NAME_ARG
+ARG LOCAL
+ARG HOST_URL
 
-RUN echo "Currently run build process in '$ENV_NAME_ARG'"
+RUN echo "Currently run build process in '$NODE_ENV_ARG'"
 
 WORKDIR /app
 
@@ -29,13 +29,16 @@ COPY --chown=node:node . .
 
 USER root
 
-RUN ENV_NAME=$ENV_NAME_ARG quasar build -m pwa --history
+RUN LOCAL=$LOCAL HOST_URL=$HOST_URL quasar build -m pwa --history
 
-FROM --platform=linux/amd64 nginx:alpine as prod
+FROM nginx:alpine as prod
+
+ARG FRONT_PORT_1
+ARG FRONT_PORT_2
 
 COPY --from=build /app/dist/pwa /usr/share/nginx/html
 COPY templates/nginx.conf /etc/nginx/templates/nginx.conf.template
 
-EXPOSE 80 443
+EXPOSE ${FRONT_PORT_1} ${FRONT_PORT_2}
 
 CMD ["nginx", "-g", "daemon off;"]
