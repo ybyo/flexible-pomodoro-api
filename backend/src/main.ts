@@ -39,6 +39,8 @@ const httpsOptions =
       };
 
 async function bootstrap() {
+  const isTest = process.env.TEST === 'true' ? '-TEST' : '';
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
       transports: [

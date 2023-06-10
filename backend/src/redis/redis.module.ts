@@ -19,11 +19,10 @@ import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { REDIS_AUTH, REDIS_SUB, REDIS_TOKEN } from './redis.constants';
 
 dotenv.config({
-  path: path.join(process.cwd(), `env/.${process.env.NODE_ENV}.env`),
+  path: path.join(process.cwd(), `../env/.${process.env.NODE_ENV}.env`),
 });
 
 const externalService = [{ provide: 'EmailService', useClass: EmailService }];
-
 const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
 const commandHandlers = [DeleteUserHandler];
 const factories = [UserFactory];
