@@ -54,19 +54,30 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    EMAIL_SERVICE=
    EMAIL_AUTH_USER=
    EMAIL_AUTH_PASSWORD=
+   
+   # Sendgrid
+   SENDGRID_KEY=
+   
+   # Backend(Docker compose)
+   API_PORT_0=
+   API_PORT_1=
+   API_PORT_2=
+   API_PORT_3=
 
-   # Frontend
-   HOST_URL=
-
+   # Frontend(Docker compose)
+   FRONT_PORT_0=
+   FRONT_PORT_1=
+   FRONT_PORT_2=
+   
    # MySQL DB
    DB_NAME=
    DB_USERNAME=
    DB_PASSWORD=
-
+   
    # Access token and session secret
    JWT_SECRET=
    SESSION_SECRET=
-
+   
    # Swagger ID, PASSWORD
    SWAGGER_ID=
    SWAGGER_PASSWORD=
