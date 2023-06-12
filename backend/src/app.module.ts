@@ -31,6 +31,20 @@ import { UserModule } from '@/users/user.module';
 
 import jwtConfig from './config/jwt.config';
 
+const envPath = path.join(
+  __dirname,
+  '../../env',
+  process.env.NODE_ENV === 'development'
+    ? '.development.env'
+    : process.env.NODE_ENV === 'production'
+    ? '.production.env'
+    : process.env.LOCAL === '.local'
+    ? '.staging.local.env'
+    : 'staging.env'
+);
+
+console.log(envPath);
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -38,9 +52,7 @@ import jwtConfig from './config/jwt.config';
       strategyInitializer: classes(),
     }),
     ConfigModule.forRoot({
-      envFilePath: [
-        path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
-      ],
+      envFilePath: [envPath],
       load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
       isGlobal: true,
       validationSchema,
