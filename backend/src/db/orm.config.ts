@@ -1,18 +1,4 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 import { DataSource } from 'typeorm';
-
-dotenv.config({
-  path: path.join(
-    process.cwd(),
-    'env',
-    process.env.NODE_ENV === 'production'
-      ? '.production.env'
-      : process.env.NODE_ENV === 'staging'
-      ? '.staging.env'
-      : '.development.env'
-  ),
-});
 
 export const ormConfig = new DataSource({
   type: 'mysql',
