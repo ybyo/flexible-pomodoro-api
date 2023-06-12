@@ -27,7 +27,7 @@ describe('AppController (e2e)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   const user = CreateRandomObject.RandomUserForSignup();
-  const testServer = `https://${process.env.HOST_URL}:${process.env.API_PORT}/`;
+  const testServer = `https://${process.env.HOST_URL}:${process.env.API_PORT_0}/`;
   let cookies: string[];
 
   beforeAll(async () => {
