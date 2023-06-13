@@ -11,16 +11,22 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 const fs = require('fs');
+const envPath =
+  process.env.ENV_NAME === 'development'
+    ? `../env/.${process.env.ENV_NAME}.env`
+    : `${__dirname}/env/.${process.env.ENV_NAME}.env`;
 
-try {
-  require('dotenv').config({
-    path: path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
-    override: true,
-  });
-} catch (err) {
-  throw new Error(
-    `${err} Error occurred while load env file ${process.env.NODE_ENV}`
-  );
+console.info('-----------------------------------');
+console.info(`Current environment: ${process.env.ENV_NAME}`);
+console.info('-----------------------------------');
+
+const config = require('dotenv').config({
+  path: envPath,
+  override: true,
+});
+
+if (config.error) {
+  throw config.error;
 }
 
 module.exports = configure(function (ctx) {
@@ -32,8 +38,8 @@ module.exports = configure(function (ctx) {
       // include = [],
       // exclude = [],
       // rawOptions = {},
-      warnings: true,
-      errors: true,
+      // warnings: true,
+      // errors: true,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -63,7 +69,8 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        NODE_ENV: process.env.NODE_ENV,
+        API_PORT_0: process.env.API_PORT_0,
+        ENV_NAME: process.env.ENV_NAME,
         HOST_URL: process.env.HOST_URL,
       },
 
@@ -116,8 +123,8 @@ module.exports = configure(function (ctx) {
       host: 'localhost',
       port: 4000,
       https: {
-        key: fs.readFileSync(path.resolve(__dirname, './certs/dev-key.pem')),
-        cert: fs.readFileSync(path.resolve(__dirname, './certs/dev-cert.pem')),
+        cert: fs.readFileSync(path.resolve(__dirname, './certs/localhost.pem')),
+        key: fs.readFileSync(path.resolve(__dirname, './certs/localhost.key')),
       },
       pwa: true,
       open: false, // opens browser window automatically
@@ -137,6 +144,7 @@ module.exports = configure(function (ctx) {
           textColor: 'white',
         },
       },
+      autoImportComponentCase: 'pascalCase',
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
 

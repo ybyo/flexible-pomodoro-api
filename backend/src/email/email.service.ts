@@ -19,7 +19,8 @@ export class EmailService {
     private logger: Logger
   ) {
     this.host =
-      process.env.NODE_ENV === 'development'
+      process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === 'local-staging'
         ? `${this.config.host}:${process.env.FRONT_PORT_0}`
         : `${this.config.host}`;
 

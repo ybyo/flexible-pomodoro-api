@@ -3,17 +3,18 @@ import * as path from 'path';
 import { DataSource } from 'typeorm';
 
 dotenv.config({
-  path: path.join(
-    process.cwd(),
-    'env',
-    process.env.NODE_ENV === 'production'
-      ? '.production.env'
+  path: path.resolve(
+    __dirname,
+    '../../../env',
+    process.env.NODE_ENV === 'development'
+      ? '.development.env'
+      : process.env.NODE_ENV === 'local-staging'
+      ? '.local-staging.env'
       : process.env.NODE_ENV === 'staging'
       ? '.staging.env'
-      : '.development.env'
+      : '.production.env'
   ),
 });
-
 export const ormConfig = new DataSource({
   type: 'mysql',
   host: process.env.DB_BASE_URL,

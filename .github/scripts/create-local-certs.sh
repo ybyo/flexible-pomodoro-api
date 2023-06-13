@@ -140,7 +140,7 @@ generate_certs() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    mkcert -key-file $certs_path/dev-key.pem -cert-file $certs_path/dev-cert.pem localhost 127.0.0.1 ::1
+    mkcert -key-file $certs_path/localhost.key -cert-file $certs_path/localhost.pem localhost 127.0.0.1 ::1
     echo "인증서 생성이 완료되었습니다."
   else
     exit 0

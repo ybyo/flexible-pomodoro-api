@@ -22,28 +22,26 @@ import { AppModule } from './app.module';
 const certPath = path.join(__dirname, '..', 'certs');
 
 const httpsOptions =
-  process.env.NODE_ENV === 'development'
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'local-staging'
     ? {
-        key: fs.readFileSync(`${certPath}/dev-key.pem`),
-        cert: fs.readFileSync(`${certPath}/dev-cert.pem`),
+        cert: fs.readFileSync(`${certPath}/localhost.pem`),
+        key: fs.readFileSync(`${certPath}/localhost.key`),
       }
     : {
-        key: fs.readFileSync(`${certPath}/key.pem`),
-        cert: fs.readFileSync(`${certPath}/cert.pem`),
+        cert: fs.readFileSync(`${certPath}/pipetimer.com.pem`),
+        key: fs.readFileSync(`${certPath}/pipetimer.com.key`),
       };
 
 async function bootstrap() {
-  const isTest = process.env.TEST === 'true' ? '-TEST' : '';
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
       transports: [
         new winston.transports.Console({
-          level: process.env.NODE_ENV === 'staging' ? 'info' : 'silly',
           format: winston.format.combine(
             winston.format.timestamp(),
             nestWinstonModuleUtilities.format.nestLike(
-              `${process.env.NODE_ENV}${isTest}`,
+              `${process.env.NODE_ENV}`,
               {
                 prettyPrint: true,
                 colors: true,
@@ -109,7 +107,14 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
 
-  await app.listen(3000);
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'local-staging'
+  ) {
+    await app.listen(process.env.API_PORT_0);
+  } else {
+    await app.listen(process.env.API_PORT_2);
+  }
 }
 
 bootstrap();
