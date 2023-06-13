@@ -17,16 +17,15 @@ const envPath = process.env.DEV
   ? `${__dirname}/env/.${process.env.ENV_NAME}${process.env.LOCAL}.env`
   : `${__dirname}/env/.${process.env.ENV_NAME}.env`;
 
-try {
-  require('dotenv').config({
-    path: path.join(__dirname, `../env/.${process.env.NODE_ENV}.env`),
-    override: true,
-  });
-} catch (err) {
-  throw new Error(
-    `${err} Error occurred while load env file ${process.env.NODE_ENV}`
-  );
-}
+console.info('-----------------------------------');
+console.info(`Current environment: ${process.env.ENV_NAME}`);
+console.info(`Local or Remote?: ${process.env.LOCAL}`);
+console.info('-----------------------------------');
+
+const config = require('dotenv').config({
+  path: envPath,
+  override: true,
+});
 
 module.exports = configure(function (ctx) {
   console.log(ctx);
