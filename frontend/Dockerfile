@@ -17,7 +17,6 @@ FROM dev as build
 WORKDIR /app
 
 ARG ENV_NAME
-ARG LOCAL
 
 RUN echo "Currently running build process in '$ENV_NAME'"
 
@@ -25,7 +24,7 @@ COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 
 USER root
 
-RUN ENV_NAME=$ENV_NAME LOCAL=$LOCAL quasar build -m pwa --history -d all
+RUN ENV_NAME=$ENV_NAME quasar build -m pwa --history -d all
 
 FROM nginx:alpine as prod
 
