@@ -81,6 +81,9 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    # Swagger ID, PASSWORD
    SWAGGER_ID=
    SWAGGER_PASSWORD=
+   
+   # Docker tag
+   DOCKER_REGISTRY=
    ```
 
 4. 앱을 구동합니다.
