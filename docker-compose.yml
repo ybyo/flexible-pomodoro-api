@@ -37,24 +37,24 @@ services:
   backend-pt:
     image: backend-pt
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      platforms:
+        - ${PLATFORM}
+      context: ./
+      dockerfile: ./backend/Dockerfile
       args:
         NODE_ENV: ${NODE_ENV}
         API_PORT_1: ${API_PORT_1}
         API_PORT_2: ${API_PORT_2}
         API_PORT_3: ${API_PORT_3}
-
+      tags:
+        - ${DOCKER_REGISTRY}/pipe-timer-backend:${NODE_ENV}
     env_file:
-      - env/.${NODE_ENV}.env
-    environment:
-      - DB_BASE_URL=mysql
-      - REDIS_BASE_URL=redis
-      - NODE_ENV=${NODE_ENV}
+      - env/.${NODE_ENV}${LOCAL}.env
     container_name: backend
     ports:
       - ${API_PORT_0}:${API_PORT_0}
     volumes:
+      - ./env:/env
       - ./backend/certs:/certs:ro
     networks:
       - app-tier
@@ -63,26 +63,30 @@ services:
   nginx-pt:
     image: nginx-pt
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      platforms:
+        - ${PLATFORM}
+      context: ./
+      dockerfile: ./frontend/Dockerfile
       args:
+        ENV_NAME: ${ENV_NAME}
         LOCAL: ${LOCAL}
         HOST_URL: ${HOST_URL}
         FRONT_PORT_1: ${FRONT_PORT_1}
         FRONT_PORT_2: ${FRONT_PORT_2}
+        API_PORT_3: ${API_PORT_3}
+      tags:
+        - ${DOCKER_REGISTRY}/pipe-timer-frontend:${NODE_ENV}
     env_file:
-      - ./env/.${NODE_ENV}.env
+      - env/.${NODE_ENV}${LOCAL}.env
     environment:
-      NODE_ENV: ${NODE_ENV}
-      HOST_URL: ${HOST_URL}
-      UPSTREAM_BACKEND: ${UPSTREAM_BACKEND}
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend
     ports:
       - ${FRONT_PORT_0}:${FRONT_PORT_2}
     volumes:
-      - ./frontend/certs/:/etc/nginx/certs/:ro
-      - ./frontend/public:/public:ro
+      - ./env:/env
+      - ./frontend/certs/:/etc/nginx/certs/
+      - ./frontend/public:/public
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt, backend-pt]
