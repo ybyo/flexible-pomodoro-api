@@ -11,6 +11,11 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 const fs = require('fs');
+const envPath = process.env.DEV
+  ? `../env/.${process.env.ENV_NAME}.env`
+  : process.env.LOCAL === '.local'
+  ? `${__dirname}/env/.${process.env.ENV_NAME}${process.env.LOCAL}.env`
+  : `${__dirname}/env/.${process.env.ENV_NAME}.env`;
 
 try {
   require('dotenv').config({
