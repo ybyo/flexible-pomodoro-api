@@ -1,8 +1,8 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/yidoyoon/pipe_timer">
-    <img                             src="https://img.yidoyoon.com/public/dummy-logo-black.png"
+  <a href="./assets/pipe-timer-logo-teal.png">
+    <img                             src="./assets/pipe-timer-logo-teal.png"
  alt="Logo" height="150px">
   </a>
 
@@ -34,7 +34,6 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 - [npm](https://github.com/nodesource/distributions#installation-instructions)
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 - [Docker Compose](https://docs.docker.com/compose/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)(Windows OS 사용자)
 
 ### 설치
 
@@ -100,6 +99,9 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 
 ## 로드맵
 
+- [ ] 모니터링 인프라 추가
+  - [ ] 리소스 모니터링
+  - [ ] 로그 수집
 - [ ] 사용량 통계 기능
 - [ ] 타이머 데이터 공유
   - [ ] 웹에서 직접 공유
