@@ -27,6 +27,10 @@ const config = require('dotenv').config({
   override: true,
 });
 
+if (config.error) {
+  throw config.error;
+}
+
 module.exports = configure(function (ctx) {
   console.log(ctx);
 
