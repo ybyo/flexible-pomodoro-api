@@ -11,7 +11,7 @@
     "staging:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache --progress=plain",
     "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up",
     "dev:cert:init": "sh ./.github/scripts/create-local-certs.sh",
-    "build:staging": "npm run build:staging -w backend && npm run build:staging -w frontend"
+    "build:dev": "npm run build:dev -w backend && npm run build:dev -w frontend"
   },
   "repository": {
     "type": "git",
