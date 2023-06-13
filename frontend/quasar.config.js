@@ -11,15 +11,13 @@
 const { configure } = require('quasar/wrappers');
 const path = require('path');
 const fs = require('fs');
-const envPath = process.env.DEV
-  ? `../env/.${process.env.ENV_NAME}.env`
-  : process.env.LOCAL === '.local'
-  ? `${__dirname}/env/.${process.env.ENV_NAME}${process.env.LOCAL}.env`
-  : `${__dirname}/env/.${process.env.ENV_NAME}.env`;
+const envPath =
+  process.env.ENV_NAME === 'development'
+    ? `../env/.${process.env.ENV_NAME}.env`
+    : `${__dirname}/env/.${process.env.ENV_NAME}.env`;
 
 console.info('-----------------------------------');
 console.info(`Current environment: ${process.env.ENV_NAME}`);
-console.info(`Local or Remote?: ${process.env.LOCAL}`);
 console.info('-----------------------------------');
 
 const config = require('dotenv').config({
@@ -71,7 +69,6 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        LOCAL: process.env.LOCAL,
         API_PORT_0: process.env.API_PORT_0,
         ENV_NAME: process.env.ENV_NAME,
         HOST_URL: process.env.HOST_URL,

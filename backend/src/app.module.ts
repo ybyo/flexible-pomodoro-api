@@ -36,14 +36,12 @@ const envPath = path.join(
   '../../env',
   process.env.NODE_ENV === 'development'
     ? '.development.env'
-    : process.env.NODE_ENV === 'production'
-    ? '.production.env'
-    : process.env.LOCAL === '.local'
-    ? '.staging.local.env'
-    : 'staging.env'
+    : process.env.NODE_ENV === 'local-staging'
+    ? '.local-staging.env'
+    : process.env.NODE_ENV === 'staging'
+    ? '.staging.env'
+    : '.production.env'
 );
-
-console.log(envPath);
 
 @Module({
   imports: [

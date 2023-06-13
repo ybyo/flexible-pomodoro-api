@@ -47,15 +47,15 @@ services:
         API_PORT_2: ${API_PORT_2}
         API_PORT_3: ${API_PORT_3}
       tags:
-        - ${DOCKER_REGISTRY}/pipe-timer-backend:${NODE_ENV}
+        - ${REGISTRY_SERVER}/pipe-timer-backend:${NODE_ENV}
     env_file:
-      - env/.${NODE_ENV}${LOCAL}.env
+      - env/.${NODE_ENV}.env
     container_name: backend
     ports:
       - ${API_PORT_0}:${API_PORT_0}
     volumes:
       - ./env:/env
-      - ./backend/certs:/certs:ro
+      - ./backend/certs:/certs
     networks:
       - app-tier
     depends_on: [mysql-pt, redis-pt]
@@ -69,15 +69,14 @@ services:
       dockerfile: ./frontend/Dockerfile
       args:
         ENV_NAME: ${ENV_NAME}
-        LOCAL: ${LOCAL}
         HOST_URL: ${HOST_URL}
         FRONT_PORT_1: ${FRONT_PORT_1}
         FRONT_PORT_2: ${FRONT_PORT_2}
         API_PORT_3: ${API_PORT_3}
       tags:
-        - ${DOCKER_REGISTRY}/pipe-timer-frontend:${NODE_ENV}
+        - ${REGISTRY_SERVER}/pipe-timer-frontend:${NODE_ENV}
     env_file:
-      - env/.${NODE_ENV}${LOCAL}.env
+      - env/.${NODE_ENV}.env
     environment:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     container_name: frontend
@@ -85,7 +84,7 @@ services:
       - ${FRONT_PORT_0}:${FRONT_PORT_2}
     volumes:
       - ./env:/env
-      - ./frontend/certs/:/etc/nginx/certs/
+      - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
     networks:
       - app-tier

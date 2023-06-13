@@ -21,7 +21,10 @@ declare module '@vue/runtime-core' {
 
 let apiURL;
 
-if (process.env.LOCAL === 'true' || process.env.NODE_ENV === 'development') {
+if (
+  process.env.ENV_NAME === 'local-staging' ||
+  process.env.ENV_NAME === 'development'
+) {
   apiURL = `https://${process.env.HOST_URL}:${process.env.API_PORT_0}`;
 } else {
   apiURL = `https://${process.env.HOST_URL}/api`;
