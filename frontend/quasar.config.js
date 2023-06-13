@@ -73,7 +73,7 @@ module.exports = configure(function (ctx) {
       env: {
         LOCAL: process.env.LOCAL,
         API_PORT_0: process.env.API_PORT_0,
-        NODE_ENV: process.env.NODE_ENV,
+        ENV_NAME: process.env.ENV_NAME,
         HOST_URL: process.env.HOST_URL,
       },
 
@@ -147,6 +147,7 @@ module.exports = configure(function (ctx) {
           textColor: 'white',
         },
       },
+      autoImportComponentCase: 'pascalCase',
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
 
