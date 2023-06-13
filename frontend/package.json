@@ -7,9 +7,9 @@
   "private": true,
   "license": "GPL-3.0",
   "scripts": {
-    "start:dev": "quasar dev -m pwa",
-    "build:staging": "quasar build -m pwa --history",
-    "serve:staging": "quasar serve ./dist/pwa --hostname localhost --history --https --port 443 -m pwa -K certs/dev-key.pem -C certs/dev-cert.pem",
+    "start:dev": "cross-env ENV_NAME=development quasar dev -m pwa",
+    "build:staging": "cross-env ENV_NAME=staging quasar build -m pwa --history",
+    "serve:staging": "cross-env ENV_NAME=staging quasar serve ./dist/pwa --hostname localhost --history --https --port 443 -m pwa -K certs/dev-key.pem -C certs/dev-cert.pem",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\"",
     "test": "echo \"No test specified\" && exit 0",
