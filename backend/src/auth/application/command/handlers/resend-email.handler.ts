@@ -9,14 +9,14 @@ import { CommandHandler, IQueryHandler } from '@nestjs/cqrs';
 
 import { ResendEmailCommand } from '@/auth/application/command/impl/resend-email.command';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
+import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
 @CommandHandler(ResendEmailCommand)
 export class ResendEmailHandler implements IQueryHandler<ResendEmailCommand> {
   constructor(
-    @Inject('UserRepository') private userRepository: IUserRepository,
-    private logger: Logger
+    @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
 
   async execute(command: ResendEmailCommand): Promise<SuccessDto> {
@@ -25,19 +25,14 @@ export class ResendEmailHandler implements IQueryHandler<ResendEmailCommand> {
       throw new BadRequestException('Cannot find user with email');
     }
 
-    const oldSignupToken = user.signupToken;
-
-    try {
-      const result = await this.userRepository.renewSignupToken(
-        command.email,
-        oldSignupToken
-      );
-
-      if (result.affected) return { success: true };
-    } catch (err) {
-      this.logger.log(err);
-
-      throw new InternalServerErrorException('Cannot renew signup token');
+    const result = await this.userRepository.renewSignupToken(
+      command.email,
+      user.signupToken
+    );
+    if (result.affected > 0) {
+      return { success: true };
     }
+
+    throw new InternalServerErrorException('Cannot renew signup token');
   }
 }

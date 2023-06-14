@@ -293,21 +293,23 @@ export class UserRepository implements IUserRepository {
     email: string,
     oldToken: string
   ): Promise<UpdateResult> {
-    const redis = await this.redisService.getClient();
-    const multi = redis.multi();
     const newToken = ulid();
+    const redis = await this.redisService.getClient();
 
-    multi.rename(`signupToken:${oldToken}`, `signupToken:${newToken}`);
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        redis.rename(`signupToken:${oldToken}`, `signupToken:${newToken}`);
 
-    return await this.dataSource.transaction(async (manager) => {
-      await this.emailService.sendSignupEmailToken(email, newToken);
-      await multi.exec();
+        await this.emailService.sendSignupEmailToken(email, newToken);
 
-      return await manager.update(
-        UserEntity,
-        { email },
-        { signupToken: newToken }
-      );
-    });
+        return await manager.update(
+          UserEntity,
+          { email },
+          { signupToken: newToken }
+        );
+      });
+    } catch (err) {
+      redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
+    }
   }
 }
