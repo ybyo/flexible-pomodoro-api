@@ -3,15 +3,15 @@
   "version": "0.0.1",
   "description": "One app for flexible piping of timers to enhance productivity",
   "scripts": {
+    "dev:cert:init": "sh ./.github/scripts/create-local-certs.sh",
     "dev:db": "npm run start:db -w backend",
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run start:dev -w frontend",
+    "build:dev": "npm run build:dev -w backend && npm run build:dev -w frontend",
     "local-staging:compose:build": "docker compose --profile=local --env-file=./env/.local-staging.env build --no-cache --progress=plain",
     "local-staging:compose:up": "docker compose --profile=local --env-file=./env/.local-staging.env up",
     "staging:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache --progress=plain",
-    "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up",
-    "dev:cert:init": "sh ./.github/scripts/create-local-certs.sh",
-    "build:dev": "npm run build:dev -w backend && npm run build:dev -w frontend"
+    "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up"
   },
   "repository": {
     "type": "git",
