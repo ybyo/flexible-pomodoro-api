@@ -27,6 +27,13 @@ export class RedisTokenService {
     return this.redisClient.del(key);
   }
 
+  async renameToken(oldToken, newToken): Promise<'OK'> {
+    return this.redisClient.rename(
+      `signupToken:${oldToken}`,
+      `signupToken:${newToken}`
+    );
+  }
+
   async getClient(): Promise<Redis> {
     return this.redisClient;
   }
