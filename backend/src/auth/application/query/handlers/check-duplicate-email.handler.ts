@@ -15,11 +15,11 @@ export class CheckDuplicateEmailHandler
   ) {}
 
   async execute(
-    command: CheckDuplicateEmailQuery
+    query: CheckDuplicateEmailQuery
   ): Promise<CheckDuplicateEmailDto> {
-    const user = await this.userRepository.findByEmail(command.email);
+    const user = await this.userRepository.findByEmail(query.email);
 
-    if (!user) return { email: command.email };
+    if (user === null) return { email: query.email };
 
     throw new BadRequestException('Duplicate email');
   }
