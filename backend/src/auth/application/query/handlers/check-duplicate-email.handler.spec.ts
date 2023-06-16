@@ -29,7 +29,7 @@ describe('CheckDuplicateEmailHandler', () => {
   });
 
   it('should execute CheckDuplicateEmailQuery', async () => {
-    const user = CreateRandomObject.RandomUser();
+    const user = CreateRandomObject.RandomUserWithoutPassword();
 
     userRepository.findByEmail = jest.fn().mockResolvedValue(null);
 
