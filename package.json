@@ -10,8 +10,10 @@
     "build:dev": "npm run build:dev -w backend && npm run build:dev -w frontend",
     "local-staging:compose:build": "docker compose --profile=local --env-file=./env/.local-staging.env build --no-cache --progress=plain",
     "local-staging:compose:up": "docker compose --profile=local --env-file=./env/.local-staging.env up",
-    "staging:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache --progress=plain",
-    "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up"
+    "staging:compose:build": "cross-env PLATFORM=linux/amd64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache --progress=plain",
+    "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up",
+    "production:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.production.env build --no-cache --progress=plain",
+    "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up"
   },
   "repository": {
     "type": "git",

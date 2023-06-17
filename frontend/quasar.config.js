@@ -71,6 +71,7 @@ module.exports = configure(function (ctx) {
       env: {
         API_PORT_0: process.env.API_PORT_0,
         ENV_NAME: process.env.ENV_NAME,
+        UPSTREAM_BACKEND: process.env.UPSTREAM_BACKEND,
         HOST_URL: process.env.HOST_URL,
       },
 

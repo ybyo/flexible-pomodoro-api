@@ -69,9 +69,11 @@ export default boot(({ app }) => {
     Pragma: 'no-cache',
     Expires: '0',
   };
-  api.defaults.headers.post[
-    'Access-Control-Allow-Origin'
-  ] = `https://${process.env.HOST_URL}`;
+  api.defaults.headers.post['Access-Control-Allow-Origin'] = [
+    `https://${process.env.HOST_URL}`,
+    `https://staging.${process.env.HOST_URL}`,
+    `https://staging-api.${process.env.HOST_URL}`,
+  ];
 });
 
 export { api, axios };
