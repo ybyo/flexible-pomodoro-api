@@ -1,7 +1,3 @@
-networks:
-  app-tier:
-    driver: bridge
-
 services:
   mysql-pt:
     image: mysql:8
@@ -15,10 +11,10 @@ services:
       - ${DB_PORT}:${DB_PORT}
     volumes:
       - ./backend/mysql:/var/lib/mysql
-    networks:
-      - app-tier
     profiles:
       - local
+    networks:
+      - pipe-timer-network
 
   redis-pt:
     image: bitnami/redis:latest
@@ -29,10 +25,10 @@ services:
     container_name: redis
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
-    networks:
-      - app-tier
     profiles:
       - local
+    networks:
+      - pipe-timer-network
 
   backend-pt:
     image: backend-pt
@@ -47,7 +43,7 @@ services:
         API_PORT_2: ${API_PORT_2}
         API_PORT_3: ${API_PORT_3}
       tags:
-        - ${REGISTRY_SERVER}/pipe-timer-backend:${NODE_ENV}
+        - ${REGISTRY_URL}/pipe-timer-backend:${NODE_ENV}
     env_file:
       - env/.${NODE_ENV}.env
     container_name: backend
@@ -56,9 +52,10 @@ services:
     volumes:
       - ./env:/env
       - ./backend/certs:/certs
-    networks:
-      - app-tier
+    restart: always
     depends_on: [mysql-pt, redis-pt]
+    networks:
+      - pipe-timer-network
 
   nginx-pt:
     image: nginx-pt
@@ -74,7 +71,7 @@ services:
         FRONT_PORT_2: ${FRONT_PORT_2}
         API_PORT_3: ${API_PORT_3}
       tags:
-        - ${REGISTRY_SERVER}/pipe-timer-frontend:${NODE_ENV}
+        - ${REGISTRY_URL}/pipe-timer-frontend:${NODE_ENV}
     env_file:
       - env/.${NODE_ENV}.env
     environment:
@@ -86,9 +83,10 @@ services:
       - ./env:/env
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
-    networks:
-      - app-tier
+    restart: always
     depends_on: [mysql-pt, redis-pt, backend-pt]
+    networks:
+      - pipe-timer-network
 
   mysql-test:
     image: mysql:8
@@ -100,10 +98,10 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - ${DB_TEST_PORT}:${DB_PORT}
-    networks:
-      - app-tier
     profiles:
       - test
+    networks:
+      - pipe-timer-network
 
   redis-test:
     image: bitnami/redis:latest
@@ -114,7 +112,12 @@ services:
     container_name: redis-test
     ports:
       - ${REDIS_TEST_PORT}:${REDIS_PORT}
-    networks:
-      - app-tier
     profiles:
       - test
+    networks:
+      - pipe-timer-network
+
+networks:
+  pipe-timer-network:
+    driver: bridge
+    name: pipe-timer-network
