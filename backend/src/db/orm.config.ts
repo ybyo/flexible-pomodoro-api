@@ -15,6 +15,7 @@ dotenv.config({
       : '.production.env'
   ),
 });
+
 export const ormConfig = new DataSource({
   type: 'mysql',
   host: process.env.DB_BASE_URL,
