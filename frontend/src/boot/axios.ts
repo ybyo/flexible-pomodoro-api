@@ -25,9 +25,9 @@ if (
   process.env.ENV_NAME === 'local-staging' ||
   process.env.ENV_NAME === 'development'
 ) {
-  apiURL = `https://${process.env.HOST_URL}:${process.env.API_PORT_0}`;
+  apiURL = `https://localhost:${process.env.API_PORT_0}`;
 } else {
-  apiURL = `https://${process.env.HOST_URL}/api`;
+  apiURL = `https://${process.env.UPSTREAM_BACKEND}`;
 }
 
 const api = axios.create({
