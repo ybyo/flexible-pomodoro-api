@@ -105,28 +105,22 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
   }
 
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-#  ingress {
-#    from_port   = 443
-#    to_port     = 443
-#    protocol    = "tcp"
-#    cidr_blocks = ["${data.terraform_remote_state.frontend.outputs.frontend_public_ip}/32"]
-#  }
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
 
-#  dynamic "ingress" {
-#    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-#    content {
-#      from_port   = 443
-#      to_port     = 443
-#      protocol    = "tcp"
-#      cidr_blocks = [ingress.value]
-#    }
-#  }
+    content {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
 
   egress {
     from_port   = 0
