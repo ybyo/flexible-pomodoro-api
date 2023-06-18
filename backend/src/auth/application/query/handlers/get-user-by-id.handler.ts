@@ -14,10 +14,10 @@ export class GetUserByIdHandler implements IQueryHandler<GetUserByIdQuery> {
   async execute(query: GetUserByIdQuery): Promise<UserJwt> {
     const user = await this.userRepository.findById(query.id);
 
-    if (user === null) {
-      new BadRequestException('Cannot find user with user id');
+    if (user !== null) {
+      return user;
     }
 
-    return user;
+    throw new BadRequestException('Cannot find user with user id');
   }
 }
