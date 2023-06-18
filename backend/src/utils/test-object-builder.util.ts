@@ -1,7 +1,7 @@
 import * as Chance from 'chance';
 import { ulid } from 'ulid';
 
-import { User, UserWithoutPassword } from '@/users/domain/user.model';
+import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
 export class CreateRandomObject {
@@ -48,6 +48,19 @@ export class CreateRandomObject {
     do {
       user.newEmail = this.chance.email();
     } while (user.newEmail === user.email);
+
+    return user;
+  }
+
+  static RandomUserJwt(): UserJwt {
+    const user = new UserJwt();
+    user.id = ulid();
+    user.email = `${ulid().toLowerCase()}@example.com`;
+    user.username = this.chance.string({
+      alpha: true,
+      numeric: true,
+      symbols: false,
+    });
 
     return user;
   }
