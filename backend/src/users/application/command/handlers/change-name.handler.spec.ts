@@ -10,7 +10,7 @@ describe('ChangeNameHandler', () => {
   let changeNameHandler: ChangeNameHandler;
   let userRepository: IUserRepository;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         ChangeNameHandler,
