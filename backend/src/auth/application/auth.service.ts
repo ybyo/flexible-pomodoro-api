@@ -3,8 +3,6 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -36,32 +34,8 @@ export class AuthService {
     private commandBus: CommandBus,
     private queryBus: QueryBus,
     @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
-    @Inject('UserRepository') private userRepository: IUserRepository,
-    private logger: Logger
+    @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
-
-  async login(dto: LoginUserDto): Promise<UserJwt> {
-    // TODO: 데이터베이스가 완전히 비어있을 때 에러 처리
-    const storedUser = await this.userRepository.findByEmail(dto.email);
-    if (!storedUser) {
-      throw new UnauthorizedException('No matching account information');
-    }
-
-    const isValid = await this.verifyPassword(
-      storedUser.password,
-      dto.password
-    );
-    if (!isValid) {
-      throw new UnauthorizedException('Incorrect email or password');
-    }
-
-    return {
-      id: storedUser.id,
-      email: storedUser.email,
-      username: storedUser.username,
-    };
-  }
-
   async verifyPassword(
     hashedPassword: string,
     password: string
@@ -69,11 +43,27 @@ export class AuthService {
     return await argon2.verify(hashedPassword, password);
   }
 
-  async verifyJWT(jwtString: string): Promise<JwtResponseDto> {
-    let payload = null;
+  async login(dto: LoginUserDto): Promise<UserJwt> {
+    const user = await this.userRepository.findByEmail(dto.email);
+    if (user === null) {
+      throw new BadRequestException('No matching account information');
+    }
 
+    const isValid = await this.verifyPassword(user.password, dto.password);
+    if (isValid === true) {
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+      };
+    }
+
+    throw new BadRequestException('Incorrect email or password');
+  }
+
+  async verifyJwt(jwtString: string): Promise<JwtResponseDto> {
     try {
-      payload = jwt.verify(
+      const payload = jwt.verify(
         jwtString,
         this.jwtConf.jwtSecret
       ) as jwt.JwtPayload & UserWithoutPassword;
@@ -87,37 +77,14 @@ export class AuthService {
         },
       };
     } catch (err) {
-      throw new BadRequestException(err);
-    }
-  }
-
-  async verifySignupToken(req: Request): Promise<SuccessDto> {
-    const { event, token } = await this.splitEventToken(req.query);
-    const key = `${event}:${token}`;
-
-    const query = new CheckSignupTokenValidityQuery(token);
-    const user = await this.queryBus.execute(query);
-
-    if (user === null) {
-      await this.redisService.deleteValue(key);
-      throw new BadRequestException(`Invalid ${event}`);
-    }
-
-    const expiredAt = await this.redisService.getPexpiretime(key);
-    const result = await this.userRepository.verifySignupToken(user.id, token);
-
-    if (result.affected) {
-      return { success: true };
-    } else {
-      await this.redisService.setPXAT(key, '1', expiredAt);
-      throw new InternalServerErrorException(`Cannot verify ${event}`);
+      throw new BadRequestException('Cannot verify JWT');
     }
   }
 
   async verifyResetPasswordToken(req: Request): Promise<string> {
-    const result = await this.splitEventToken(req.query);
+    const { event, token } = await this.splitEventToken(req.query);
 
-    const query = new CheckResetPasswordTokenValidityQuery(result.token);
+    const query = new CheckResetPasswordTokenValidityQuery(token);
     const user = await this.queryBus.execute(query);
 
     if (user !== null) {
@@ -130,25 +97,14 @@ export class AuthService {
       return jwt;
     }
 
-    throw new BadRequestException('Invalid token');
-  }
-
-  async splitEventToken(query: any) {
-    if (Object.keys(query).length === 0) {
-      throw new BadRequestException('Invalid request');
-    }
-
-    const event = Object.keys(query)[0] as string;
-    const token = Object.values(query)[0] as string;
-
-    return { event, token };
+    throw new BadRequestException(`Invalid ${event} token`);
   }
 
   async changePassword(
     token: string,
     newPassword: string
   ): Promise<SuccessDto> {
-    const result = await this.verifyJWT(token);
+    const result = await this.verifyJwt(token);
 
     if (result.success) {
       try {
@@ -192,6 +148,50 @@ export class AuthService {
     throw new BadRequestException('Duplicate user name');
   }
 
+  async issueJWT(user: UserJwt): Promise<string> {
+    const token = jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
+
+    return token;
+  }
+
+  async issueUlid(): Promise<string> {
+    return ulid();
+  }
+
+  async verifySignupToken(req: Request): Promise<SuccessDto> {
+    const { event, token } = await this.splitEventToken(req.query);
+    const key = `${event}:${token}`;
+
+    const query = new CheckSignupTokenValidityQuery(token);
+    const user = await this.queryBus.execute(query);
+
+    if (user === null) {
+      await this.redisService.deleteValue(key);
+      throw new BadRequestException(`Invalid ${event}`);
+    }
+
+    const expiredAt = await this.redisService.getPexpiretime(key);
+    const result = await this.userRepository.verifySignupToken(user.id, token);
+
+    if (result.affected) {
+      return { success: true };
+    } else {
+      await this.redisService.setPXAT(key, '1', expiredAt);
+      throw new InternalServerErrorException(`Cannot verify ${event}`);
+    }
+  }
+
+  async splitEventToken(query: any) {
+    if (Object.keys(query).length === 0) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    const event = Object.keys(query)[0] as string;
+    const token = Object.values(query)[0] as string;
+
+    return { event, token };
+  }
+
   async registerUser(user: RegisterUserDto): Promise<SuccessDto> {
     const newUser = new User();
     newUser.email = user.email;
@@ -200,11 +200,10 @@ export class AuthService {
 
     try {
       const result = await this.userRepository.registerUser(newUser);
-
-      if (result.email) return { success: true };
+      if (result.email) {
+        return { success: true };
+      }
     } catch (err) {
-      this.logger.log(err);
-
       if (err.code === 'ER_DUP_ENTRY') {
         const regex = /Duplicate entry '([^']+)'/;
         const match = err.message.match(regex);
@@ -215,15 +214,5 @@ export class AuthService {
         throw new InternalServerErrorException('Cannot register user');
       }
     }
-  }
-
-  async issueJWT(user: UserJwt): Promise<string> {
-    const token = jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
-
-    return token;
-  }
-
-  async issueUlid(): Promise<string> {
-    return ulid();
   }
 }
