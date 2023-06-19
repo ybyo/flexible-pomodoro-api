@@ -2,10 +2,19 @@ import * as Chance from 'chance';
 import { ulid } from 'ulid';
 
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
+import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 
 export class CreateRandomObject {
   private static chance = new Chance();
+
+  static RandomUserForLogin(): LoginUserDto {
+    const user = new User();
+    user.email = `${ulid().toLowerCase()}@example.com`;
+    user.password = `${this.chance.string({ length: 20 })}`;
+
+    return user;
+  }
 
   static RandomUserWithoutPassword(): UserWithoutPassword {
     const user = new UserWithoutPassword();
