@@ -52,21 +52,21 @@
 </template>
 
 <script setup lang="ts">
+import { useMutation } from '@tanstack/vue-query';
+import { toFormValidator } from '@vee-validate/zod';
+import { useQuasar } from 'quasar';
 import {
   CHECK_EMPTY,
   userMsg,
   userVar,
 } from 'src/core/users/domain/user.const';
 import { changePassword } from 'src/core/users/infra/http/user.api';
-import { isEmptyObj } from 'src/util/is-empty-object.util';
-import * as zod from 'zod';
 import { IChangePasswordInput } from 'src/type-defs/userTypes';
-import { ref } from 'vue';
-import { toFormValidator } from '@vee-validate/zod';
+import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { useField, useForm } from 'vee-validate';
-import { useMutation } from '@tanstack/vue-query';
-import { useQuasar } from 'quasar';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import * as zod from 'zod';
 
 const $q = useQuasar();
 const router = useRouter();
@@ -102,7 +102,8 @@ const { value: confirmPassword, errorMessage: confirmPasswordError } =
 const { isLoading, mutate } = useMutation(
   (credentials: IChangePasswordInput) => changePassword(credentials),
   {
-    onError: () => {
+    onError: (err: any) => {
+      // console.log(err.response.data.message as string);
       $q.notify({
         type: 'negative',
         message:
