@@ -14,7 +14,7 @@ terraform {
 }
 
 locals {
-  envs = { for tuple in regexall("(.*)=(.*)", file("../../../../../../env/.staging.env")) : tuple[0] => trim(tuple[1], "\r") }
+  envs = { for tuple in regexall("(.*)=(.*)", file("../../../../../../env/.production.env")) : tuple[0] => trim(tuple[1], "\r") }
 }
 
 provider "aws" {
