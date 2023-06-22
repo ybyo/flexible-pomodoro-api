@@ -70,9 +70,7 @@ export default boot(({ app }) => {
     Expires: '0',
   };
   api.defaults.headers.post['Access-Control-Allow-Origin'] = [
-    `https://${process.env.HOST_URL}`,
-    `https://staging.${process.env.HOST_URL}`,
-    `https://staging-api.${process.env.HOST_URL}`,
+    `https://${process.env.UPSTREAM_BACKEND}`,
   ];
 });
 
