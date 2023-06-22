@@ -8,7 +8,7 @@ docker pull "$registry_url"/pipe-timer-backend:"$node_env"
 docker run -itd \
   -p 443:443 \
   -e NODE_ENV="$node_env" \
-  --node_env-file "$cicd_path"/node_env/."$node_env".node_env \
+  --env-file "$cicd_path"/env/."$node_env".env \
   -v "$cicd_path"/certs:/certs/:ro \
   --name backend \
   "$registry_url"/pipe-timer-backend:"$node_env"
