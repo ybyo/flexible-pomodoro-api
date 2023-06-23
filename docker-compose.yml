@@ -83,6 +83,7 @@ services:
       - ${FRONT_PORT_0}:${FRONT_PORT_2}
     volumes:
       - ./env:/env
+      - ./frontend/templates/nginx.conf:/etc/nginx/templates/nginx.conf.template
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
     restart: on-failure
