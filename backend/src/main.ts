@@ -107,14 +107,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
 
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.NODE_ENV === 'local-staging'
-  ) {
-    await app.listen(process.env.API_PORT_0);
-  } else {
-    await app.listen(process.env.API_PORT_2);
-  }
+  await app.listen(process.env.API_PORT_0);
 }
 
 bootstrap();
