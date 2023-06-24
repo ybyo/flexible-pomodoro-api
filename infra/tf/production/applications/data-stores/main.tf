@@ -29,7 +29,7 @@ provider "aws" {
 data "terraform_remote_state" "network" {
   backend = "local"
 
-  config  = {
+  config = {
     path = "../../modules/network/vpc/terraform.tfstate"
   }
 }
@@ -106,7 +106,7 @@ resource "aws_db_instance" "mysql" {
 }
 
 resource "aws_elasticache_subnet_group" "pipe-timer" {
-  name       = "redis-production"
+  name = "redis-production"
 
   subnet_ids = [
     data.terraform_remote_state.network.outputs.public_subnet_1_id,
@@ -151,7 +151,7 @@ resource "null_resource" "update_env" {
         "REDIS_BASE_URL" = aws_elasticache_cluster.redis.cache_nodes[0].address
         "ENV_PATH"       = "../../../../../env"
         "NODE_ENV"       = local.envs["NODE_ENV"]
-      })
+    })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }

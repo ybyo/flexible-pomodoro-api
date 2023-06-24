@@ -13,13 +13,14 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
-
 locals {
-  envs = { for tuple in regexall("(.*)=(.*)", file("../../../../../env/.staging.env")) : tuple[0] => trim(tuple[1], "\r") }
+  envs = {
+    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.staging.env")) : tuple[0] => trim(tuple[1], "\r")
+  }
   flavor_amd = "t2.nano"
   flavor_arm = "t4g.nano"
-  ami_arm = "ami-0ac62099928d25fec" # Canonical, Ubuntu, 20.04 LTS, arm64 focal image build on 2023-05-17
-  ami_amd = "ami-04341a215040f91bb" # Canonical, Ubuntu, 20.04 LTS, amd64 focal image build on 2023-05-17
+  ami_arm    = "ami-0ac62099928d25fec" # Canonical, Ubuntu, 20.04 LTS, arm64
+  ami_amd    = "ami-04341a215040f91bb" # Canonical, Ubuntu, 20.04 LTS, amd64
 }
 
 provider "cloudflare" {
@@ -30,7 +31,7 @@ provider "aws" {
   region = local.envs["REGION"]
 }
 
-resource "null_resource" "remove_docker" {
+resource "null_resource" "remove-docker" {
   provisioner "local-exec" {
     command     = "../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
     working_dir = path.module
@@ -49,7 +50,7 @@ resource "null_resource" "build-docker" {
     command = templatefile("./shell-scripts/build-push-registry.sh",
       {
         "REGISTRY_URL" = local.envs["REGISTRY_URL"]
-        "NODE_ENV"          = local.envs["NODE_ENV"]
+        "NODE_ENV"     = local.envs["NODE_ENV"]
     })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
@@ -70,7 +71,6 @@ data "aws_ami" "ubuntu" {
 
 data "terraform_remote_state" "network" {
   backend = "local"
-
   config = {
     path = "../../modules/network/vpc/terraform.tfstate"
   }
@@ -78,7 +78,6 @@ data "terraform_remote_state" "network" {
 
 data "terraform_remote_state" "frontend" {
   backend = "local"
-
   config = {
     path = "../frontend/terraform.tfstate"
   }
@@ -98,6 +97,13 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
   }
 
   ingress {
+    from_port   = local.envs["NODE_EXPORTER_PORT"]
+    to_port     = local.envs["NODE_EXPORTER_PORT"]
+    protocol    = "tcp"
+    cidr_blocks = [data.terraform_remote_state.network.outputs.public_subnet_1_cidr_block]
+  }
+
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -108,7 +114,7 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [data.terraform_remote_state.network.outputs.public_subnet_1_cidr_block]
   }
 
   dynamic "ingress" {
@@ -127,6 +133,17 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+data "template_file" "node_exporter_config" {
+  template = file("../../../../monitoring/config/web-config.yml")
+
+  vars = {
+    PROM_ID     = local.envs["PROM_ID"]
+    PROM_PW     = local.envs["PROM_PW"]
+    WORKDIR     = local.envs["WORKDIR"]
+    BASE_DOMAIN = local.envs["BASE_DOMAIN"]
   }
 }
 
@@ -171,13 +188,18 @@ resource "aws_instance" "pipe-timer-backend" {
   }
 
   provisioner "file" {
-    source      = "../common-scripts"
+    source      = "./shell-scripts"
+    destination = local.envs["WORKDIR"]
+  }
+
+  provisioner "file" {
+    source      = "../common-scripts/"
     destination = "${local.envs["WORKDIR"]}/shell-scripts/"
   }
 
   provisioner "file" {
-    source      = "./shell-scripts"
-    destination = local.envs["WORKDIR"]
+    source      = "../../../../../backend/templates/nginx.conf"
+    destination = "${local.envs["WORKDIR"]}/nginx.conf"
   }
 
   provisioner "file" {
@@ -185,14 +207,24 @@ resource "aws_instance" "pipe-timer-backend" {
     destination = "${local.envs["WORKDIR"]}/env"
   }
 
+  provisioner "file" {
+    content     = data.template_file.node_exporter_config.rendered
+    destination = "${local.envs["WORKDIR"]}/web-config.yml"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+      "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/amd64'",
+      "sudo chmod +x mkcert-v*-linux-amd64",
+      "sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert",
+      "sudo mkcert -install",
     ]
   }
 
   provisioner "remote-exec" {
     inline = [
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
       "${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
     ]
   }
@@ -200,12 +232,7 @@ resource "aws_instance" "pipe-timer-backend" {
   provisioner "remote-exec" {
     inline = [
       "${local.envs["WORKDIR"]}/shell-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}",
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]}",
+      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]}",
     ]
   }
 
@@ -218,7 +245,7 @@ resource "aws_instance" "pipe-timer-backend" {
 
 resource "cloudflare_record" "backend-staging" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "staging-api.pipetimer.com"
+  name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_instance.pipe-timer-backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]

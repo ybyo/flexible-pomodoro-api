@@ -99,11 +99,7 @@ async function bootstrap() {
   app.setViewEngine('ejs');
 
   const corsOption = {
-    origin: [
-      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
-      `https://${process.env.HOST_URL}`,
-      `https://staging-${process.env.HOST_URL}`,
-    ],
+    origin: [`https://${process.env.HOST_URL}`],
     credentials: true,
     optionsSuccessStatus: 200,
   };
@@ -111,14 +107,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
 
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.NODE_ENV === 'local-staging'
-  ) {
-    await app.listen(process.env.API_PORT_0);
-  } else {
-    await app.listen(process.env.API_PORT_2);
-  }
+  await app.listen(process.env.API_PORT_0);
 }
 
 bootstrap();

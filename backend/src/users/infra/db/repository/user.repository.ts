@@ -97,29 +97,20 @@ export class UserRepository implements IUserRepository {
     ).getTime();
   }
 
-  async registerUser(user: User): Promise<UserEntity | null> {
+  async registerUser(user: User): Promise<UserEntity> {
     const id = ulid();
     const token = ulid();
     const userEntity = UserEntity.create({ ...user, id, signupToken: token });
     const expiredAt = this.calculateExpirationTime();
 
-    try {
-      return await this.dataSource.transaction(
-        async (manager): Promise<UserEntity> => {
-          await this.emailService.sendSignupEmailToken(user.email, token);
-          await this.redisService.setPXAT(
-            `signupToken:${token}`,
-            '1',
-            expiredAt
-          );
+    return await this.dataSource.transaction(
+      async (manager): Promise<UserEntity> => {
+        await this.emailService.sendSignupEmailToken(user.email, token);
+        await this.redisService.setPXAT(`signupToken:${token}`, '1', expiredAt);
 
-          return await manager.save(userEntity);
-        }
-      );
-    } catch (err) {
-      this.logger.log(err);
-      return null;
-    }
+        return await manager.save(userEntity);
+      }
+    );
   }
 
   async sendChangeEmailToken(

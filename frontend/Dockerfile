@@ -32,7 +32,6 @@ ARG FRONT_PORT_1
 ARG FRONT_PORT_2
 
 COPY --from=build /app/dist/pwa /usr/share/nginx/html
-COPY /frontend/templates/nginx.conf /etc/nginx/templates/nginx.conf.template
 
 EXPOSE $FRONT_PORT_1 $FRONT_PORT_2
 

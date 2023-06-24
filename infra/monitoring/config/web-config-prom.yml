@@ -1,0 +1,4 @@
+tls_server_config:
+  cert_file: /certs/local-cert.pem
+  key_file: /certs/local-key.pem
+basic_auth_users:
