@@ -6,7 +6,7 @@ if ! docker --version; then
     echo "Failed to update package list, retrying in 5 seconds... (attempt $retry_count)"
     sleep 5
     retry_count=$((retry_count+1))
-    if [$retry_count -gt 10 ]; then
+    if [ $retry_count -gt 10 ]; then
       echo "Failed to update package list after 10 attempts, exiting..."
       exit 1
     fi
@@ -24,7 +24,7 @@ if ! docker --version; then
   sudo apt-get update
   sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo groupadd docker
-  sudo usermod -aG docker ubuntu
+  sudo usermod -aG docker "${USER}"
 
 else
   echo "Docker is already installed"

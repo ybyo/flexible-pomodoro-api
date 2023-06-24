@@ -13,14 +13,14 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
-data "cloudflare_ip_ranges" "cloudflare" {}
-
 locals {
-  envs = { for tuple in regexall("(.*)=(.*)", file("../../../../../env/.production.env")) : tuple[0] => trim(tuple[1], "\r") }
+  envs = {
+    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.production.env")) : tuple[0] => trim(tuple[1], "\r")
+  }
   flavor_amd = "t2.nano"
   flavor_arm = "t4g.nano"
-  ami_arm = "ami-0ac62099928d25fec" # Canonical, Ubuntu, 20.04 LTS, arm64 focal image build on 2023-05-17
-  ami_amd = "ami-04341a215040f91bb" # Canonical, Ubuntu, 20.04 LTS, amd64 focal image build on 2023-05-17
+  ami_arm    = "ami-0ac62099928d25fec" # Canonical, Ubuntu, 20.04 LTS, arm64
+  ami_amd    = "ami-04341a215040f91bb" # Canonical, Ubuntu, 20.04 LTS, amd64
 }
 
 provider "cloudflare" {
@@ -39,7 +39,7 @@ resource "null_resource" "remove_docker" {
   }
 }
 
-resource "null_resource" "build-docker" {
+resource "null_resource" "build_docker" {
   provisioner "local-exec" {
     command     = "../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
     working_dir = path.module
@@ -50,8 +50,8 @@ resource "null_resource" "build-docker" {
     command = templatefile("./shell-scripts/build-push-registry.sh",
       {
         "REGISTRY_URL" = local.envs["REGISTRY_URL"]
-        "NODE_ENV"          = local.envs["NODE_ENV"]
-      })
+        "NODE_ENV"     = local.envs["NODE_ENV"]
+    })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -77,6 +77,8 @@ data "terraform_remote_state" "network" {
   }
 }
 
+data "cloudflare_ip_ranges" "cloudflare" {}
+
 resource "aws_security_group" "sg_pipe_timer_frontend" {
   name   = "sg_pipe_timer_frontend"
   vpc_id = data.terraform_remote_state.network.outputs.vpc_id
@@ -84,6 +86,13 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["${data.http.ip.response_body}/32"]
+  }
+
+  ingress {
+    from_port   = local.envs["NODE_EXPORTER_PORT"]
+    to_port     = local.envs["NODE_EXPORTER_PORT"]
     protocol    = "tcp"
     cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
@@ -97,6 +106,18 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+
+    content {
+      from_port   = local.envs["NODE_EXPORTER_PORT"]
+      to_port     = local.envs["NODE_EXPORTER_PORT"]
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+
     content {
       from_port   = 443
       to_port     = 443
@@ -110,6 +131,17 @@ resource "aws_security_group" "sg_pipe_timer_frontend" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+data "template_file" "node_exporter_config" {
+  template = file("../../../../monitoring/config/web-config.yml")
+
+  vars = {
+    PROM_ID     = local.envs["PROM_ID"]
+    PROM_PW     = local.envs["PROM_PW"]
+    WORKDIR     = local.envs["WORKDIR"]
+    BASE_DOMAIN = local.envs["BASE_DOMAIN"]
   }
 }
 
@@ -136,7 +168,7 @@ resource "aws_instance" "pipe-timer-frontend" {
 
   connection {
     type        = "ssh"
-    user        = "ubuntu"
+    user        = local.envs["USER"]
     private_key = file("../scripts/ssh")
     host        = aws_instance.pipe-timer-frontend.public_ip
   }
@@ -154,13 +186,13 @@ resource "aws_instance" "pipe-timer-frontend" {
   }
 
   provisioner "file" {
-    source      = "../common-scripts"
-    destination = "${local.envs["WORKDIR"]}/shell-scripts/"
+    source      = "./shell-scripts"
+    destination = local.envs["WORKDIR"]
   }
 
   provisioner "file" {
-    source      = "./shell-scripts"
-    destination = local.envs["WORKDIR"]
+    source      = "../common-scripts/"
+    destination = "${local.envs["WORKDIR"]}/shell-scripts/"
   }
 
   provisioner "file" {
@@ -178,14 +210,24 @@ resource "aws_instance" "pipe-timer-frontend" {
     destination = "${local.envs["WORKDIR"]}/public"
   }
 
+  provisioner "file" {
+    content     = data.template_file.node_exporter_config.rendered
+    destination = "${local.envs["WORKDIR"]}/web-config.yml"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+      "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/arm64'",
+      "sudo chmod +x mkcert-v*-linux-arm64",
+      "sudo cp mkcert-v*-linux-arm64 /usr/local/bin/mkcert",
+      "sudo mkcert -install",
     ]
   }
 
   provisioner "remote-exec" {
     inline = [
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
       "${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
     ]
   }
@@ -193,11 +235,6 @@ resource "aws_instance" "pipe-timer-frontend" {
   provisioner "remote-exec" {
     inline = [
       "${local.envs["WORKDIR"]}/shell-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}",
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
       "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]}",
     ]
   }
@@ -206,20 +243,12 @@ resource "aws_instance" "pipe-timer-frontend" {
     Name = "pipe-timer-frontend"
   }
 
-  depends_on = [null_resource.build-docker]
+  depends_on = [null_resource.build_docker]
 }
 
-resource "cloudflare_record" "frontend-production" {
-  zone_id = var.cf_zone_id
-  name    = "www.pipetimer.com"
-  value   = aws_instance.pipe-timer-frontend.public_ip
-  type    = "A"
-  proxied = local.envs["PROXIED"]
-}
-
-resource "cloudflare_record" "root-frontend-production" {
-  zone_id = var.cf_zone_id
-  name    = "pipetimer.com"
+resource "cloudflare_record" "frontend" {
+  zone_id = local.envs["CF_ZONE_ID"]
+  name    = local.envs["HOST_URL"]
   value   = aws_instance.pipe-timer-frontend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]

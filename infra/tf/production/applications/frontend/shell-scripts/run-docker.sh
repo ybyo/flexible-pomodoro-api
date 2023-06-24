@@ -1,19 +1,29 @@
 #!/bin/bash
 
-registry_url="${1:-${REGISTRY_URL}}"
-cicd_path="${2:-${CICD_PATH}}"
-node_env="${3:-${NODE_ENV}}"
+registry_url="$1"
+cicd_path="$2"
+env="$3"
 
-docker pull "$registry_url"/pipe-timer-frontend:production
+docker run -d --net host --pid host \
+  -v /:/host:ro,rslave \
+  -v "${cicd_path}"/web-config.yml:/web-config.yml \
+  -v "${cicd_path}"/certs:"${cicd_path}"/certs \
+  quay.io/prometheus/node-exporter:latest \
+  --web.config.file=web-config.yml \
+  --path.rootfs=/host
+
 docker run -itd \
   -p 443:443 \
   -p 80:80 \
-  --env-file "$cicd_path"/env/."$node_env".env \
-  -v "$cicd_path"/certs:/etc/nginx/certs \
-  -v "$cicd_path"/nginx.conf:/etc/nginx/nginx.conf \
-  -v "$cicd_path"/public:/public \
-  --name frontend \
-  --restart=always \
-  "$registry_url"/pipe-timer-frontend:"$node_env"
+  --env-file="$cicd_path"/env/."$env".env \
+  -v "$cicd_path"/certs:/etc/nginx/certs/:ro \
+  -v "$cicd_path"/nginx.conf:/etc/nginx/templates/nginx.conf.template \
+  -v "$cicd_path"/public:/public:ro \
+  --name=frontend \
+  --restart=on-failure \
+  --add-host=host.docker.internal:host-gateway \
+  "$registry_url"/pipe-timer-frontend:"$env"
+
+sleep 5
 
 docker ps -a

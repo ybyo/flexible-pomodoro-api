@@ -24,7 +24,7 @@ if ! docker --version; then
   sudo apt-get update
   sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo groupadd docker
-  sudo usermod -aG docker ubuntu
+  sudo usermod -aG docker "${USER}"
 
 else
   echo "Docker is already installed"
