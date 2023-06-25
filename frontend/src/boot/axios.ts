@@ -55,7 +55,7 @@ export default boot(({ app }) => {
     retries: 1,
     retryDelay: axiosRetry.exponentialDelay,
     retryCondition: (error) => {
-      // You could do this way or try to implement your own
+      // You could do this way or try to implement your on
       return error.response?.data.status > 400;
       // something like this works too.
       // error.response.status === 401 || error.response.status >= 500;
@@ -71,6 +71,7 @@ export default boot(({ app }) => {
   };
   api.defaults.headers.post['Access-Control-Allow-Origin'] = [
     `https://${process.env.UPSTREAM_BACKEND}`,
+    `https://${process.env.UPSTREAM_BACKEND}:${process.env.API_PORT_0}`,
   ];
 });
 
