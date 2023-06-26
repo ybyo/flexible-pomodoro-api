@@ -6,21 +6,21 @@ import {
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Request } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { ulid } from 'ulid';
 
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
 import accessTokenConfig from '@/config/access-token.config';
-import jwtConfig, { jwtExpConfig } from '@/config/jwt.config';
+import jwtConfig from '@/config/jwt.config';
 import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityQuery } from '@/users/application/query/impl/check-reset-password-token-validity.query';
 import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
-import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
+import { User, UserJwt } from '@/users/domain/user.model';
 import { JwtResponseDto } from '@/users/interface/dto/jwt-response.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
@@ -33,6 +33,7 @@ export class AuthService {
     private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    private jwtService: JwtService,
     @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
     @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
@@ -63,10 +64,7 @@ export class AuthService {
 
   async verifyJwt(jwtString: string): Promise<JwtResponseDto> {
     try {
-      const payload = jwt.verify(
-        jwtString,
-        this.jwtConf.jwtSecret
-      ) as jwt.JwtPayload & UserWithoutPassword;
+      const payload = this.jwtService.verify(jwtString, this.jwtConf);
 
       return {
         success: true,
@@ -77,7 +75,7 @@ export class AuthService {
         },
       };
     } catch (err) {
-      throw new BadRequestException('Cannot verify JWT');
+      throw new BadRequestException('Cannot verify JWT token');
     }
   }
 
@@ -149,7 +147,7 @@ export class AuthService {
   }
 
   async issueJWT(user: UserJwt): Promise<string> {
-    const token = jwt.sign(user, this.jwtConf.jwtSecret, jwtExpConfig);
+    const token = this.jwtService.sign(user, this.jwtConf);
 
     return token;
   }

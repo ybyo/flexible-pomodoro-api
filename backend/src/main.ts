@@ -99,7 +99,10 @@ async function bootstrap() {
   app.setViewEngine('ejs');
 
   const corsOption = {
-    origin: [`https://${process.env.HOST_URL}`],
+    origin: [
+      `https://${process.env.HOST_URL}`,
+      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   };

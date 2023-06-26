@@ -53,20 +53,20 @@
 </template>
 
 <script setup lang="ts">
+import { useMutation } from '@tanstack/vue-query';
+import { toFormValidator } from '@vee-validate/zod';
+import { useQuasar } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
 import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
 import { CHECK_EMPTY, userMsg } from 'src/core/users/domain/user.const';
-import * as zod from 'zod';
-import { ILoginInput } from 'src/type-defs/userTypes';
 import { getMeFn, loginUserFn } from 'src/core/users/infra/http/user.api';
-import { onBeforeMount, onBeforeUpdate, ref } from 'vue';
-import { toFormValidator } from '@vee-validate/zod';
 import { useUserStore } from 'src/core/users/infra/store/user.store';
+import { ILoginInput } from 'src/type-defs/userTypes';
 import { useField, useForm } from 'vee-validate';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
-import { useQuasar } from 'quasar';
+import { onBeforeMount, onBeforeUpdate, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import * as zod from 'zod';
 
 const $q = useQuasar();
 const isPwd = ref(true);
@@ -76,8 +76,6 @@ const userStore = useUserStore();
 const routineStore = useRoutineStore();
 const panelStore = usePanelStore();
 const timerStore = useTimerStore();
-
-const userData = userStore.user;
 
 onBeforeMount(() => {
   routineStore.bottomDrawerHeight = 36;
@@ -100,18 +98,7 @@ const { handleSubmit, resetForm } = useForm({
 const { value: email, errorMessage: emailError, setErrors } = useField('email');
 const { value: password, errorMessage: passwordError } = useField('password');
 
-let authResult: any;
-
-if (userData !== null) {
-  authResult = useQuery(['user'], () => getMeFn(), {
-    enabled: false,
-    retry: 1,
-  });
-}
-
-const queryClient = useQueryClient();
-
-const { isLoading, mutate } = useMutation(
+const { mutate } = useMutation(
   (credentials: ILoginInput) => loginUserFn(credentials),
   {
     onError: (err: any) => {
@@ -132,7 +119,6 @@ const { isLoading, mutate } = useMutation(
       const response = await getMeFn();
       userStore.setUser({ ...response });
 
-      await queryClient.refetchQueries(['user']);
       await router.push({ name: 'panel' });
 
       await timerStore.fetchAll();
