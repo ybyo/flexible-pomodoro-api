@@ -41,9 +41,7 @@ services:
       dockerfile: ./backend/Dockerfile
       args:
         NODE_ENV: ${NODE_ENV}
-        API_PORT_1: ${API_PORT_1}
-        API_PORT_2: ${API_PORT_2}
-        API_PORT_3: ${API_PORT_3}
+        API_PORT_0: ${API_PORT_0}
       tags:
         - ${REGISTRY_URL}/pipe-timer-backend:${NODE_ENV}
     env_file:

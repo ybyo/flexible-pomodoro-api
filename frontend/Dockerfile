@@ -7,7 +7,7 @@ COPY --chown=node:node ./package-lock.json .
 COPY --chown=node:node ./env ./env
 
 RUN npm i -g @quasar/cli && \
-    npm ci && \
+    npm i && \
     npm cache clean --force
 
 USER node
