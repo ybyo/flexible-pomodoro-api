@@ -18,7 +18,7 @@ services:
       - ./certs:/certs
     restart: on-failure
     networks:
-      - pipe-timer
+      - pipe-timer-network
 
   prometheus:
     image: bitnami/prometheus
@@ -33,7 +33,7 @@ services:
       - --web.config.file=/opt/node_exporter/web-config.prom.yml
     restart: on-failure
     networks:
-      - pipe-timer
+      - pipe-timer-network
 
   grafana:
     image: grafana/grafana
@@ -61,9 +61,9 @@ services:
       - ./certs:/etc/nginx/certs
     restart: on-failure
     networks:
-      - pipe-timer
+      - pipe-timer-network
 
 networks:
   pipe-timer-network:
     driver: bridge
-    name: pipe-timer
+    name: pipe-timer-network
