@@ -135,10 +135,14 @@ onBeforeMount(() => {
   }
 });
 
-onBeforeRouteLeave(() => {
+const intervalCleaner = () => {
   for (let i = 1; i < 99999; i++) {
     clearInterval(i);
   }
+};
+
+onBeforeRouteLeave(() => {
+  intervalCleaner();
 });
 
 const currDuration = computed(() => {
@@ -387,6 +391,7 @@ const timeEnd = () => {
       stop();
     }
   }
+
   loadBackupTimer();
 };
 
@@ -426,10 +431,13 @@ const endRoundPush = (timerInfo: any) => {
   }
 };
 
+// Service worker listener
+
 onMounted(() => {
   if (navigator.serviceWorker) {
     navigator.serviceWorker.addEventListener('message', (e) => {
       if (e.data === 'confirm') {
+        intervalCleaner();
         panelStore.intervalId = setInterval(elapse, 1000);
       }
     });
