@@ -5,7 +5,7 @@ import { GetUserByEmailQuery } from '@/auth/application/query/impl/get-user-by-e
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
-it('GetUserByEmailHandler', () => {
+describe('GetUserByEmailHandler', () => {
   let getUserByEmailHandler: GetUserByEmailHandler;
   let userRepository: IUserRepository;
 
@@ -36,9 +36,7 @@ it('GetUserByEmailHandler', () => {
       const query = new GetUserByEmailQuery(user.email);
       const result = await getUserByEmailHandler.execute(query);
 
-      expect(userRepository.findByEmail).toHaveBeenCalledWith({
-        email: query.email,
-      });
+      expect(userRepository.findByEmail).toHaveBeenCalledWith(query.email);
       expect(result).toEqual({ success: false, data: user });
     });
 
@@ -50,9 +48,7 @@ it('GetUserByEmailHandler', () => {
       const query = new GetUserByEmailQuery(user.email);
       const result = await getUserByEmailHandler.execute(query);
 
-      expect(userRepository.findByEmail).toHaveBeenCalledWith({
-        email: query.email,
-      });
+      expect(userRepository.findByEmail).toHaveBeenCalledWith(query.email);
       expect(result).toEqual({ success: true, data: query.email });
     });
   });
