@@ -14,13 +14,13 @@ export class GetUserByEmailHandler
     @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
 
-  async execute(command: CheckDuplicateEmailQuery): Promise<any> {
-    const user = await this.userRepository.findByEmail(command.email);
+  async execute(query: CheckDuplicateEmailQuery): Promise<any> {
+    const user = await this.userRepository.findByEmail(query.email);
 
     if (user !== null) {
       return { success: false, data: user };
     }
 
-    return { success: true, data: command.email };
+    return { success: true, data: query.email };
   }
 }

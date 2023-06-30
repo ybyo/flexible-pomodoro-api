@@ -4,11 +4,13 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
+import { Request } from 'express';
 
 import { AuthService } from '@/auth/application/auth.service';
 import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
@@ -31,6 +33,8 @@ describe('AuthService', () => {
   let authService: AuthService;
   let userRepository: IUserRepository;
   let jwtService: JwtService;
+  let queryBus: QueryBus;
+
   const getRandomString = () => `${Date.now()}`;
 
   beforeEach(async () => {
@@ -38,6 +42,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         JwtService,
+        CheckResetPasswordTokenValidityHandler,
         {
           provide: 'UserRepository',
           useValue: {
@@ -60,13 +65,20 @@ describe('AuthService', () => {
           useValue: RedisTokenService,
         },
         CommandBus,
-        QueryBus,
+        {
+          provide: QueryBus,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     authService = moduleRef.get<AuthService>(AuthService);
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
     jwtService = moduleRef.get<JwtService>(JwtService);
+    queryBus = moduleRef.get<QueryBus>(QueryBus);
+
     jest.spyOn(jwtService, 'sign');
     jest.spyOn(jwtService, 'verify');
   });
@@ -188,6 +200,43 @@ describe('AuthService', () => {
       await expect(authService.verifyJwt(wrongJwtString)).rejects.toThrow(
         new BadRequestException('Cannot verify JWT token')
       );
+    });
+  });
+
+  describe('verifyResetPasswordToken', () => {
+    it('should return jwt', async () => {
+      const event = getRandomString();
+      const token = getRandomString();
+      const jwt = getRandomString();
+      const user = CreateRandomObject.RandomUserJwt();
+      const req = {} as Request;
+      req.query = { request: { [event]: token } };
+
+      authService.splitEventToken = jest
+        .fn()
+        .mockResolvedValue({ event, token });
+      queryBus.execute = jest.fn().mockResolvedValue(user);
+      authService.issueJWT = jest.fn().mockResolvedValue(jwt);
+
+      expect(await authService.verifyResetPasswordToken(req)).toBe(jwt);
+    });
+
+    it('should throw BadRequestException', async () => {
+      const event = getRandomString();
+      const token = getRandomString();
+      const jwt = getRandomString();
+      const req = {} as Request;
+      req.query = { request: { [event]: token } };
+
+      authService.splitEventToken = jest
+        .fn()
+        .mockResolvedValue({ event, token });
+      queryBus.execute = jest.fn().mockResolvedValue(null);
+      authService.issueJWT = jest.fn().mockResolvedValue(jwt);
+
+      await expect(
+        authService.verifyResetPasswordToken(req)
+      ).rejects.toThrowError(new BadRequestException(`Invalid ${event} token`));
     });
   });
 });
