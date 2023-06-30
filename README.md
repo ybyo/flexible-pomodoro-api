@@ -93,6 +93,10 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 
 5. 브라우저에서 `HOST_URL`에서 설정한 주소의 `4000`포트로 접근합니다. 예시) `https://localhost:4000`
 
+## 아키텍처 다이어그램
+
+<img src="assets/structurizr/pipe-timer-architecture.png" alt="pipe_timer_architecture" width="800px">
+
 ## 구동 화면
 
 <img src="backend/images/demo_screenshot.png" alt="pipe_timer_example" width="800px">
