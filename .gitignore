@@ -1,6 +1,9 @@
 # env
 env
 
+# structurizr
+.structurizr
+
 ### Backend(NestJS)
 mysql
 certs
