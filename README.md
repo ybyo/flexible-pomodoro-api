@@ -2,7 +2,7 @@
 <br />
 <div align="center">
   <a href="./assets/pipe-timer-logo-teal.png">
-    <img                             src="./assets/pipe-timer-logo-teal.png"
+    <img                             src="./assets/pipe-timer-logo-teal-outline.png"
  alt="Logo" height="150px">
   </a>
 
