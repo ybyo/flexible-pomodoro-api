@@ -34,7 +34,7 @@
     "@automapper/classes": "^8.7.7",
     "@automapper/core": "^8.7.7",
     "@automapper/nestjs": "^8.7.7",
-    "@nestjs/platform-express": "^9.3.0",
+    "@nestjs/platform-express": "^10.0.4",
     "@nestjs/common": "^9.3.0",
     "@nestjs/core": "^9.3.0",
     "@nestjs/axios": "^1.0.0",
