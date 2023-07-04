@@ -3,13 +3,25 @@
 registry_url="$1"
 cicd_path="$2"
 env="$3"
+loki_url="$4"
 
-docker run -d --net host --pid host \
+docker run -itd \
+  --name promtail \
+  -v "$cicd_path"/promtail-config.yml:/mnt/config/promtail-config.yml \
+  -v /var/log:/var/log \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  grafana/promtail:2.8.0 \
+  --config.file=/mnt/config/promtail-config.yml
+
+docker run -d \
+  --name node-exporter \
+  --net host \
+  --pid host \
   -v /:/host:ro,rslave \
-  -v "${cicd_path}"/web-config.yml:/web-config.yml \
+  -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs \
   quay.io/prometheus/node-exporter:latest \
-  --web.config.file=web-config.yml \
+  --web.config.file=web-config-exporter.yml \
   --path.rootfs=/host
 
 docker run -itd \

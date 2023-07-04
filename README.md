@@ -11,7 +11,8 @@
   <p align="center">
     One app for flexible piping of timers to enhance productivity
     <br />
-    <a href="https://pipetimer.com"><strong>View Demo »</strong></a>
+    <a href="https://pipetimer.com"><strong>Demo |</strong></a>
+    <a href="https://pipetimer.com/guide"><strong>Guides </strong></a>
     <br />
     <br />
   </p>
