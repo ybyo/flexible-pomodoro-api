@@ -18,7 +18,7 @@
   "dependencies": {
     "@quasar/extras": "^1.15.11",
     "@tanstack/vue-query": "^4.20.5",
-    "@vee-validate/zod": "^4.10.2",
+    "@vee-validate/zod": "^4.10.3",
     "@vueuse/core": "^9.9.0",
     "axios": "^0.21.4",
     "axios-retry": "^3.3.1",
