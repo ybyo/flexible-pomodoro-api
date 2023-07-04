@@ -1,4 +1,18 @@
 services:
+  nginx-local:
+    image: nginx:latest
+    container_name: nginx-local
+    env_file:
+      - ../env/.staging.env
+    ports:
+      - 443:443
+    volumes:
+      - ./registry/nginx.conf:/etc/nginx/templates/nginx.conf.template
+      - ./certs:/etc/nginx/certs
+    restart: on-failure
+    networks:
+      - pipe-timer-network
+
   registry:
     image: registry:2
     container_name: registry
@@ -23,6 +37,8 @@ services:
   prometheus:
     image: bitnami/prometheus
     container_name: prometheus
+    env_file:
+      - ../env/.staging.env
     ports:
       - ${PROMETHEUS_PORT}:${PROMETHEUS_PORT}
     volumes:
@@ -38,10 +54,10 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
-    ports:
-      - ${GF_SERVER_HTTP_PORT}:${GF_SERVER_HTTP_PORT}
     env_file:
       - ../env/.staging.env
+    ports:
+      - ${GF_SERVER_HTTP_PORT}:${GF_SERVER_HTTP_PORT}
     volumes:
       - ./certs:/certs
       - ./monitoring/config/grafana.ini:/etc/grafana/grafana.ini
@@ -49,17 +65,19 @@ services:
     networks:
       - pipe-timer-network
 
-  nginx-local:
-    image: nginx:latest
-    container_name: nginx-local
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
     env_file:
       - ../env/.staging.env
     ports:
-      - 443:443
+      - ${LOKI_PORT}:${LOKI_PORT}
+    command:
+      -config.file=/etc/loki/local-config.yml
+      -config.expand-env=true
     volumes:
-      - ./registry/nginx.conf:/etc/nginx/templates/nginx.conf.template
-      - ./certs:/etc/nginx/certs
-    restart: on-failure
+      - ./monitoring/config/local-loki.yml:/etc/loki/local-config.yml
+      - ./certs:/certs
     networks:
       - pipe-timer-network
 

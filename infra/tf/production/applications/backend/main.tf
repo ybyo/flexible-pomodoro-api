@@ -15,12 +15,8 @@ terraform {
 
 locals {
   envs = {
-    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.production.env")) : tuple[0] => trim(tuple[1], "\r")
+    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(tuple[1], "\r")
   }
-  flavor_amd = "t2.nano"
-  flavor_arm = "t4g.nano"
-  ami_arm    = "ami-0ac62099928d25fec" # Canonical, Ubuntu, 20.04 LTS, arm64 focal image build on 2023-05-17
-  ami_amd    = "ami-04341a215040f91bb" # Canonical, Ubuntu, 20.04 LTS, amd64 focal image build on 2023-05-17
 }
 
 provider "cloudflare" {
@@ -51,7 +47,7 @@ resource "null_resource" "build-docker" {
       {
         "REGISTRY_URL" = local.envs["REGISTRY_URL"]
         "NODE_ENV"     = local.envs["NODE_ENV"]
-    })
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -65,7 +61,7 @@ data "http" "ip" {
 data "aws_ami" "ubuntu" {
   filter {
     name   = "image-id"
-    values = [local.ami_arm]
+    values = [local.envs["EC2_AMI"]]
   }
 }
 
@@ -137,7 +133,7 @@ resource "aws_security_group" "sg_pipe_timer_backend" {
 }
 
 data "template_file" "node_exporter_config" {
-  template = file("../../../../monitoring/config/web-config.yml")
+  template = file("../../../../monitoring/config/web-config-exporter.yml")
 
   vars = {
     PROM_ID     = local.envs["PROM_ID"]
@@ -147,13 +143,22 @@ data "template_file" "node_exporter_config" {
   }
 }
 
+data "template_file" "promtail_config" {
+  template = file("../../../../monitoring/config/promtail-config.yml")
+
+  vars = {
+    LOKI_URL     = local.envs["LOKI_URL"]
+    PROMTAIL_PORT = local.envs["PROMTAIL_PORT"]
+  }
+}
+
 data "template_file" "user_data" {
   template = file("../scripts/add-ssh-web-app.yaml")
 }
 
 resource "aws_instance" "pipe-timer-backend" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.flavor_arm
+  instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_1_id
   vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_backend.id]
   associate_public_ip_address = true
@@ -209,7 +214,12 @@ resource "aws_instance" "pipe-timer-backend" {
 
   provisioner "file" {
     content     = data.template_file.node_exporter_config.rendered
-    destination = "${local.envs["WORKDIR"]}/web-config.yml"
+    destination = "${local.envs["WORKDIR"]}/web-config-exporter.yml"
+  }
+
+  provisioner "file" {
+    content     = data.template_file.promtail_config.rendered
+    destination = "${local.envs["WORKDIR"]}/promtail-config.yml"
   }
 
   provisioner "remote-exec" {
@@ -232,7 +242,7 @@ resource "aws_instance" "pipe-timer-backend" {
   provisioner "remote-exec" {
     inline = [
       "${local.envs["WORKDIR"]}/shell-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}",
-      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]}",
+      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
     ]
   }
 
@@ -243,7 +253,7 @@ resource "aws_instance" "pipe-timer-backend" {
   depends_on = [null_resource.build-docker]
 }
 
-resource "cloudflare_record" "backend-staging" {
+resource "cloudflare_record" "backend" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_instance.pipe-timer-backend.public_ip
