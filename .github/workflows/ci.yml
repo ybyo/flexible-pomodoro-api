@@ -24,7 +24,7 @@ jobs:
           cache: npm
 
       - name: Install dummy certs
-        run: sh .shared/helper/create-local-certs.sh -y
+        run: sh shared/helper/create-local-certs.sh -y
 
       - name: Install dependencies
         run: npm i
