@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "One app for flexible piping of timers to enhance productivity",
   "scripts": {
-    "dev:cert:init": "sh ./.github/scripts/create-local-certs.sh",
+    "dev:cert:init": "sh shared/helper/create-local-certs.sh",
     "dev:db": "npm run start:db -w backend",
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run start:dev -w frontend",
@@ -15,7 +15,8 @@
     "staging:db": "docker compose --env-file=./env/.staging.env up mysql-pt redis-pt",
     "infra": "docker compose -f ./infra/docker-compose.yml --env-file=./env/.staging.env up",
     "production:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.production.env build --no-cache --progress=plain",
-    "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up"
+    "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up",
+    "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles"
   },
   "repository": {
     "type": "git",
