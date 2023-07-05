@@ -15,7 +15,8 @@
     "staging:db": "docker compose --env-file=./env/.staging.env up mysql-pt redis-pt",
     "infra": "docker compose -f ./infra/docker-compose.yml --env-file=./env/.staging.env up",
     "production:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.production.env build --no-cache --progress=plain",
-    "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up"
+    "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up",
+    "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles"
   },
   "repository": {
     "type": "git",
