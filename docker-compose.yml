@@ -16,6 +16,7 @@ services:
       - local
     networks:
       - pipe-timer-network
+      - bridge
 
   redis-pt:
     image: bitnami/redis:latest
@@ -31,6 +32,8 @@ services:
       - local
     networks:
       - pipe-timer-network
+      - bridge
+
 
   backend-pt:
     image: backend-pt
@@ -103,6 +106,8 @@ services:
       - test
     networks:
       - pipe-timer-network
+      - bridge
+
 
   redis-test:
     image: bitnami/redis:latest
@@ -117,6 +122,7 @@ services:
       - test
     networks:
       - pipe-timer-network
+      - bridge
 
 networks:
   pipe-timer-network:
