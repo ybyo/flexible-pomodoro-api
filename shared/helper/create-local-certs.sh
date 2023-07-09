@@ -156,8 +156,8 @@ copy_certs() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    cp -r $certs_path "$PWD"/backend
-    cp -r $certs_path "$PWD"/frontend
+    cp -r "$certs_path" "$PWD"/backend
+    cp -r "$certs_path" "$PWD"/frontend
     echo "인증서를 backend/certs와 frontend/certs에 복사했습니다."
   else
     exit 0
