@@ -91,7 +91,7 @@ install_mkcert_linux() {
      exit 0
    fi
 
-   sudo apt install libnss3-tools
+   sudo apt -y install libnss3-tools
    curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
    chmod +x mkcert-v*-linux-amd64
    sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
@@ -140,7 +140,8 @@ generate_certs() {
     read -r answer
   fi
   if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-    mkcert -key-file $certs_path/localhost.key -cert-file $certs_path/localhost.pem localhost 127.0.0.1 ::1
+    mkdir -p "$certs_path"
+    mkcert -key-file "$certs_path"/localhost.key -cert-file "$certs_path"/localhost.pem localhost 127.0.0.1 ::1
     echo "인증서 생성이 완료되었습니다."
   else
     exit 0
