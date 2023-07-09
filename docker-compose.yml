@@ -15,7 +15,6 @@ services:
     profiles:
       - local
     networks:
-      - pipe-timer-network
       - bridge
 
   redis-pt:
@@ -31,9 +30,7 @@ services:
     profiles:
       - local
     networks:
-      - pipe-timer-network
       - bridge
-
 
   backend-pt:
     image: backend-pt
@@ -57,8 +54,6 @@ services:
       - ./backend/certs:/certs
     restart: on-failure
     depends_on: [mysql-pt, redis-pt]
-    networks:
-      - pipe-timer-network
 
   nginx-pt:
     image: nginx-pt
@@ -89,8 +84,6 @@ services:
       - ./frontend/public:/public
     restart: on-failure
     depends_on: [mysql-pt, redis-pt, backend-pt]
-    networks:
-      - pipe-timer-network
 
   mysql-test:
     image: mysql:8
@@ -105,9 +98,7 @@ services:
     profiles:
       - test
     networks:
-      - pipe-timer-network
       - bridge
-
 
   redis-test:
     image: bitnami/redis:latest
@@ -121,10 +112,8 @@ services:
     profiles:
       - test
     networks:
-      - pipe-timer-network
       - bridge
 
 networks:
-  pipe-timer-network:
-    driver: bridge
+  default:
     name: pipe-timer-network
