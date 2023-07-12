@@ -239,4 +239,24 @@ describe('AuthService', () => {
       ).rejects.toThrowError(new BadRequestException(`Invalid ${event} token`));
     });
   });
+
+  describe('changePassword', () => {
+    it('should return success', async () => {
+      const token = getRandomString();
+      const newPassword = getRandomString();
+      const verifyResult = {
+        success: true,
+        data: CreateRandomObject.RandomUserJwt(),
+      };
+      const updateResult = { affected: 1 };
+
+      authService.verifyJwt = jest.fn().mockResolvedValue(verifyResult);
+      userRepository.changePassword = jest.fn().mockResolvedValue(updateResult);
+
+      expect(await authService.changePassword(token, newPassword)).toEqual({
+        success: true,
+      });
+      expect(authService.verifyJwt).toHaveBeenCalledWith(token);
+    });
+  });
 });
