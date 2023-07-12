@@ -76,7 +76,6 @@ lerna-debug.log*
 ### Infra(Terraform)
 
 # EC2 template
-add-ssh-web-app.yaml
 ssh
 ssh.pub
 

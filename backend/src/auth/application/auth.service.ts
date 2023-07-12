@@ -103,7 +103,6 @@ export class AuthService {
     newPassword: string
   ): Promise<SuccessDto> {
     const result = await this.verifyJwt(token);
-
     if (result.success) {
       try {
         const updateResult = await this.userRepository.changePassword(
@@ -112,7 +111,9 @@ export class AuthService {
           token
         );
 
-        if (updateResult.affected) return { success: true };
+        if (updateResult.affected) {
+          return { success: true };
+        }
       } catch (err) {
         throw new InternalServerErrorException('Cannot update password');
       }
