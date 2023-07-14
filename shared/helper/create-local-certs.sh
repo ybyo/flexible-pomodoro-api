@@ -1,6 +1,6 @@
 #!/bin/sh
-
 set -e
+
 certs_path="$PWD/shared/certs"
 auto_agree="false"
 

@@ -1,14 +1,21 @@
-# env
+### Dotenv
 env
 
-# structurizr
+### Monitoring
+prometheus.yml
+web-config-prom.yml
+
+### Structurizr
 .structurizr
 
 ### Backend(NestJS)
 mysql
 certs
 
-# Python venv
+### Frontend(Quasar)
+.thumbs.db
+
+### Python
 .venv
 
 # compiled output
@@ -53,8 +60,7 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-### Frontend(Quasar)
-.thumbs.db
+
 
 # Quasar core related directories
 .quasar
@@ -73,17 +79,12 @@ lerna-debug.log*
 /src-bex/www
 /src-bex/js/core
 
-### Infra(Terraform)
-
 # EC2 template
 ssh
 ssh.pub
 
 # Registry
 htpasswd
-
-# dotenv template
-.env
 
 ### JetBrains template
 # User-specific stuff
