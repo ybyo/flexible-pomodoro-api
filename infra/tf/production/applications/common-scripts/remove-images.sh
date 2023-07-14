@@ -6,5 +6,5 @@ IMAGE_IDS=$(docker images --filter=reference="$registry_url/pipe-*" --format="{{
 
 for IMAGE_ID in $IMAGE_IDS
 do
-  docker rmi "$IMAGE_ID"
+  docker rmi -f "$IMAGE_ID"
 done
