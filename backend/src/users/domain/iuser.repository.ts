@@ -26,8 +26,8 @@ export interface IUserRepository {
   deleteUser: (email: string) => Promise<DeleteResult>;
   changePassword: (
     id: string,
-    password: string,
-    token: string
+    token: string,
+    password: string
   ) => Promise<UpdateResult>;
   verifySignupToken: (id: string, token: string) => Promise<UpdateResult>;
   changeEmail: (
