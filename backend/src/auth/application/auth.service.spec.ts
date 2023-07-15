@@ -1,4 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
@@ -200,17 +203,19 @@ describe('AuthService', () => {
       await expect(authService.verifyJwt(wrongJwtString)).rejects.toThrow(
         new BadRequestException('Cannot verify JWT token')
       );
+      expect(jwtService.verify).toHaveBeenCalledWith(wrongJwtString, jwtConf);
     });
   });
 
   describe('verifyResetPasswordToken', () => {
+    const event = getRandomString();
+    const token = getRandomString();
+    const jwt = getRandomString();
+    const req = {} as Request;
+    req.query = { request: { [event]: token } };
+
     it('should return jwt', async () => {
-      const event = getRandomString();
-      const token = getRandomString();
-      const jwt = getRandomString();
       const user = CreateRandomObject.RandomUserJwt();
-      const req = {} as Request;
-      req.query = { request: { [event]: token } };
 
       authService.splitEventToken = jest
         .fn()
@@ -222,12 +227,6 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException', async () => {
-      const event = getRandomString();
-      const token = getRandomString();
-      const jwt = getRandomString();
-      const req = {} as Request;
-      req.query = { request: { [event]: token } };
-
       authService.splitEventToken = jest
         .fn()
         .mockResolvedValue({ event, token });
@@ -241,16 +240,17 @@ describe('AuthService', () => {
   });
 
   describe('changePassword', () => {
+    const token = getRandomString();
+    const newPassword = getRandomString();
+    const result = {
+      success: true,
+      data: CreateRandomObject.RandomUserJwt(),
+    };
+
     it('should return success', async () => {
-      const token = getRandomString();
-      const newPassword = getRandomString();
-      const verifyResult = {
-        success: true,
-        data: CreateRandomObject.RandomUserJwt(),
-      };
       const updateResult = { affected: 1 };
 
-      authService.verifyJwt = jest.fn().mockResolvedValue(verifyResult);
+      authService.verifyJwt = jest.fn().mockResolvedValue(result);
       userRepository.changePassword = jest.fn().mockResolvedValue(updateResult);
 
       expect(await authService.changePassword(token, newPassword)).toEqual({
