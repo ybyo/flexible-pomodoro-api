@@ -257,6 +257,28 @@ describe('AuthService', () => {
         success: true,
       });
       expect(authService.verifyJwt).toHaveBeenCalledWith(token);
+      expect(userRepository.changePassword).toHaveBeenCalledWith(
+        result.data.id,
+        token,
+        newPassword
+      );
+    });
+
+    it('verified JWT, but throw InternalServerErrorException', async () => {
+      authService.verifyJwt = jest.fn().mockResolvedValue(result);
+      userRepository.changePassword = jest.fn().mockRejectedValue(new Error());
+
+      await expect(
+        authService.changePassword(token, newPassword)
+      ).rejects.toThrowError(
+        new InternalServerErrorException('Cannot update password')
+      );
+      expect(authService.verifyJwt).toHaveBeenCalledWith(token);
+      expect(userRepository.changePassword).toHaveBeenCalledWith(
+        result.data.id,
+        token,
+        newPassword
+      );
     });
   });
 });
