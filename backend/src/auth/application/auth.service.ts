@@ -9,7 +9,6 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Request } from 'express';
-import { ulid } from 'ulid';
 
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
@@ -107,8 +106,8 @@ export class AuthService {
       try {
         const updateResult = await this.userRepository.changePassword(
           result.data.id,
-          newPassword,
-          token
+          token,
+          newPassword
         );
 
         if (updateResult.affected) {
@@ -151,10 +150,6 @@ export class AuthService {
     const token = this.jwtService.sign(user, this.jwtConf);
 
     return token;
-  }
-
-  async issueUlid(): Promise<string> {
-    return ulid();
   }
 
   async verifySignupToken(req: Request): Promise<SuccessDto> {

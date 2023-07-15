@@ -211,27 +211,19 @@ export class UserRepository implements IUserRepository {
 
   async changePassword(
     id: string,
-    password: string,
-    token: string
+    token: string,
+    password: string
   ): Promise<UpdateResult> {
-    const redis = await this.redisService.getClient();
-    const multi = redis.multi();
-    multi.del(`resetPasswordToken:${token}`);
+    return await this.dataSource.transaction(async (manager) => {
+      const hashed = await argon2.hash(password as string);
+      await this.redisService.deleteValue(`resetPasswordToken:${token}`);
 
-    try {
-      return await this.dataSource.transaction(async (manager) => {
-        const hashed = await argon2.hash(password as string);
-
-        await multi.exec();
-        return await manager.update(
-          UserEntity,
-          { id },
-          { password: hashed, resetPasswordToken: null }
-        );
-      });
-    } catch (err) {
-      await multi.discard();
-    }
+      return await manager.update(
+        UserEntity,
+        { id },
+        { password: hashed, resetPasswordToken: null }
+      );
+    });
   }
 
   async findByChangeEmailToken(

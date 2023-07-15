@@ -30,7 +30,7 @@
     <router-link to="/">
       <q-img
         class="absolute-top"
-        src="https://img.yidoyoon.com/public/dummy-logo-black.svg"
+        src="https://storage.yidoyoon.com/images/public/dummy-logo-black.svg"
         style="zoom: 11%; border-right: 1px solid #ddd"
         to="/"
         position="30px"
