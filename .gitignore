@@ -10,7 +10,6 @@ web-config-prom.yml
 
 ### Backend(NestJS)
 mysql
-certs
 
 ### Frontend(Quasar)
 .thumbs.db
