@@ -14,8 +14,6 @@ services:
     restart: on-failure
     profiles:
       - local
-    networks:
-      - bridge
 
   redis-pt:
     image: bitnami/redis:latest
@@ -29,8 +27,6 @@ services:
       - ${REDIS_PORT}:${REDIS_PORT}
     profiles:
       - local
-    networks:
-      - bridge
 
   backend-pt:
     image: backend-pt
@@ -97,8 +93,6 @@ services:
       - ${DB_TEST_PORT}:${DB_PORT}
     profiles:
       - test
-    networks:
-      - bridge
 
   redis-test:
     image: bitnami/redis:latest
@@ -111,8 +105,6 @@ services:
       - ${REDIS_TEST_PORT}:${REDIS_PORT}
     profiles:
       - test
-    networks:
-      - bridge
 
 networks:
   default:
