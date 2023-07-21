@@ -1,0 +1,153 @@
+services:
+  consul-server1:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server1
+    hostname: consul-server1
+    restart: always
+    volumes:
+      - consul-data:/consul/data
+      - ./server1.json:/consul/config/server1.json
+      - ../certs:/consul/config/certs:ro
+    networks:
+      consul:
+        aliases:
+          - consul-server1
+          - server.dc1.consul
+    ports:
+      - "8501:8501"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent -bootstrap-expect=3"
+
+  consul-server2:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server2
+    hostname: consul-server2
+    restart: always
+    volumes:
+     - ./server2.json:/consul/config/server2.json
+     - ../certs:/consul/config/certs:ro
+    networks:
+      consul:
+        aliases:
+          - consul-server2
+    command: "agent -bootstrap-expect=3"
+
+  consul-server3:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server3
+    hostname: consul-server3
+    restart: always
+    volumes:
+     - ./server3.json:/consul/config/server3.json
+     - ../certs:/consul/config/certs:ro
+    networks:
+      consul:
+        aliases:
+          - consul-server3
+    command: "agent -bootstrap-expect=3"
+
+  consul-client:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-client
+    restart: always
+    volumes:
+     - ./client.json:/consul/config/client.json
+     - ../certs:/consul/config/certs:ro
+    networks:
+      consul:
+        aliases:
+          - consul-client
+    command: "agent"
+
+  vault:
+    build:
+      context: ../
+      dockerfile: ./consul-vault/Dockerfile
+    image: vault
+    container_name: vault
+    hostname: vault
+    ports:
+      - ${VAULT_PORT}:${VAULT_PORT}
+    environment:
+      - VAULT_ADDR=https://vault:8200
+      - VAULT_API_ADDR=https://vault:8200
+    depends_on:
+      - consul-server1
+      - consul-server2
+      - consul-server3
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./.vault-data:/vault/file
+      - ./config.json:/vault/config/config.json
+      - ./scripts:/data
+      - ../tf/production/applications/backend/certs:/ssl
+      - ~/.ssh:/etc/.ssh:ro
+      - ../certs:/vault/certs:ro
+      - ../../env/:/env/:ro
+    entrypoint: sh /data/vault-boot.sh
+    networks:
+      consul:
+        aliases:
+          - vault.localdomain
+      pipe-timer-network:
+        aliases:
+          - vault
+
+  vault-init:
+    build:
+      context: ../
+      dockerfile: ./consul-vault/Dockerfile
+    image: vault
+    restart: always
+    container_name: vault-init
+    hostname: vault-init
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=https://vault.localdomain:8200
+      - VAULT_API_ADDR=https://vault.localdomain:8200
+    volumes:
+      - ./.vault-data:/vault/file
+      - ./config.json:/vault/config/config.json
+      - ./scripts:/data
+      - ../tf/production/applications/backend/certs:/ssl
+      - ~/.ssh:/etc/.ssh:ro
+      - ../certs:/vault/certs:ro
+      - ../../env/:/env/:ro
+    command: ["sh", "/data/vault-init.sh"]
+    depends_on:
+      - vault
+    networks:
+      consul:
+        aliases:
+          - vault-init
+
+#  vault-dev:
+#    image: hashicorp/vault:latest
+#    container_name: vault
+#    ports:
+#      - ${VAULT_PORT}:${VAULT_PORT}
+#    environment:
+#      - VAULT_ADDR=http://0.0.0.0:${VAULT_PORT}
+#      - VAULT_TOKEN=root
+#    cap_add:
+#      - IPC_LOCK
+#    volumes:
+#      - ./policy:/policy
+#    entrypoint: vault server -dev -dev-root-token-id root
+#    profiles:
+#      - dev
+
+volumes:
+  consul-data:
+    name: consul-data
+
+networks:
+  consul:
+    driver: bridge
+    name: consul
+  pipe-timer-network:
+    name: pipe-timer-network
+    external: true
