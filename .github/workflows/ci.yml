@@ -51,7 +51,7 @@ jobs:
         run: npm i
 
       - name: Install dummy certs for test
-        run: apt update && sh shared/helper/create-local-certs.sh -y
+        run: sudo apt update && sh shared/helper/create-local-certs.sh -y
 
       - name: Test backend
         run: npm run test -w backend
