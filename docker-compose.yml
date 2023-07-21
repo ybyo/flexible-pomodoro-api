@@ -109,4 +109,5 @@ services:
 networks:
   default:
     driver: bridge
+    external: true
     name: pipe-timer-network
