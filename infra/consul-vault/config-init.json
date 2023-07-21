@@ -1,0 +1,18 @@
+{
+  "storage":{
+    "file":{
+      "path":"/vault/file"
+    }
+  },
+  "listener": {
+    "tcp": {
+      "address": "",
+      "tls_client_ca_file": "/vault/certs/vault-ca.pem",
+      "tls_cert_file": "/vault/certs/vault-cert.pem",
+      "tls_key_file": "/vault/certs/vault-key.pem"
+    }
+  },
+  "disable_mlock": true,
+  "ui": true,
+  "log_format": "standard"
+}

@@ -1,0 +1,32 @@
+{
+    "node_name": "consul-server1",
+    "node_id": "e07fa18c-11f6-4f3c-8ebf-88409d863a05",
+    "datacenter": "dc1",
+    "server": true,
+    "ui_config": {
+        "enabled" : true
+    },
+    "data_dir": "/consul/data",
+    "addresses": {
+        "http" : "0.0.0.0",
+        "https" : "0.0.0.0"
+    },
+    "ports": {
+        "http": -1,
+        "https":
+    },
+    "retry_join":[
+        "consul-server2",
+        "consul-server3"
+    ],
+    "encrypt": "",
+    "verify_incoming": false,
+    "verify_outgoing": true,
+    "verify_server_hostname": true,
+    "ca_file": "/consul/config/certs/consul-ca.pem",
+    "cert_file": "/consul/config/certs/consul-cert.pem",
+    "key_file": "/consul/config/certs/consul-key.pem",
+    "auto_encrypt": {
+        "allow_tls": true
+    }
+}

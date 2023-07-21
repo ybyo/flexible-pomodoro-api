@@ -10,7 +10,14 @@ terraform {
     }
   }
 
-  required_version = ">= 1.2.0"
+
+  backend "s3" {
+    bucket         = "terraform-pt-state"
+    key            = "pt/production/applications/data-stores/terraform.tfstate"
+    region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
+    encrypt        = true
+  }
 }
 
 locals {
@@ -26,11 +33,15 @@ provider "aws" {
   region = local.envs["REGION"]
 }
 
-data "terraform_remote_state" "network" {
-  backend = "local"
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
 
   config = {
-    path = "../../modules/network/vpc/terraform.tfstate"
+    bucket         = "terraform-pt-state"
+    key            = "pt/production/modules/vpc/terraform.tfstate"
+    region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
+    encrypt        = true
   }
 }
 
@@ -38,9 +49,21 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+###################################
+# MySQL
+###################################
+resource "aws_db_subnet_group" "pipe-timer" {
+  name = "pipe-timer-production"
+
+  subnet_ids = [
+    data.terraform_remote_state.vpc.outputs.public_subnet_1_id,
+    data.terraform_remote_state.vpc.outputs.public_subnet_2_id
+  ]
+}
+
 resource "aws_security_group" "mysql" {
   name_prefix = "pipe-timer-production"
-  vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
+  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port   = local.envs["DB_PORT"]
@@ -57,35 +80,6 @@ resource "aws_security_group" "mysql" {
   }
 }
 
-resource "aws_security_group" "redis" {
-  name_prefix = "pipe-timer-production"
-  vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
-
-  ingress {
-    from_port   = local.envs["REDIS_PORT"]
-    to_port     = local.envs["REDIS_PORT"]
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_db_subnet_group" "pipe-timer" {
-  name = "pipe-timer-production"
-
-  subnet_ids = [
-    data.terraform_remote_state.network.outputs.public_subnet_1_id,
-    data.terraform_remote_state.network.outputs.public_subnet_2_id
-  ]
-}
-
-# RDS(MySQL)
 resource "aws_db_instance" "mysql" {
   db_name                = local.envs["DB_NAME"]
   engine                 = "mysql"
@@ -105,12 +99,35 @@ resource "aws_db_instance" "mysql" {
   }
 }
 
+###################################
+# Redis
+###################################
+resource "aws_security_group" "redis" {
+  name_prefix = "pipe-timer-production"
+  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  ingress {
+    from_port   = local.envs["REDIS_PORT"]
+    to_port     = local.envs["REDIS_PORT"]
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
 resource "aws_elasticache_subnet_group" "pipe-timer" {
   name = "redis-production"
 
   subnet_ids = [
-    data.terraform_remote_state.network.outputs.public_subnet_1_id,
-    data.terraform_remote_state.network.outputs.public_subnet_2_id
+    data.terraform_remote_state.vpc.outputs.public_subnet_1_id,
+    data.terraform_remote_state.vpc.outputs.public_subnet_2_id
   ]
 }
 
@@ -142,7 +159,9 @@ resource "aws_elasticache_cluster" "redis" {
   }
 }
 
-# env 파일 갱신
+###################################
+# Update Local Dotenv
+###################################
 resource "null_resource" "update_env" {
   provisioner "local-exec" {
     command = templatefile("./shell-scripts/update-env.sh",
@@ -151,7 +170,7 @@ resource "null_resource" "update_env" {
         "REDIS_BASE_URL" = aws_elasticache_cluster.redis.cache_nodes[0].address
         "ENV_PATH"       = "../../../../../env"
         "NODE_ENV"       = local.envs["NODE_ENV"]
-    })
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }

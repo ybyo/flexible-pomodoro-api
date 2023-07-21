@@ -1,0 +1,19 @@
+{
+  "storage": {
+    "consul": {
+      "path": "vault/",
+      "address": ""
+    }
+  },
+  "listener": {
+    "tcp": {
+      "address": "",
+      "tls_cert_file": "/vault/certs/vault-cert.pem",
+      "tls_key_file": "/vault/certs/vault-key.pem",
+      "proxy_protocol_behavior": "use_always"
+    }
+  },
+  "disable_mlock": true,
+  "ui": true,
+  "log_format": "standard"
+}
