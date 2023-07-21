@@ -126,8 +126,8 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform -chdir=${{ matrix.workdir }} plan
+        run: terraform -chdir=${{ matrix.workdir }} plan > pt-${{ env.NODE_ENV }}-plan.log
         continue-on-error: true
 
       - name: Terraform Apply
-        run: terraform -chdir=${{ matrix.workdir }} apply -auto-approve
+        run: terraform -chdir=${{ matrix.workdir }} apply -auto-approve > pt-${{ env.NODE_ENV }}-apply.log
