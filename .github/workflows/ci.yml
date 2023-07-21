@@ -1,6 +1,9 @@
 name: ci-main
 
 on:
+  push:
+    branches:
+      - staging
   pull_request:
     branches:
       - main
@@ -11,7 +14,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_ENV: ${{ github.base_ref }}
+  NODE_ENV: ${{ github.base_ref == 'main' && 'production' || github.base_ref }}
   TF_LOG: ERROR
   BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
   GITHUB_RUN_ATTEMPT: 3
