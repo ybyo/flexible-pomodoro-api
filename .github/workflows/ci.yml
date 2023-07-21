@@ -71,8 +71,8 @@ jobs:
       matrix:
         workdir:
           [
-            './infra/tf/${{ github.base_ref }}/applications/backend',
-            './infra/tf/${{ github.base_ref }}/applications/frontend',
+            './infra/tf/${{ env.NODE_ENV }}/applications/backend',
+            './infra/tf/${{ env.NODE_ENV }}/applications/frontend',
           ]
     steps:
       - uses: actions/checkout@v3
