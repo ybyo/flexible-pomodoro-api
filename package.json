@@ -17,7 +17,11 @@
     "infra:down": "docker compose -f ./infra/docker-compose.yml --env-file=./env/.staging.env down",
     "production:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.production.env build --no-cache --progress=plain",
     "production:compose:up": "docker compose --profile=local --env-file=./env/.production.env up",
-    "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles"
+    "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles",
+    "vault:up": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env up -d",
+    "vault:down": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env down",
+    "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path /tmp/artifacts",
+    "act:production": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-production.json --artifact-server-path /tmp/artifacts"
   },
   "repository": {
     "type": "git",
