@@ -21,6 +21,8 @@ env:
 jobs:
   build-setup:
     runs-on: ubuntu-20.04
+    env:
+      NODE_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
       id-token: write
       contents: write
