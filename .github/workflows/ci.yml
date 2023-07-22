@@ -13,7 +13,6 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
   TF_LOG: ERROR
   BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
   GITHUB_RUN_ATTEMPT: 3
@@ -21,8 +20,6 @@ env:
 jobs:
   build-setup:
     runs-on: ubuntu-20.04
-    env:
-      NODE_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
       id-token: write
       contents: write
@@ -38,7 +35,7 @@ jobs:
         with:
           url: https://${{ secrets.VAULT_URL }}
           token: ${{ secrets.VAULT_TOKEN }}
-          secrets: pt/env/${{ env.NODE_ENV }} $.$;
+          secrets: pt/env/${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} $.$;
 
       - name: Secrets to json
         run: |
