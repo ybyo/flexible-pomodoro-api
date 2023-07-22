@@ -1,12 +1,11 @@
 name: ci-main
 
 on:
-  push:
-    branches:
-      - staging
   pull_request:
     branches:
       - main
+      - staging
+      - production
 
 permissions:
   pull-requests: write
