@@ -11,7 +11,7 @@ services:
       - ${DB_PORT}:${DB_PORT}
     volumes:
       - ./backend/mysql:/var/lib/mysql
-    restart: on-failure
+    restart: always
     profiles:
       - local
 
@@ -22,7 +22,7 @@ services:
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
     container_name: redis
-    restart: on-failure
+    restart: always
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
     profiles:
@@ -48,7 +48,7 @@ services:
     volumes:
       - ./env:/env
       - ./backend/certs:/certs
-    restart: on-failure
+    restart: always
     depends_on: [mysql-pt, redis-pt]
 
   nginx-pt:
@@ -78,7 +78,7 @@ services:
       - ./frontend/templates/nginx.conf:/etc/nginx/templates/nginx.conf.template
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
-    restart: on-failure
+    restart: always
     depends_on: [mysql-pt, redis-pt, backend-pt]
 
   mysql-test:
