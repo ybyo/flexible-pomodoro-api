@@ -20,7 +20,6 @@ terraform {
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
-
 }
 
 locals {
@@ -71,15 +70,15 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket         = "terraform-pt-state"
-    key            = "pt/production/modules/vpc/terraform.tfstate"
-    region         = "ap-northeast-2"
-    encrypt        = true
+    bucket  = "terraform-pt-state"
+    key     = "pt/production/modules/vpc/terraform.tfstate"
+    region  = "ap-northeast-2"
+    encrypt = true
   }
 }
 
-resource "aws_security_group" "sg_pipe_timer_backend" {
-  name   = "sg_pipe_timer_backend"
+resource "aws_security_group" "pt_backend_production" {
+  name   = "pt_backend_production"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -183,10 +182,10 @@ data "template_file" "user_data" {
   template = file("../scripts/add-ssh-web-app.yaml")
 
   vars = {
-    ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
-    ssl_public_key = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
+    ssh_public_key  = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+    ssl_public_key  = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
     ssl_private_key = data.vault_generic_secret.ssl.data["SSL_PRIVATE_KEY"]
-    workdir = local.envs["WORKDIR"]
+    workdir         = local.envs["WORKDIR"]
   }
 }
 
@@ -201,7 +200,7 @@ resource "aws_instance" "pipe-timer-backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_backend.id]
+  vpc_security_group_ids      = [aws_security_group.pt_backend_production.id]
   associate_public_ip_address = true
   user_data                   = data.template_file.user_data.rendered
 
@@ -216,21 +215,9 @@ resource "aws_instance" "pipe-timer-backend" {
 
   connection {
     type        = "ssh"
-    user        = local.envs["USER"]
+    user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
     host        = aws_instance.pipe-timer-backend.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "mkdir -p ${local.envs["WORKDIR"]}",
-      "chmod 755 ${local.envs["WORKDIR"]}",
-    ]
-  }
-
-  provisioner "file" {
-    source      = "./certs"
-    destination = local.envs["WORKDIR"]
   }
 
   provisioner "file" {
@@ -274,9 +261,15 @@ resource "aws_instance" "pipe-timer-backend" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+      "sudo chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "sudo chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
       "${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'"
     ]
   }
 
@@ -288,7 +281,7 @@ resource "aws_instance" "pipe-timer-backend" {
   }
 
   tags = {
-    Name = "pipe-timer-backend"
+    Name = "pt-${var.env}-backend"
   }
 
   depends_on = [null_resource.build-docker]
