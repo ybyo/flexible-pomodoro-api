@@ -77,8 +77,8 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-resource "aws_security_group" "sg_pipe_timer_frontend" {
-  name   = "sg_pipe_timer_frontend"
+resource "aws_security_group" "pt_frontend_staging" {
+  name = "pt_frontend_staging"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -204,7 +204,7 @@ resource "aws_instance" "pipe-timer-frontend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_frontend.id]
+  vpc_security_group_ids      = [aws_security_group.pt_frontend_staging.id]
   associate_public_ip_address = true
   user_data                   = data.template_file.user_data.rendered
 

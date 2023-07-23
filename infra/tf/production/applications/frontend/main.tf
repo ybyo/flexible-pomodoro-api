@@ -15,12 +15,11 @@ terraform {
   }
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/production/frontend/applications/terraform.tfstate"
+    key            = "pt/production/applications/frontend/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
-
 }
 
 locals {
@@ -52,36 +51,34 @@ resource "null_resource" "build_docker" {
       {
         "REGISTRY_URL" = local.envs["REGISTRY_URL"]
         "NODE_ENV"     = local.envs["NODE_ENV"]
-    })
+      })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 }
 
-
-
 ###################################
 # Security Groups
 ###################################
+data "http" "ip" {
+  url = "https://ifconfig.me/ip"
+}
+
 data "cloudflare_ip_ranges" "cloudflare" {}
 
 data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket  = "terraform-pt-state"
-    key     = "pt/production/modules/vpc/terraform.tfstate"
-    region  = "ap-northeast-2"
-    encrypt = true
+    bucket         = "terraform-pt-state"
+    key            = "pt/production/modules/vpc/terraform.tfstate"
+    region         = "ap-northeast-2"
+    encrypt        = true
   }
 }
 
-data "http" "ip" {
-  url = "https://ifconfig.me/ip"
-}
-
-resource "aws_security_group" "sg_pipe_timer_frontend" {
-  name   = "sg_pipe_timer_frontend"
+resource "aws_security_group" "pt_frontend_production" {
+  name = "pt_frontend_production"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -143,8 +140,12 @@ provider "vault" {
   token   = local.envs["VAULT_TOKEN"]
 }
 
-data "vault_generic_secret" "ssh_key" {
+data "vault_generic_secret" "ssh" {
   path = "/pt/ssh"
+}
+
+data "vault_generic_secret" "ssl" {
+  path = "/pt/ssl"
 }
 
 data "vault_generic_secret" "env" {
@@ -185,7 +186,10 @@ data "template_file" "user_data" {
   template = file("../scripts/add-ssh-web-app.yaml")
 
   vars = {
-    ssh_public_key = base64decode(data.vault_generic_secret.ssh_key.data["SSH_PUBLIC_KEY"])
+    ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+    ssl_public_key = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
+    ssl_private_key = data.vault_generic_secret.ssl.data["SSL_PRIVATE_KEY"]
+    workdir = local.envs["WORKDIR"]
   }
 }
 
@@ -200,7 +204,7 @@ resource "aws_instance" "pipe-timer-frontend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_frontend.id]
+  vpc_security_group_ids      = [aws_security_group.pt_frontend_production.id]
   associate_public_ip_address = true
   user_data                   = data.template_file.user_data.rendered
 
@@ -215,8 +219,8 @@ resource "aws_instance" "pipe-timer-frontend" {
 
   connection {
     type        = "ssh"
-    user        = local.envs["USER"]
-    private_key = base64decode(data.vault_generic_secret.ssh_key.data["SSH_PRIVATE_KEY"])
+    user        = local.envs["SSH_USER"]
+    private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
     host        = aws_instance.pipe-timer-frontend.public_ip
   }
 
@@ -297,7 +301,7 @@ resource "aws_instance" "pipe-timer-frontend" {
   }
 
   tags = {
-    Name = "pipe-timer-frontend"
+    Name = "pt-${var.env}-frontend"
   }
 
   depends_on = [null_resource.build_docker]
