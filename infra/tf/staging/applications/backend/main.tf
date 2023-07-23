@@ -196,7 +196,7 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "pipe-timer-backend" {
+resource "aws_instance" "pipe_timer_backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
@@ -217,7 +217,7 @@ resource "aws_instance" "pipe-timer-backend" {
     type        = "ssh"
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
-    host        = aws_instance.pipe-timer-backend.public_ip
+    host        = aws_instance.pipe_timer_backend.public_ip
   }
 
   provisioner "file" {
@@ -278,7 +278,7 @@ resource "aws_instance" "pipe-timer-backend" {
     Name = "pt-${var.env}-backend"
   }
 
-  depends_on = [null_resource.build-docker]
+  depends_on = [null_resource.build_docker]
 }
 
 ###################################
@@ -291,7 +291,7 @@ provider "cloudflare" {
 resource "cloudflare_record" "backend-staging" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
-  value   = aws_instance.pipe-timer-backend.public_ip
+  value   = aws_instance.pipe_timer_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
