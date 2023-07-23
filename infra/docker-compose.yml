@@ -9,7 +9,7 @@ services:
     volumes:
       - ./registry/nginx.conf:/etc/nginx/templates/nginx.conf.template
       - ./certs:/etc/nginx/certs
-    restart: on-failure
+    restart: always
     networks:
       - pipe-timer-network
 
@@ -30,7 +30,7 @@ services:
     volumes:
       - ./registry/auth:/auth
       - ./certs:/certs
-    restart: on-failure
+    restart: always
     networks:
       - pipe-timer-network
 
@@ -47,7 +47,7 @@ services:
       - ./certs:/certs
     command:
       - --web.config.file=/opt/node_exporter/web-config.prom.yml
-    restart: on-failure
+    restart: always
     networks:
       - pipe-timer-network
 
@@ -61,7 +61,7 @@ services:
     volumes:
       - ./certs:/certs
       - ./monitoring/config/grafana.ini:/etc/grafana/grafana.ini
-    restart: on-failure
+    restart: always
     networks:
       - pipe-timer-network
 
