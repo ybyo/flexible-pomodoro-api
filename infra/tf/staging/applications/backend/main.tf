@@ -33,7 +33,7 @@ locals {
 ###################################
 resource "null_resource" "remove-docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
+    command     = "chmod +x ../common-scripts/remove-images.sh; ../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -41,21 +41,18 @@ resource "null_resource" "remove-docker" {
 
 resource "null_resource" "build_docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${sensitive(local.envs["REGISTRY_PASSWORD"])}"
+    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${sensitive(local.envs["REGISTRY_PASSWORD"])}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 
   provisioner "local-exec" {
-    command = templatefile("./shell-scripts/build-push-registry.sh",
-      {
-        "REGISTRY_URL" = local.envs["REGISTRY_URL"]
-        "NODE_ENV"     = local.envs["NODE_ENV"]
-    })
+    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 }
+
 
 ###################################
 # Security Groups
