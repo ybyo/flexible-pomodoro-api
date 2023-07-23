@@ -24,7 +24,7 @@ terraform {
 
 locals {
   envs = {
-    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(tuple[1], "\r")
+    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(sensitive(tuple[1], "\r"))
   }
 }
 

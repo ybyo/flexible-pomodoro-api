@@ -20,8 +20,9 @@ users:
     ssh_authorized_keys:
       - ${ssh_public_key}
 
-runcmd:
-  - sudo apt update -y
+package_update: true
+packages:
+  - mysql-server
 
 write_files:
   - encoding: base64
