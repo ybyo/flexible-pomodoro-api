@@ -110,6 +110,10 @@ jobs:
           name: dotenv
           path: ./env
 
+      - name: Grant execute permission for the scripts
+        run: |
+          chmod +x ./infra/tf/${{ env.NODE_ENV }}/applications/${{ matrix.workdir }}/shell-scripts/*
+
       - name: Terraform Init
         id: init
         run: terraform -chdir=./infra/tf/${{ env.NODE_ENV }}/applications/${{ matrix.workdir }} init

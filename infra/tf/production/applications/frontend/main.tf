@@ -41,7 +41,7 @@ resource "null_resource" "remove_docker" {
 
 resource "null_resource" "build_docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
+    command     = "../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${sensitive(local.envs["REGISTRY_PASSWORD"])}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
