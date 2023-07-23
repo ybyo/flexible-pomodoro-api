@@ -1,0 +1,37 @@
+#cloud-config
+# Add groups to the system
+# Adds the ubuntu group with members 'root' and 'sys'
+# and the empty group hashicorp.
+groups:
+  - ubuntu: [root,sys]
+
+# Add users to the system. Users are added after groups are added.
+users:
+  - default
+  - name: ubuntu
+    shell: /bin/bash
+    primary_group: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+  - name: root
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+package_update: true
+packages:
+  - mysql-server
+
+write_files:
+  - encoding: base64
+    content: ${ssl_public_key}
+    owner: root:root
+    path: ${workdir}/certs/pipetimer.com.pem
+    permissions: '0644'
+  - encoding: base64
+    content: ${ssl_private_key}
+    owner: root:root
+    path: ${workdir}/certs/pipetimer.com.key
+    permissions: '0600'
