@@ -49,7 +49,7 @@ resource "null_resource" "build_docker" {
   }
 
   provisioner "local-exec" {
-    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
+    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }

@@ -2,6 +2,6 @@
 
 cd ../../../../
 
-PLATFORM=linux/amd64 npm run staging:compose:build backend-pt
+PLATFORM=linux/$1 npm run staging:compose:build nginx-pt
 
-docker push "$1/pipe-timer-backend:$2"
+docker push "$2/pipe-timer-frontend:$3"
