@@ -229,11 +229,6 @@ resource "aws_instance" "pipe-timer-frontend" {
   }
 
   provisioner "file" {
-    source      = "./certs"
-    destination = local.envs["WORKDIR"]
-  }
-
-  provisioner "file" {
     source      = "./shell-scripts"
     destination = local.envs["WORKDIR"]
   }
