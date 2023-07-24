@@ -3,7 +3,6 @@ name: ci-main
 on:
   pull_request:
     branches:
-      - main
       - staging
       - production
 
@@ -11,7 +10,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_ENV: ${{ github.base_ref == 'main' && 'production' || github.base_ref }}
+  NODE_ENV: ${{ github.base_ref }}
   TF_LOG: ERROR
   BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
   GITHUB_RUN_ATTEMPT: 3
@@ -134,6 +133,10 @@ jobs:
         with:
           name: frontend-certs
           path: ./frontend/certs
+
+      - name: Terraform Fmt
+        id: fmt
+        run: terraform fmt --recursive
 
       - name: Terraform Init
         id: init
