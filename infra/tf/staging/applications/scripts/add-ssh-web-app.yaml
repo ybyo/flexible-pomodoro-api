@@ -1,11 +1,7 @@
 #cloud-config
-# Add groups to the system
-# Adds the ubuntu group with members 'root' and 'sys'
-# and the empty group hashicorp.
 groups:
   - ubuntu: [root,sys]
 
-# Add users to the system. Users are added after groups are added.
 users:
   - default
   - name: ubuntu
@@ -23,6 +19,20 @@ users:
 package_update: true
 packages:
   - mysql-server
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - docker-compose-plugin
+
+runcmd:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - apt-get update
+  - apt-get install -y docker-ce
+  - usermod -aG docker $USER
+  - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
 
 write_files:
   - encoding: base64

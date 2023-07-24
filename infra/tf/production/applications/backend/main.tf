@@ -257,15 +257,14 @@ resource "aws_instance" "pipe_timer_backend" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-      "sudo chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
-      "${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*"
     ]
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'"
+      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'"
     ]
   }
 
