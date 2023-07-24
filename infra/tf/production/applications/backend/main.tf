@@ -2,15 +2,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.64"
+      version = "~> 5.9.0"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.4"
+      version = "~> 4.10.0"
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 3.17"
+      version = "~> 3.18.0"
     }
   }
   backend "s3" {
@@ -20,6 +20,8 @@ terraform {
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
+
+  required_version = "~> 1.5.3"
 }
 
 locals {
@@ -248,6 +250,14 @@ resource "aws_instance" "pipe_timer_backend" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+      "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
       "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}'",
       "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
       "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
@@ -257,20 +267,8 @@ resource "aws_instance" "pipe_timer_backend" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "${local.envs["WORKDIR"]}/shell-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}",
+      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
+      "echo ${local.envs["REGISTRY_PASSWORD"]} | docker login -u ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_URL"]} --password-stdin",
       "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
     ]
   }
