@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd ../../../../../
+cd ../../../../
 
-PLATFORM=linux/amd64 npm run staging:compose:build backend-pt
+PLATFORM=linux/$1 npm run staging:compose:build nginx-pt
 
-docker push "${REGISTRY_URL}/pipe-timer-backend:${NODE_ENV}"
+docker push "$2/pipe-timer-frontend:$3"

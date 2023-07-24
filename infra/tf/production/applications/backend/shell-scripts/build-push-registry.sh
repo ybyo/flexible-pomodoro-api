@@ -2,6 +2,6 @@
 
 cd ../../../../
 
-PLATFORM=linux/arm64 npm run production:compose:build backend-pt
+PLATFORM=linux/$1 npm run production:compose:build nginx-pt
 
-docker push "${REGISTRY_URL}/pipe-timer-backend:${NODE_ENV}"
+docker push "$2/pipe-timer-frontend:$3"

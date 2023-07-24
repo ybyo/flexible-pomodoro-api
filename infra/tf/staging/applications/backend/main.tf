@@ -2,15 +2,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.64"
+      version = "~> 5.9.0"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.4"
+      version = "~> 4.10.0"
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 3.17"
+      version = "~> 3.18"
     }
   }
   backend "s3" {
@@ -20,11 +20,13 @@ terraform {
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
+
+  required_version = "~> 1.5.3"
 }
 
 locals {
   envs = {
-    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(tuple[1], "\r")
+    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => sensitive(trim(tuple[1], "\r"))
   }
 }
 
@@ -33,29 +35,26 @@ locals {
 ###################################
 resource "null_resource" "remove-docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
+    command     = "chmod +x ../common-scripts/remove-images.sh; ../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 }
 
-resource "null_resource" "build-docker" {
+resource "null_resource" "build_docker" {
   provisioner "local-exec" {
-    command     = "../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
+    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 
   provisioner "local-exec" {
-    command = templatefile("./shell-scripts/build-push-registry.sh",
-      {
-        "REGISTRY_URL" = local.envs["REGISTRY_URL"]
-        "NODE_ENV"     = local.envs["NODE_ENV"]
-    })
+    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
 }
+
 
 ###################################
 # Security Groups
@@ -73,12 +72,13 @@ data "terraform_remote_state" "vpc" {
     bucket         = "terraform-pt-state"
     key            = "pt/staging/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
 
-resource "aws_security_group" "sg_pipe_timer_backend" {
-  name   = "sg_pipe_timer_backend"
+resource "aws_security_group" "pt_backend_staging" {
+  name   = "pt_backend_staging"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -182,10 +182,10 @@ data "template_file" "user_data" {
   template = file("../scripts/add-ssh-web-app.yaml")
 
   vars = {
-    ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
-    ssl_public_key = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
+    ssh_public_key  = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+    ssl_public_key  = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
     ssl_private_key = data.vault_generic_secret.ssl.data["SSL_PRIVATE_KEY"]
-    workdir = local.envs["WORKDIR"]
+    workdir         = local.envs["WORKDIR"]
   }
 }
 
@@ -196,11 +196,11 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "pipe-timer-backend" {
+resource "aws_instance" "pipe_timer_backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.sg_pipe_timer_backend.id]
+  vpc_security_group_ids      = [aws_security_group.pt_backend_staging.id]
   associate_public_ip_address = true
   user_data                   = data.template_file.user_data.rendered
 
@@ -217,7 +217,7 @@ resource "aws_instance" "pipe-timer-backend" {
     type        = "ssh"
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
-    host        = aws_instance.pipe-timer-backend.public_ip
+    host        = aws_instance.pipe_timer_backend.public_ip
   }
 
   provisioner "file" {
@@ -252,6 +252,14 @@ resource "aws_instance" "pipe-timer-backend" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+      "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
       "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}'",
       "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
       "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
@@ -261,16 +269,9 @@ resource "aws_instance" "pipe-timer-backend" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
-      "${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "${local.envs["WORKDIR"]}/shell-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}",
-      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
+      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
+      "echo ${local.envs["REGISTRY_PASSWORD"]} | sudo docker login -u ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_URL"]} --password-stdin",
+      "sudo ${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
     ]
   }
 
@@ -278,7 +279,7 @@ resource "aws_instance" "pipe-timer-backend" {
     Name = "pt-${var.env}-backend"
   }
 
-  depends_on = [null_resource.build-docker]
+  depends_on = [null_resource.build_docker]
 }
 
 ###################################
@@ -291,7 +292,7 @@ provider "cloudflare" {
 resource "cloudflare_record" "backend-staging" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
-  value   = aws_instance.pipe-timer-backend.public_ip
+  value   = aws_instance.pipe_timer_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
