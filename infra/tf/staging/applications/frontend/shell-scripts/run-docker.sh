@@ -5,7 +5,7 @@ cicd_path="$2"
 env="$3"
 loki_url="$4"
 
-docker run -itd \
+sudo docker run -itd \
   --name promtail \
   -v "$cicd_path"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
@@ -13,7 +13,7 @@ docker run -itd \
   grafana/promtail:2.8.0 \
   --config.file=/mnt/config/promtail-config.yml
 
-docker run -d \
+sudo docker run -d \
   --name node-exporter \
   --net host \
   --pid host \
@@ -24,7 +24,7 @@ docker run -d \
   --web.config.file=web-config-exporter.yml \
   --path.rootfs=/host
 
-docker run -itd \
+sudo docker run -itd \
   -p 443:443 \
   -p 80:80 \
   --env-file="$cicd_path"/env/."$env".env \
@@ -38,4 +38,4 @@ docker run -itd \
 
 sleep 5
 
-docker ps -a
+sudo docker ps -a

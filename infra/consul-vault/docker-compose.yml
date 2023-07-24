@@ -5,7 +5,7 @@ services:
     hostname: consul-server1
     restart: always
     volumes:
-      - consul-data:/consul/data
+      - ./.consul-data:/consul/data
       - ./server1.json:/consul/config/server1.json
       - ../certs:/consul/config/certs:ro
     networks:
@@ -139,10 +139,6 @@ services:
 #    entrypoint: vault server -dev -dev-root-token-id root
 #    profiles:
 #      - dev
-
-volumes:
-  consul-data:
-    name: consul-data
 
 networks:
   consul:

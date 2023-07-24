@@ -11,7 +11,7 @@ docker run -itd \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
   grafana/promtail:2.8.0 \
-  --config.file=/mnt/config/promtail-config.yml
+  --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; exit 1; }
 
 docker run -d \
   --name node-exporter \
@@ -22,7 +22,7 @@ docker run -d \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs \
   quay.io/prometheus/node-exporter:latest \
   --web.config.file=web-config-exporter.yml \
-  --path.rootfs=/host
+  --path.rootfs=/host || { echo 'Failed to run node-exporter'; exit 1; }
 
 docker run -itd \
   -p 443:443 \
@@ -34,7 +34,7 @@ docker run -itd \
   --name=frontend \
   --restart=on-failure \
   --add-host=host.docker.internal:host-gateway \
-  "$registry_url"/pipe-timer-frontend:"$env"
+  "$registry_url"/pipe-timer-frontend:"$env" || { echo 'Failed to run frontend'; exit 1; }
 
 sleep 5
 

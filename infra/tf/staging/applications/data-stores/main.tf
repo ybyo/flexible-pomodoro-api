@@ -2,11 +2,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.64"
+      version = "~> 5.9.0"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.4"
+      version = "~> 4.10.0"
     }
   }
 
@@ -39,6 +39,7 @@ data "terraform_remote_state" "vpc" {
     bucket         = "terraform-pt-state"
     key            = "pt/staging/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
@@ -168,7 +169,7 @@ resource "null_resource" "update_env" {
         "REDIS_BASE_URL" = aws_elasticache_cluster.redis.cache_nodes[0].address
         "ENV_PATH"       = "../../../../../env"
         "NODE_ENV"       = local.envs["NODE_ENV"]
-      })
+    })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
