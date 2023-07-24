@@ -170,7 +170,7 @@ resource "null_resource" "update_env" {
         "REDIS_BASE_URL" = aws_elasticache_cluster.redis.cache_nodes[0].address
         "ENV_PATH"       = "../../../../../env"
         "NODE_ENV"       = local.envs["NODE_ENV"]
-      })
+    })
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }

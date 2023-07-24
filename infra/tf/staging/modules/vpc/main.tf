@@ -14,6 +14,7 @@ terraform {
     bucket         = "terraform-pt-state"
     key            = "pt/staging/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
@@ -72,14 +73,15 @@ data "terraform_remote_state" "vpc-production" {
     bucket         = "terraform-pt-state"
     key            = "pt/production/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
 
 resource "aws_vpc_peering_connection" "peer" {
-  vpc_id        = data.terraform_remote_state.vpc-production.outputs.vpc_id
-  peer_vpc_id   = aws_vpc.vpc.id
-  auto_accept   = true
+  vpc_id      = data.terraform_remote_state.vpc-production.outputs.vpc_id
+  peer_vpc_id = aws_vpc.vpc.id
+  auto_accept = true
 
   tags = {
     Name = "pt-peering-connection"

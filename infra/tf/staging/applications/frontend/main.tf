@@ -43,7 +43,7 @@ resource "null_resource" "remove-docker" {
 
 resource "null_resource" "build_docker" {
   provisioner "local-exec" {
-    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${sensitive(local.envs["REGISTRY_PASSWORD"])}"
+    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -69,15 +69,14 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket         = "terraform-pt-state"
-    key            = "pt/staging/modules/vpc/terraform.tfstate"
-    region         = "ap-northeast-2"
-    encrypt        = true
+    bucket = "terraform-pt-state"
+    key    = "pt/staging/modules/vpc/terraform.tfstate"
+    region = "ap-northeast-2"
   }
 }
 
 resource "aws_security_group" "pt_frontend_staging" {
-  name = "pt_frontend_staging"
+  name   = "pt_frontend_staging"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -185,10 +184,10 @@ data "template_file" "user_data" {
   template = file("../scripts/add-ssh-web-app.yaml")
 
   vars = {
-    ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
-    ssl_public_key = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
+    ssh_public_key  = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+    ssl_public_key  = data.vault_generic_secret.ssl.data["SSL_PUBLIC_KEY"]
     ssl_private_key = data.vault_generic_secret.ssl.data["SSL_PRIVATE_KEY"]
-    workdir = local.envs["WORKDIR"]
+    workdir         = local.envs["WORKDIR"]
   }
 }
 

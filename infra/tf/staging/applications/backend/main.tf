@@ -43,7 +43,7 @@ resource "null_resource" "remove-docker" {
 
 resource "null_resource" "build_docker" {
   provisioner "local-exec" {
-    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${sensitive(local.envs["REGISTRY_PASSWORD"])}"
+    command     = "chmod +x ../common-scripts/login-docker-registry.sh; ../common-scripts/login-docker-registry.sh ${local.envs["REGISTRY_URL"]} ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_PASSWORD"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -69,10 +69,11 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket  = "terraform-pt-state"
-    key     = "pt/staging/modules/vpc/terraform.tfstate"
-    region  = "ap-northeast-2"
-    encrypt = true
+    bucket         = "terraform-pt-state"
+    key            = "pt/staging/modules/vpc/terraform.tfstate"
+    region         = "ap-northeast-2"
+    dynamodb_table = "terraform-pt-state-lock"
+    encrypt        = true
   }
 }
 
