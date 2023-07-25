@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_ENV: ${{ github.base_ref }}
+  NODE_ENV: ${{ github.head_ref }}
   TF_LOG: ERROR
   BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
   GITHUB_RUN_ATTEMPT: 3
