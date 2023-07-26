@@ -12,7 +12,6 @@ import { Request } from 'express';
 
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
-import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
 import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
@@ -28,8 +27,6 @@ import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 export class AuthService {
   constructor(
     @Inject(jwtConfig.KEY) private jwtConf: ConfigType<typeof jwtConfig>,
-    @Inject(accessTokenConfig.KEY)
-    private accessTokenConf: ConfigType<typeof accessTokenConfig>,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
     private jwtService: JwtService,
