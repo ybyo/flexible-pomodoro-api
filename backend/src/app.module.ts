@@ -1,5 +1,3 @@
-import { classes } from '@automapper/classes';
-import { AutomapperModule } from '@automapper/nestjs';
 import { HttpModule } from '@nestjs/axios';
 import { Inject, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
@@ -46,9 +44,6 @@ const envPath = path.join(
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    AutomapperModule.forRoot({
-      strategyInitializer: classes(),
-    }),
     ConfigModule.forRoot({
       envFilePath: [envPath],
       load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],

@@ -1,5 +1,3 @@
-import { Mapper } from '@automapper/core';
-import { InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -14,7 +12,6 @@ import { entityFormatter } from '@/utils/entity-formatter.util';
 @Injectable()
 export class TimerRepository implements ITimerRepository {
   constructor(
-    @InjectMapper() private mapper: Mapper,
     private connection: DataSource,
     @InjectRepository(TimerEntity)
     private timerRepository: Repository<TimerEntity>,
@@ -24,17 +21,14 @@ export class TimerRepository implements ITimerRepository {
     private routineRepository: Repository<RoutineEntity>
   ) {}
   async fetchTimer(id: string): Promise<Timer[]> {
-    const timerEntity = await this.timerRepository.find({
-      // relations: ['user'],
+    const timerArray = await this.timerRepository.find({
       where: { userId: id },
       loadRelationIds: false,
     });
 
-    if (!timerEntity) {
-      return null;
-    }
+    if (!timerArray) return null;
 
-    return this.mapper.mapArray(timerEntity, TimerEntity, Timer);
+    return timerArray;
   }
 
   async saveTimer(userId: string, timer: Timer[]): Promise<any> {

@@ -11,17 +11,6 @@
     ],
     "plugins": [
       {
-        "name": "@automapper/classes/transformer-plugin",
-        "options": {
-          "modelFileNameSuffix": [
-            ".entity.ts",
-            ".model.ts",
-            ".vm.ts",
-            ".dto.ts"
-          ]
-        }
-      },
-      {
         "name": "@nestjs/swagger",
         "options": { "classValidatorShim": false, "introspectComments": true }
       }

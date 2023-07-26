@@ -20,7 +20,6 @@ import { VerifyChangeEmailTokenHandler } from '@/users/application/command/handl
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { CheckSignupTokenValidityHandler } from '@/users/application/query/handlers/check-signup-token-validity.handler';
 import { UserFactory } from '@/users/domain/user.factory';
-import { UserProfile } from '@/users/domain/user.profile';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { PasswordResetStrategy } from '@/users/interface/strategy/password-reset.strategy';
@@ -73,7 +72,6 @@ const factories = [UserFactory];
     ...strategies,
     AuthService,
     Logger,
-    UserProfile,
   ],
 })
 export class UserModule {}
