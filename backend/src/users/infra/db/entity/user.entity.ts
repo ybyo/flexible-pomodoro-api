@@ -1,4 +1,3 @@
-import { AutoMap } from '@automapper/classes';
 import * as argon2 from 'argon2';
 import {
   BaseEntity,
@@ -53,11 +52,9 @@ export class UserEntity extends BaseEntity {
     this.password = await argon2.hash(this.password);
   }
 
-  @AutoMap(() => [Timer])
   @OneToMany(() => TimerEntity, (timerEntity) => timerEntity.user)
   timer: Timer[];
 
-  @AutoMap(() => [Routine])
   @OneToMany(() => RoutineEntity, (routineEntity) => routineEntity.user)
   routine: Routine[];
 }

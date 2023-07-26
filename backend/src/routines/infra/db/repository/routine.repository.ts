@@ -1,5 +1,3 @@
-import { Mapper } from '@automapper/core';
-import { InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -13,7 +11,6 @@ import { entityFormatter } from '@/utils/entity-formatter.util';
 @Injectable()
 export class RoutineRepository implements IRoutineRepository {
   constructor(
-    @InjectMapper() private mapper: Mapper,
     private dataSource: DataSource,
     @InjectRepository(RoutineEntity)
     private routineRepository: Repository<RoutineEntity>,
@@ -45,10 +42,6 @@ export class RoutineRepository implements IRoutineRepository {
     if (!routineEntity) {
       return null;
     }
-
-    // TODO: Mapper 재정의
-    // const routines = this.mapper.mapArray(routineEntity, RoutineEntity, Routine);
-    // console.log(routines);
 
     return routineEntity;
   }

@@ -1,9 +1,7 @@
 import { Logger, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as dotenv from 'dotenv';
 import Redis from 'ioredis';
-import * as path from 'path';
 
 import { EmailModule } from '@/email/email.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
@@ -24,7 +22,7 @@ const commandHandlers = [DeleteUserHandler];
 const factories = [UserFactory];
 
 async function createRedisClient(): Promise<Redis> {
-  const client = await new Redis({
+  const client = new Redis({
     host: process.env.REDIS_BASE_URL,
     port:
       process.env.TEST === 'true'

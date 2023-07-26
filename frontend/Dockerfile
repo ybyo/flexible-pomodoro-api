@@ -3,7 +3,6 @@ FROM node:18-alpine as dev
 WORKDIR /app
 
 COPY --chown=node:node ./frontend .
-COPY --chown=node:node ./package-lock.json .
 COPY --chown=node:node ./env ./env
 
 RUN npm i -g @quasar/cli && \

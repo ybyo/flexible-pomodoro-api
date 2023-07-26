@@ -15,7 +15,6 @@ import jwtConfig from '@/config/jwt.config';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { IUserRepository } from '@/users/domain/iuser.repository';
-import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
 const jwtConf = {
@@ -67,7 +66,12 @@ describe('AuthService', () => {
           provide: 'RedisTokenService',
           useValue: RedisTokenService,
         },
-        CommandBus,
+        {
+          provide: CommandBus,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
         {
           provide: QueryBus,
           useValue: {
