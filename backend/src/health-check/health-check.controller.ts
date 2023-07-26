@@ -11,7 +11,7 @@ import {
 export class HealthCheckController {
   constructor(
     private health: HealthCheckService,
-    private db: TypeOrmHealthIndicator,
+    private db: TypeOrmHealthIndicator
   ) {}
 
   @Get()

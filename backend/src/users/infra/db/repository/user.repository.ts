@@ -1,8 +1,7 @@
-import { Mapper } from '@automapper/core';
-import { InjectMapper } from '@automapper/nestjs';
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
+import { plainToClassFromExist } from 'class-transformer';
 import {
   DataSource,
   DeleteResult,
@@ -24,7 +23,6 @@ import { UserEntity } from '@/users/infra/db/entity/user.entity';
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(
-    @InjectMapper() private mapper: Mapper,
     private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -41,14 +39,14 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({ email });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, User);
+    return plainToClassFromExist(new User(), userEntity);
   }
 
   async findById(id: string): Promise<UserJwt | null> {
     const userEntity = await this.userRepository.findOneBy({ id });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserJwt);
+    return plainToClassFromExist(new UserJwt(), userEntity);
   }
 
   async findByEmailAndPassword(
@@ -61,7 +59,7 @@ export class UserRepository implements IUserRepository {
     });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   async findBySignupToken(token: string): Promise<UserWithoutPassword | null> {
@@ -70,7 +68,7 @@ export class UserRepository implements IUserRepository {
     });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   async findByResetPasswordToken(
@@ -81,14 +79,14 @@ export class UserRepository implements IUserRepository {
     });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   async findByUsername(username: string): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({ username });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   private calculateExpirationTime(): number {
@@ -235,7 +233,7 @@ export class UserRepository implements IUserRepository {
 
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   async changeEmail(
@@ -258,7 +256,7 @@ export class UserRepository implements IUserRepository {
         );
       });
     } catch (err) {
-      await multi.discard();
+      multi.discard();
     }
   }
 
@@ -269,7 +267,7 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({ [column]: token });
     if (!userEntity) return null;
 
-    return this.mapper.map(userEntity, UserEntity, UserWithoutPassword);
+    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
   async renewSignupToken(

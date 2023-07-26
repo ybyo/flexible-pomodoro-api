@@ -1,4 +1,4 @@
-import { MapperOmitType } from '@automapper/classes/mapped-types';
+import { OmitType } from '@nestjs/mapped-types';
 
 import { AUserJwt } from '@/shared/abstracts/generate-user-jwt.base';
 
@@ -13,7 +13,7 @@ export class User extends AUserJwt {
   changeEmailToken: string;
 }
 
-export class UserWithoutPassword extends MapperOmitType(User, ['password']) {}
+export class UserWithoutPassword extends OmitType(User, ['password']) {}
 
 export class UserJwt extends AUserJwt {
   id: string;
