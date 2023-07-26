@@ -1,3 +1,6 @@
+### Consul-Vault Configs
+./infra/consul-vault/*.json
+
 ### Dotenv
 env
 
