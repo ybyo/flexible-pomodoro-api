@@ -66,10 +66,5 @@
     "workbox-precaching": "^7.0.0",
     "workbox-routing": "^6.5.4",
     "workbox-strategies": "^6.5.4"
-  },
-  "engines": {
-    "node": "^18 || ^16 || ^14.19",
-    "npm": ">= 6.13.4",
-    "yarn": ">= 1.21.1"
   }
 }

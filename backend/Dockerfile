@@ -3,9 +3,8 @@ FROM node:18-alpine as dev
 WORKDIR /app
 
 COPY --chown=node:node ./backend/package*.json ./
-COPY --chown=node:node ./package-lock.json ./
 
-RUN npm i
+RUN pnpm i
 
 COPY --chown=node:node ./backend .
 USER node
@@ -19,16 +18,15 @@ ARG NODE_ENV
 RUN echo "Currently run build process in '$NODE_ENV'"
 
 COPY --chown=node:node ./backend/package*.json ./
-COPY --chown=node:node ./package-lock.json ./
 
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 COPY --chown=node:node ./backend .
 
-RUN npm i -g @nestjs/cli
+RUN pnpm i -g @nestjs/cli
 RUN NODE_ENV=$NODE_ENV nest build
 
-RUN npm i --only=prod && \
-    npm cache clean --force
+RUN pnpm i --only=prod && \
+    pnpm cache clean --force
 
 USER node
 
@@ -38,7 +36,7 @@ ARG API_PORT_0
 
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
-RUN npm install pm2 -g
+RUN pnpm install pm2 -g
 
 EXPOSE $API_PORT_0
 

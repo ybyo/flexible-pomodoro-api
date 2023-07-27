@@ -5,9 +5,9 @@ WORKDIR /app
 COPY --chown=node:node ./frontend .
 COPY --chown=node:node ./env ./env
 
-RUN npm i -g @quasar/cli && \
-    npm i && \
-    npm cache clean --force
+RUN pnpm i -g @quasar/cli && \
+    pnpm i && \
+    pnpm cache clean --force
 
 USER node
 
