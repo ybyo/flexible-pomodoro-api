@@ -7,7 +7,6 @@ import { AuthModule } from '@/auth/auth.module';
 import { GetRoutineHandler } from '@/routines/application/command/handler/get-routine.handler';
 import { RemoveRoutineHandler } from '@/routines/application/command/handler/remove-routine.handler';
 import { SaveRoutineHandler } from '@/routines/application/command/handler/save-routine.handler';
-import { RoutineProfile } from '@/routines/common/mapper/routine.profile';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
@@ -38,7 +37,6 @@ const repositories = [
   controllers: [RoutineController],
   providers: [
     Logger,
-    RoutineProfile,
     ...commandHandlers,
     ...queryHandlers,
     ...eventHandlers,
