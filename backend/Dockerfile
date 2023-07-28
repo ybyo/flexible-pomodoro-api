@@ -1,32 +1,36 @@
 FROM node:18-alpine as dev
-
 WORKDIR /app
+SHELL ["/bin/sh", "-c"]
+ENV PNPM_HOME="/app" \
+    PATH="$PNPM_HOME:$PATH"
 
-COPY --chown=node:node ./backend/package*.json ./
+COPY --chown=node:node ./backend ./
+COPY --chown=node:node ./pnpm-lock.yaml ./
 
-RUN pnpm i
+RUN corepack enable && pnpm --version && \
+    pnpm install --prefer-frozen-lockfile --prod=false
 
-COPY --chown=node:node ./backend .
 USER node
 
 FROM node:18-alpine as build
-
 WORKDIR /app
+SHELL ["/bin/sh", "-c"]
+ENV PNPM_HOME="/app" \
+    PATH="$PNPM_HOME:$PATH"
 
 ARG NODE_ENV
 
 RUN echo "Currently run build process in '$NODE_ENV'"
 
 COPY --chown=node:node ./backend/package*.json ./
-
-COPY --chown=node:node --from=dev /app/node_modules ./node_modules
+COPY --chown=node:node ./pnpm-lock.yaml ./
 COPY --chown=node:node ./backend .
 
-RUN pnpm i -g @nestjs/cli
-RUN NODE_ENV=$NODE_ENV nest build
+COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 
-RUN pnpm i --only=prod && \
-    pnpm cache clean --force
+RUN corepack enable && pnpm --version && \
+    pnpm install -g @nestjs/cli --prod=false && \
+    NODE_ENV=$NODE_ENV nest build
 
 USER node
 
@@ -36,7 +40,6 @@ ARG API_PORT_0
 
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
-RUN pnpm install pm2 -g
 
 EXPOSE $API_PORT_0
 
