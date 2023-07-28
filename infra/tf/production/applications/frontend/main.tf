@@ -221,6 +221,7 @@ resource "aws_instance" "pipe_timer_frontend" {
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
     host        = aws_instance.pipe_timer_frontend.public_ip
+    agent       = false
   }
 
   provisioner "remote-exec" {
