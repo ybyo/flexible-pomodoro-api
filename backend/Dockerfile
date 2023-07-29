@@ -10,7 +10,7 @@ COPY --chown=node:node ./pnpm-lock.yaml ./
 RUN corepack enable && pnpm --version && \
     pnpm install --prefer-frozen-lockfile --prod=false
 
-FROM dev as build
+FROM node:18-alpine as build
 WORKDIR /app
 SHELL ["/bin/sh", "-c"]
 ENV PNPM_HOME="/app" \
