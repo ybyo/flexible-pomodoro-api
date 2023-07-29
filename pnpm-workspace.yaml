@@ -1,0 +1,15 @@
+packages:
+  # include packages in subfolders (e.g. apps/ and packages/)
+  - "./backend/**"
+  - './frontend/**'
+  # if required, exclude some directories
+  - '!**/node_modules'  # exclude node_modules
+  - '!**/dist'          # exclude dist
+  - '!**/coverage/**'  # exclude coverage
+  - '!**/test/**'      # exclude test
+  - '!**/package.json' # exclude package.json
+  - '!**/package-lock.json' # exclude package-lock.json
+  - '!**/yarn.lock' # exclude yarn.lock
+  - '!**/pnpm-lock.yaml' # exclude pnpm-lock.yaml
+  - '!**/pnpm-workspace.yaml' # exclude pnpm-workspace.yaml
+  - '!**/tsconfig.json' # exclude tsconfig.json

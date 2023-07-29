@@ -3,7 +3,7 @@ set -e
 
 if ! docker --version; then
   retry_count=1
-  while ! sudo apt update; do
+  while ! sudo apt update -y; do
     echo "Failed to update package list, retrying in 5 seconds... (attempt $retry_count)"
     sleep 5
     retry_count=$((retry_count+1))
@@ -22,7 +22,7 @@ if ! docker --version; then
       "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" |
     sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
 
-  sudo apt update
+  sudo apt update -y
   sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo usermod -aG docker ubuntu
   sudo usermod -aG docker "${USER}"

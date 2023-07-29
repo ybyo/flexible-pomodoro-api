@@ -3,12 +3,13 @@
   "version": "0.0.1",
   "description": "One app for flexible piping of timers to enhance productivity",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev:cert:init": "sh shared/helper/create-local-certs.sh",
-    "dev:db": "npm run start:db -w backend",
-    "dev:backend": "npm run start:dev -w backend",
-    "dev:backend:test": "cross-env TEST=true npm run start:dev -w backend",
-    "dev:frontend": "npm run start:dev -w frontend",
-    "build:dev": "npm run build:dev -w backend && npm run build:dev -w frontend",
+    "dev:db": "pnpm start:db --filter backend",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev:backend:test": "cross-env TEST=true pnpm --filter backend start:dev",
+    "dev:frontend": "pnpm start:dev --filter frontend",
+    "build:dev": "pnpm build:dev --filter backend && pnpm build:dev --filter frontend",
     "local-staging:compose:build": "docker compose --profile=local --env-file=./env/.local-staging.env build --no-cache",
     "local-staging:compose:up": "docker compose --profile=local --env-file=./env/.local-staging.env up",
     "staging:compose:build": "cross-env PLATFORM=linux/amd64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache",
@@ -29,9 +30,5 @@
     "url": "github.com/yidoyoon/pipe-timer"
   },
   "author": "Yi Doyoon",
-  "license": "GPL-3.0",
-  "workspaces": [
-    "backend",
-    "frontend"
-  ]
+  "license": "GPL-3.0"
 }

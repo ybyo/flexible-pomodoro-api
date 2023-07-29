@@ -1,5 +1,8 @@
+### Certificates
+certs
+
 ### Consul-Vault Configs
-./infra/consul-vault/*.json
+consul-vault
 
 ### Dotenv
 env
@@ -13,9 +16,12 @@ web-config-prom.yml
 
 ### Backend(NestJS)
 mysql
+mysql/**
+*innodb_redo
 
 ### Frontend(Quasar)
 .thumbs.db
+.quasar
 
 ### Python
 .venv
@@ -62,10 +68,6 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-
-
-# Quasar core related directories
-.quasar
 
 # Cordova related directories and files
 /src-cordova/node_modules

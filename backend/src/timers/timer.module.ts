@@ -8,7 +8,6 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { GetTimerHandler } from '@/timers/application/command/handler/get-timer.handler';
 import { SaveTimerHandler } from '@/timers/application/command/handler/save-timer.handler';
-import { TimerProfile } from '@/timers/common/mapper/timer.profile';
 import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 import { TimerRepository } from '@/timers/infra/db/repository/timer.repository';
 import { TimerController } from '@/timers/interface/timer.controller';
@@ -43,7 +42,6 @@ const repositories = [
     ...queryHandlers,
     ...repositories,
     Logger,
-    TimerProfile,
   ],
 })
 export class TimerModule {}

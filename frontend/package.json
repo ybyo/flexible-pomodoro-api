@@ -32,7 +32,7 @@
     "socket.io-client": "^4.6.1",
     "ulid": "^2.3.0",
     "vee-validate": "^4.7.3",
-    "vue": "^3.0.0",
+    "vue": "^3.3.4",
     "vue-i18n": "^9.2.2",
     "vue-router": "^4.1.6",
     "vuedraggable": "^4.1.0",
@@ -66,10 +66,5 @@
     "workbox-precaching": "^7.0.0",
     "workbox-routing": "^6.5.4",
     "workbox-strategies": "^6.5.4"
-  },
-  "engines": {
-    "node": "^18 || ^16 || ^14.19",
-    "npm": ">= 6.13.4",
-    "yarn": ">= 1.21.1"
   }
 }

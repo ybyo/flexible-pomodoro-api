@@ -30,9 +30,9 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 
 ### 필요 사항
 
-앱을 정상적으로 구동하기 위해선 아래와 같은 도구가 기본적으로 필요합니다. 각 도구들의 최신 버전을 설치해주세요
+앱을 정상적으로 구동하기 위해선 아래와 같은 도구가 기본적으로 필요합니다.
 
-- [npm](https://github.com/nodesource/distributions#installation-instructions)
+- [pnpm](https://pnpm.io/installation/)
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
@@ -45,7 +45,7 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    ```
 2. 서버를 HTTPS로 구동하기 위한 인증서를 mkcert로 생성합니다. 아래 명령어는 mkcert 설치와 실행에 필요한 패키지를 설치하고 인증서를 생성하는 스크립트를 실행합니다. 스크립트는 `.github/scripts/create-local-certs.sh`에 위치하고 있으며, 필요하다면 수정해서 사용할 수 있습니다.
    ```sh
-   npm run dev:cert:init
+   pnpm dev:cert:init
    ```
 3. 앱 구동에 필요한 필수 환경변수를 설정합니다. 환경 변수를 제공하는 파일은 `backend/env/.development.env`에 있습니다. `HOST_URL`은 자신의 환경, 도메인에 맞추어 설정합니다.
 
@@ -89,7 +89,7 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
 4. 앱을 구동합니다.
 
    ```sh
-   npm run dev:compse:up
+   pnpm dev:compse:up
    ```
 
 5. 브라우저에서 `HOST_URL`에서 설정한 주소의 `4000`포트로 접근합니다. 예시) `https://localhost:4000`
