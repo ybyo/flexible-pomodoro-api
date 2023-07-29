@@ -10,8 +10,6 @@ COPY --chown=node:node ./pnpm-lock.yaml ./
 RUN corepack enable && pnpm --version && \
     pnpm install --prefer-frozen-lockfile --prod=false
 
-USER node
-
 FROM dev as build
 WORKDIR /app
 SHELL ["/bin/sh", "-c"]
@@ -22,17 +20,13 @@ ARG NODE_ENV
 
 RUN echo "Currently run build process in '$NODE_ENV'"
 
-COPY --chown=node:node ./backend/package*.json ./
 COPY --chown=node:node ./pnpm-lock.yaml ./
 COPY --chown=node:node ./backend .
-
 COPY --chown=node:node --from=dev /app/node_modules ./node_modules
 
 RUN corepack enable && pnpm --version && \
     pnpm install -g @nestjs/cli --prod=false && \
     NODE_ENV=$NODE_ENV nest build
-
-USER node
 
 FROM node:18-alpine As prod
 
