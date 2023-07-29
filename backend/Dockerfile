@@ -12,7 +12,7 @@ RUN corepack enable && pnpm --version && \
 
 USER node
 
-FROM node:18-alpine as build
+FROM dev as build
 WORKDIR /app
 SHELL ["/bin/sh", "-c"]
 ENV PNPM_HOME="/app" \

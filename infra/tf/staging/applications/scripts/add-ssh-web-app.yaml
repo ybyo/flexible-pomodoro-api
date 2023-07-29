@@ -19,8 +19,6 @@ users:
 package_update: true
 packages:
   - mysql-server
-  - openssh-client
-  - openssh-server
 
 write_files:
   - encoding: base64

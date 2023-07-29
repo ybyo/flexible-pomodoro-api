@@ -2,6 +2,6 @@
 
 cd ../../../../
 
-PLATFORM=linux/$1 pnpm run staging:compose:build nginx-pt
+PLATFORM=linux/$1 pnpm run staging:compose:build backend-pt
 
-docker push "$2/pipe-timer-frontend:$3"
+docker push "$2/pipe-timer-backend:$3"
