@@ -129,7 +129,7 @@ export class AuthService {
       await this.commandBus.execute(command);
 
       const newAccessToken = await this.issueJWT({
-        id: id,
+        id,
         email,
         username: newName,
       });

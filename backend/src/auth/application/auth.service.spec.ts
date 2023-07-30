@@ -10,9 +10,11 @@ import * as argon2 from 'argon2';
 import { Request } from 'express';
 
 import { AuthService } from '@/auth/application/auth.service';
+import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
@@ -36,6 +38,7 @@ describe('AuthService', () => {
   let userRepository: IUserRepository;
   let jwtService: JwtService;
   let queryBus: QueryBus;
+  let commandBus: CommandBus;
 
   const getRandomString = () => `${Date.now()}`;
 
@@ -85,6 +88,7 @@ describe('AuthService', () => {
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
     jwtService = moduleRef.get<JwtService>(JwtService);
     queryBus = moduleRef.get<QueryBus>(QueryBus);
+    commandBus = moduleRef.get<CommandBus>(CommandBus);
 
     jest.spyOn(jwtService, 'sign');
     jest.spyOn(jwtService, 'verify');
@@ -282,6 +286,45 @@ describe('AuthService', () => {
         result.data.id,
         token,
         newPassword
+      );
+    });
+  });
+
+  describe('changeNameAndJWT', () => {
+    const id = getRandomString();
+    const email = `${getRandomString()}@${getRandomString()}.com`;
+    const newName = getRandomString();
+    const newAccessToken = getRandomString();
+
+    it('should return success, token', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue({ success: false });
+      commandBus.execute = jest.fn().mockResolvedValue(undefined);
+      authService.issueJWT = jest.fn().mockResolvedValue(newAccessToken);
+
+      const result = await authService.changeNameAndJWT(id, email, newName);
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckDuplicateNameQuery(newName)
+      );
+      expect(commandBus.execute).toBeCalledWith(
+        new ChangeNameCommand(email, newName)
+      );
+      expect(authService.issueJWT).toBeCalledWith({
+        id,
+        email,
+        username: newName,
+      });
+      expect(result).toEqual({ success: true, data: newAccessToken });
+    });
+
+    it('should return BadRequestException', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue({ success: true });
+
+      await expect(
+        authService.changeNameAndJWT(id, email, newName)
+      ).rejects.toThrowError(new BadRequestException('Duplicate user name'));
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckDuplicateNameQuery(newName)
       );
     });
   });
