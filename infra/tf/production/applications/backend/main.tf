@@ -217,6 +217,7 @@ resource "aws_instance" "pipe_timer_backend" {
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
     host        = aws_instance.pipe_timer_backend.public_ip
+    agent       = false
   }
 
   provisioner "file" {

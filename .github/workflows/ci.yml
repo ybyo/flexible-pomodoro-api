@@ -26,6 +26,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.4.0
+        with:
+          version: 8
+      - name: Install dependencies
+        run: pnpm i --no-frozen-lockfile --prod=false
 
       - name: Import Secrets
         id: import-secrets
@@ -46,14 +52,11 @@ jobs:
           touch ./env/.${{ env.NODE_ENV }}.env
           awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.${{ env.NODE_ENV }}.env
 
-      - name: Install dependencies
-        run: npm i --production=false
-
       - name: Install dummy certs for test
         run: sudo apt update && sh shared/helper/create-local-certs.sh -y
 
       - name: Test backend
-        run: npm run test -w backend
+        run: pnpm --filter backend test
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
@@ -84,9 +87,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.4.0
+        with:
+          version: 8
       - uses: hashicorp/setup-terraform@v1.4.0
       - name: Install Dependencies
-        run: npm i -g cross-env
+        run: pnpm i -g cross-env
 
       - name: Import Secrets
         id: import-secrets

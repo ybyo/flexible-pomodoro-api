@@ -220,6 +220,7 @@ resource "aws_instance" "pipe_timer_frontend" {
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
     host        = aws_instance.pipe_timer_frontend.public_ip
+    agent       = false
   }
 
   provisioner "remote-exec" {
@@ -271,7 +272,6 @@ resource "aws_instance" "pipe_timer_frontend" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
       "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
       "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
     ]
