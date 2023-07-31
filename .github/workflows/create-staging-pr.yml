@@ -1,0 +1,29 @@
+name: create-staging-pull-request
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+      - 'staging'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  createPR:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get latest commit
+        id: get-commit
+        run: echo "::set-output name=message::$(git log --format=%B -n 1)"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Create PR to Staging
+          branch: staging
+          title: Update Staging with ${{ github.event.head_commit.message }}
+          body: Update staging with latest changes
+          draft: false
