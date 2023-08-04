@@ -8,14 +8,17 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 import { Request } from 'express';
+import { createRequest } from 'node-mocks-http';
 
 import { AuthService } from '@/auth/application/auth.service';
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
+import { RedisModule } from '@/redis/redis.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
+import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
@@ -39,6 +42,7 @@ describe('AuthService', () => {
   let jwtService: JwtService;
   let queryBus: QueryBus;
   let commandBus: CommandBus;
+  let redisService: RedisTokenService;
 
   const getRandomString = () => `${Date.now()}`;
 
@@ -58,16 +62,18 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: 'RedisTokenService',
+          useValue: {
+            getPexpiretime: jest.fn(),
+          },
+        },
+        {
           provide: jwtConfig.KEY,
           useValue: jwtConf,
         },
         {
           provide: accessTokenConfig.KEY,
           useValue: accessTokenConf,
-        },
-        {
-          provide: 'RedisTokenService',
-          useValue: RedisTokenService,
         },
         {
           provide: CommandBus,
@@ -89,6 +95,7 @@ describe('AuthService', () => {
     jwtService = moduleRef.get<JwtService>(JwtService);
     queryBus = moduleRef.get<QueryBus>(QueryBus);
     commandBus = moduleRef.get<CommandBus>(CommandBus);
+    redisService = moduleRef.get<RedisTokenService>('RedisTokenService');
 
     jest.spyOn(jwtService, 'sign');
     jest.spyOn(jwtService, 'verify');
@@ -326,6 +333,35 @@ describe('AuthService', () => {
       expect(queryBus.execute).toBeCalledWith(
         new CheckDuplicateNameQuery(newName)
       );
+    });
+  });
+
+  describe('verifySignupToken', () => {
+    const event = getRandomString();
+    const token = getRandomString();
+    const key = `${event}:${token}`;
+    const req = createRequest({
+      query: {
+        [event]: token,
+      },
+    });
+    const user = CreateRandomObject.RandomUserWithoutPassword();
+    const expiredAt = Date.now() + 1000;
+    it('should return success', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue(user);
+      redisService.getPexpiretime = jest.fn().mockResolvedValue(expiredAt);
+      userRepository.verifySignupToken = jest
+        .fn()
+        .mockResolvedValue({ affected: 1 });
+
+      const result = await authService.verifySignupToken(req);
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckSignupTokenValidityQuery(token)
+      );
+      expect(redisService.getPexpiretime).toBeCalledWith(key);
+      expect(userRepository.verifySignupToken).toBeCalledWith(user.id, token);
+      expect(result).toEqual({ success: true });
     });
   });
 });
