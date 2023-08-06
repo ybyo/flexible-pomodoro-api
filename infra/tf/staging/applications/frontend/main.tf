@@ -272,6 +272,7 @@ resource "aws_instance" "pipe_timer_frontend" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
       "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
       "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
     ]
