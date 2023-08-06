@@ -129,7 +129,7 @@ export class AuthService {
       await this.commandBus.execute(command);
 
       const newAccessToken = await this.issueJWT({
-        id: id,
+        id,
         email,
         username: newName,
       });
@@ -143,44 +143,30 @@ export class AuthService {
     throw new BadRequestException('Duplicate user name');
   }
 
-  async issueJWT(user: UserJwt): Promise<string> {
-    const token = this.jwtService.sign(user, this.jwtConf);
-
-    return token;
-  }
-
   async verifySignupToken(req: Request): Promise<SuccessDto> {
     const { event, token } = await this.splitEventToken(req.query);
     const key = `${event}:${token}`;
 
-    const query = new CheckSignupTokenValidityQuery(token);
-    const user = await this.queryBus.execute(query);
+    const user = await this.queryBus.execute(
+      new CheckSignupTokenValidityQuery(token)
+    );
 
-    if (user === null) {
+    if (!user) {
       await this.redisService.deleteValue(key);
-      throw new BadRequestException(`Invalid ${event}`);
+      throw new BadRequestException('The provided token is invalid.');
     }
 
-    const expiredAt = await this.redisService.getPexpiretime(key);
-    const result = await this.userRepository.verifySignupToken(user.id, token);
+    const [expiredAt, result] = await Promise.all([
+      this.redisService.getPexpiretime(key),
+      this.userRepository.verifySignupToken(user.id, token),
+    ]);
 
     if (result.affected) {
       return { success: true };
     } else {
       await this.redisService.setPXAT(key, '1', expiredAt);
-      throw new InternalServerErrorException(`Cannot verify ${event}`);
+      throw new InternalServerErrorException(`Unable to verify the ${event}`);
     }
-  }
-
-  async splitEventToken(query: any) {
-    if (Object.keys(query).length === 0) {
-      throw new BadRequestException('Invalid request');
-    }
-
-    const event = Object.keys(query)[0] as string;
-    const token = Object.values(query)[0] as string;
-
-    return { event, token };
   }
 
   async registerUser(user: RegisterUserDto): Promise<SuccessDto> {
@@ -205,5 +191,21 @@ export class AuthService {
         throw new InternalServerErrorException('Cannot register user');
       }
     }
+  }
+
+  async issueJWT(user: UserJwt): Promise<string> {
+    const token = this.jwtService.sign(user, this.jwtConf);
+    return token;
+  }
+
+  async splitEventToken(query: any) {
+    if (Object.keys(query).length === 0) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    const event = Object.keys(query)[0] as string;
+    const token = Object.values(query)[0] as string;
+
+    return { event, token };
   }
 }

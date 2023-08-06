@@ -8,13 +8,18 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as argon2 from 'argon2';
 import { Request } from 'express';
+import { createRequest } from 'node-mocks-http';
 
 import { AuthService } from '@/auth/application/auth.service';
+import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
+import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
 const jwtConf = {
@@ -36,6 +41,8 @@ describe('AuthService', () => {
   let userRepository: IUserRepository;
   let jwtService: JwtService;
   let queryBus: QueryBus;
+  let commandBus: CommandBus;
+  let redisService: RedisTokenService;
 
   const getRandomString = () => `${Date.now()}`;
 
@@ -55,16 +62,18 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: 'RedisTokenService',
+          useValue: {
+            getPexpiretime: jest.fn(),
+          },
+        },
+        {
           provide: jwtConfig.KEY,
           useValue: jwtConf,
         },
         {
           provide: accessTokenConfig.KEY,
           useValue: accessTokenConf,
-        },
-        {
-          provide: 'RedisTokenService',
-          useValue: RedisTokenService,
         },
         {
           provide: CommandBus,
@@ -85,6 +94,8 @@ describe('AuthService', () => {
     userRepository = moduleRef.get<IUserRepository>('UserRepository');
     jwtService = moduleRef.get<JwtService>(JwtService);
     queryBus = moduleRef.get<QueryBus>(QueryBus);
+    commandBus = moduleRef.get<CommandBus>(CommandBus);
+    redisService = moduleRef.get<RedisTokenService>('RedisTokenService');
 
     jest.spyOn(jwtService, 'sign');
     jest.spyOn(jwtService, 'verify');
@@ -283,6 +294,108 @@ describe('AuthService', () => {
         token,
         newPassword
       );
+    });
+  });
+
+  describe('changeNameAndJWT', () => {
+    const id = getRandomString();
+    const email = `${getRandomString()}@${getRandomString()}.com`;
+    const newName = getRandomString();
+    const newAccessToken = getRandomString();
+
+    it('should return success, token', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue({ success: false });
+      commandBus.execute = jest.fn().mockResolvedValue(undefined);
+      authService.issueJWT = jest.fn().mockResolvedValue(newAccessToken);
+
+      const result = await authService.changeNameAndJWT(id, email, newName);
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckDuplicateNameQuery(newName)
+      );
+      expect(commandBus.execute).toBeCalledWith(
+        new ChangeNameCommand(email, newName)
+      );
+      expect(authService.issueJWT).toBeCalledWith({
+        id,
+        email,
+        username: newName,
+      });
+      expect(result).toEqual({ success: true, data: newAccessToken });
+    });
+
+    it('should return BadRequestException', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue({ success: true });
+
+      await expect(
+        authService.changeNameAndJWT(id, email, newName)
+      ).rejects.toThrowError(new BadRequestException('Duplicate user name'));
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckDuplicateNameQuery(newName)
+      );
+    });
+  });
+
+  describe('verifySignupToken', () => {
+    const event = getRandomString();
+    const token = getRandomString();
+    const key = `${event}:${token}`;
+    const req = createRequest({
+      query: {
+        [event]: token,
+      },
+    });
+    const user = CreateRandomObject.RandomUserWithoutPassword();
+    const expiredAt = Date.now() + 1000;
+    it('all success, should return success', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue(user);
+      redisService.getPexpiretime = jest.fn().mockResolvedValue(expiredAt);
+      userRepository.verifySignupToken = jest
+        .fn()
+        .mockResolvedValue({ affected: 1 });
+
+      const result = await authService.verifySignupToken(req);
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckSignupTokenValidityQuery(token)
+      );
+      expect(redisService.getPexpiretime).toBeCalledWith(key);
+      expect(userRepository.verifySignupToken).toBeCalledWith(user.id, token);
+      expect(result).toEqual({ success: true });
+    });
+
+    it('failure_1, invalid user(null), should return BadRequestException', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue(null);
+      redisService.deleteValue = jest.fn().mockResolvedValue(key);
+
+      await expect(authService.verifySignupToken(req)).rejects.toThrowError(
+        new BadRequestException('The provided token is invalid.')
+      );
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckSignupTokenValidityQuery(token)
+      );
+      expect(redisService.deleteValue).toBeCalledWith(key);
+    });
+  });
+
+  describe('registerUser', () => {
+    const user: RegisterUserDto = CreateRandomObject.RandomUserForSignup();
+
+    it('should register user return success', async () => {
+      userRepository.registerUser = jest
+        .fn()
+        .mockResolvedValue({ email: user.email });
+
+      const result = await authService.registerUser(user);
+
+      expect(userRepository.registerUser).toBeCalledWith({
+        email: user.email,
+        username: user.username,
+        password: user.password,
+      });
+      expect(result).toEqual({ success: true });
     });
   });
 });
