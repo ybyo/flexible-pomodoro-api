@@ -14,12 +14,12 @@ import { AuthService } from '@/auth/application/auth.service';
 import { CheckDuplicateNameQuery } from '@/auth/application/query/impl/check-duplicate-name.query';
 import accessTokenConfig from '@/config/access-token.config';
 import jwtConfig from '@/config/jwt.config';
-import { RedisModule } from '@/redis/redis.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { ChangeNameCommand } from '@/users/application/command/impl/change-name.command';
 import { CheckResetPasswordTokenValidityHandler } from '@/users/application/query/handlers/check-reset-password-token-validity.handler';
 import { CheckSignupTokenValidityQuery } from '@/users/application/query/impl/check-signup-token-validity.query';
 import { IUserRepository } from '@/users/domain/iuser.repository';
+import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 import { CreateRandomObject } from '@/utils/test-object-builder.util';
 
 const jwtConf = {
@@ -330,6 +330,7 @@ describe('AuthService', () => {
       await expect(
         authService.changeNameAndJWT(id, email, newName)
       ).rejects.toThrowError(new BadRequestException('Duplicate user name'));
+
       expect(queryBus.execute).toBeCalledWith(
         new CheckDuplicateNameQuery(newName)
       );
@@ -347,7 +348,7 @@ describe('AuthService', () => {
     });
     const user = CreateRandomObject.RandomUserWithoutPassword();
     const expiredAt = Date.now() + 1000;
-    it('should return success', async () => {
+    it('all success, should return success', async () => {
       queryBus.execute = jest.fn().mockResolvedValue(user);
       redisService.getPexpiretime = jest.fn().mockResolvedValue(expiredAt);
       userRepository.verifySignupToken = jest
@@ -361,6 +362,39 @@ describe('AuthService', () => {
       );
       expect(redisService.getPexpiretime).toBeCalledWith(key);
       expect(userRepository.verifySignupToken).toBeCalledWith(user.id, token);
+      expect(result).toEqual({ success: true });
+    });
+
+    it('failure_1, invalid user(null), should return BadRequestException', async () => {
+      queryBus.execute = jest.fn().mockResolvedValue(null);
+      redisService.deleteValue = jest.fn().mockResolvedValue(key);
+
+      await expect(authService.verifySignupToken(req)).rejects.toThrowError(
+        new BadRequestException('The provided token is invalid.')
+      );
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckSignupTokenValidityQuery(token)
+      );
+      expect(redisService.deleteValue).toBeCalledWith(key);
+    });
+  });
+
+  describe('registerUser', () => {
+    const user: RegisterUserDto = CreateRandomObject.RandomUserForSignup();
+
+    it('should register user return success', async () => {
+      userRepository.registerUser = jest
+        .fn()
+        .mockResolvedValue({ email: user.email });
+
+      const result = await authService.registerUser(user);
+
+      expect(userRepository.registerUser).toBeCalledWith({
+        email: user.email,
+        username: user.username,
+        password: user.password,
+      });
       expect(result).toEqual({ success: true });
     });
   });
