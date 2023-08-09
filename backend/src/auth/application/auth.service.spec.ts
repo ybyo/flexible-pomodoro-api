@@ -434,5 +434,51 @@ describe('AuthService', () => {
         new BadRequestException(`${duplicateValue}`)
       );
     });
+
+    it('failure_2, mysql, return InternalServerErrorException', async () => {
+      const err = {
+        code: 'EXCEPT_ER_DUP_ENTRY',
+      };
+
+      userRepository.registerUser = jest.fn().mockRejectedValue(err);
+
+      await expect(authService.registerUser(user)).rejects.toThrowError(
+        new InternalServerErrorException('Cannot register user')
+      );
+    });
+  });
+
+  describe('issueJWT', () => {
+    it('should return token', async () => {
+      const user = CreateRandomObject.RandomUserJwt();
+      const token = getRandomString();
+
+      jwtService.sign = jest.fn().mockResolvedValue(token);
+
+      const result = await authService.issueJWT(user);
+
+      expect(result).toBe(token);
+    });
+  });
+
+  describe('splitEventToken', () => {
+    let query = createRequest().query;
+    const event = getRandomString();
+    const token = getRandomString();
+    it('should return { event, token }', async () => {
+      query = { [event]: token };
+
+      const result = await authService.splitEventToken(query);
+
+      expect(result).toEqual({ event, token });
+    });
+
+    it('failure_1, no query, should return BadRequestException', async () => {
+      query = {} as Request['query'];
+
+      await expect(authService.splitEventToken(query)).rejects.toThrowError(
+        new BadRequestException('Invalid request')
+      );
+    });
   });
 });
