@@ -208,10 +208,11 @@ export class AuthService {
 
   async issueJWT(user: UserJwt): Promise<string> {
     const token = this.jwtService.sign(user, this.jwtConf);
+
     return token;
   }
 
-  async splitEventToken(query: any) {
+  async splitEventToken(query: Request['query']) {
     if (Object.keys(query).length === 0) {
       throw new BadRequestException('Invalid request');
     }
