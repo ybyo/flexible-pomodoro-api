@@ -65,6 +65,8 @@ describe('AuthService', () => {
           provide: 'RedisTokenService',
           useValue: {
             getPexpiretime: jest.fn(),
+            deleteValue: jest.fn(),
+            setPXAT: jest.fn(),
           },
         },
         {
@@ -367,7 +369,6 @@ describe('AuthService', () => {
 
     it('failure_1, invalid user(null), should return BadRequestException', async () => {
       queryBus.execute = jest.fn().mockResolvedValue(null);
-      redisService.deleteValue = jest.fn().mockResolvedValue(key);
 
       await expect(authService.verifySignupToken(req)).rejects.toThrowError(
         new BadRequestException('The provided token is invalid.')
@@ -378,12 +379,32 @@ describe('AuthService', () => {
       );
       expect(redisService.deleteValue).toBeCalledWith(key);
     });
+
+    it('failure_2, mysql, should not remove(verify) mysql token, return InternalServerError', async () => {
+      authService.splitEventToken = jest
+        .fn()
+        .mockResolvedValue({ event, token });
+      queryBus.execute = jest.fn().mockResolvedValue(user);
+      redisService.getPexpiretime = jest.fn().mockResolvedValue(expiredAt);
+      userRepository.verifySignupToken = jest
+        .fn()
+        .mockResolvedValue({ affected: 0 });
+
+      await expect(authService.verifySignupToken(req)).rejects.toThrowError(
+        new InternalServerErrorException(`Unable to verify the ${event}`)
+      );
+
+      expect(queryBus.execute).toBeCalledWith(
+        new CheckSignupTokenValidityQuery(token)
+      );
+      expect(redisService.getPexpiretime).toBeCalledWith(key);
+    });
   });
 
   describe('registerUser', () => {
     const user: RegisterUserDto = CreateRandomObject.RandomUserForSignup();
 
-    it('should register user return success', async () => {
+    it('should register user, return success', async () => {
       userRepository.registerUser = jest
         .fn()
         .mockResolvedValue({ email: user.email });
@@ -396,6 +417,68 @@ describe('AuthService', () => {
         password: user.password,
       });
       expect(result).toEqual({ success: true });
+    });
+
+    it('failure_1, duplicate account, return BadRequestException', async () => {
+      const err = {
+        code: 'ER_DUP_ENTRY',
+        message: `Duplicate entry ${user.email}`,
+      };
+      const regex = /Duplicate entry '([^']+)'/;
+      const match = err.message.match(regex);
+      const duplicateValue = match ? match[1] : null;
+
+      userRepository.registerUser = jest.fn().mockRejectedValue(err);
+
+      await expect(authService.registerUser(user)).rejects.toThrowError(
+        new BadRequestException(`${duplicateValue}`)
+      );
+    });
+
+    it('failure_2, mysql, return InternalServerErrorException', async () => {
+      const err = {
+        code: 'EXCEPT_ER_DUP_ENTRY',
+      };
+
+      userRepository.registerUser = jest.fn().mockRejectedValue(err);
+
+      await expect(authService.registerUser(user)).rejects.toThrowError(
+        new InternalServerErrorException('Cannot register user')
+      );
+    });
+  });
+
+  describe('issueJWT', () => {
+    it('should return token', async () => {
+      const user = CreateRandomObject.RandomUserJwt();
+      const token = getRandomString();
+
+      jwtService.sign = jest.fn().mockResolvedValue(token);
+
+      const result = await authService.issueJWT(user);
+
+      expect(result).toBe(token);
+    });
+  });
+
+  describe('splitEventToken', () => {
+    let query = createRequest().query;
+    const event = getRandomString();
+    const token = getRandomString();
+    it('should return { event, token }', async () => {
+      query = { [event]: token };
+
+      const result = await authService.splitEventToken(query);
+
+      expect(result).toEqual({ event, token });
+    });
+
+    it('failure_1, no query, should return BadRequestException', async () => {
+      query = {} as Request['query'];
+
+      await expect(authService.splitEventToken(query)).rejects.toThrowError(
+        new BadRequestException('Invalid request')
+      );
     });
   });
 });
