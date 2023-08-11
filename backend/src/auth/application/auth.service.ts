@@ -169,6 +169,19 @@ export class AuthService {
     }
   }
 
+  // async checkTokenValidity(token: string, key: string) {
+  //   const user = await this.queryBus.execute(
+  //     new CheckSignupTokenValidityQuery(token)
+  //   );
+  //
+  //   if (!user) {
+  //     await this.redisService.deleteValue(key);
+  //     throw new BadRequestException('The provided token is invalid.');
+  //   }
+  //
+  //   return user;
+  // }
+
   async registerUser(user: RegisterUserDto): Promise<SuccessDto> {
     const newUser = new User();
     newUser.email = user.email;
@@ -195,10 +208,11 @@ export class AuthService {
 
   async issueJWT(user: UserJwt): Promise<string> {
     const token = this.jwtService.sign(user, this.jwtConf);
+
     return token;
   }
 
-  async splitEventToken(query: any) {
+  async splitEventToken(query: Request['query']) {
     if (Object.keys(query).length === 0) {
       throw new BadRequestException('Invalid request');
     }
