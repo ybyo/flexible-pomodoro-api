@@ -23,12 +23,16 @@
     "vault:up": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env up -d",
     "vault:down": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env down",
     "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path /tmp/artifacts",
-    "act:production": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-production.json --artifact-server-path /tmp/artifacts"
+    "act:production": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-production.json --artifact-server-path /tmp/artifacts",
+    "barrels": "barrelsby -d -e \"**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
     "url": "github.com/yidoyoon/pipe-timer"
   },
   "author": "Yi Doyoon",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "barrelsby": "^2.8.0"
+  }
 }
