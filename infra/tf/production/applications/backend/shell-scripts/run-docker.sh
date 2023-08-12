@@ -5,6 +5,11 @@ cicd_path="$2"
 env="$3"
 api_port="$4"
 loki_url="$5"
+registry_password="$6"
+registry_id="$7"
+registry_url="$8"
+
+echo "${registry_password}" | sudo docker login -u "${registry_id}" "${registry_url}" --password-stdin
 
 docker network create pipe-timer || { echo 'Failed to create network'; exit 1; }
 
