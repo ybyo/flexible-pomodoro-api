@@ -245,12 +245,12 @@ data "template_cloudinit_config" "setup" {
     })
   }
 
-  part {
-    content_type = "text/x-shellscript"
-    content = templatefile("../common-scripts/cleanup.sh", {
-      tunnel_id   = cloudflare_tunnel.ssh.id
-    })
-  }
+#  part {
+#    content_type = "text/x-shellscript"
+#    content = templatefile("../common-scripts/cleanup.sh", {
+#      tunnel_id   = cloudflare_tunnel.ssh.id
+#    })
+#  }
 
   part {
     content_type = "text/x-shellscript"
@@ -334,12 +334,12 @@ resource "aws_instance" "pipe_timer_backend" {
 
   provisioner "file" {
     source      = "../../../../../backend/templates/nginx.conf"
-    destination = "/tmp/"
+    destination = "/tmp/nginx.conf"
   }
 
   provisioner "file" {
     source      = "../../../../../env"
-    destination = "/tmp/"
+    destination = "/tmp/env"
   }
 
   provisioner "remote-exec" {
@@ -395,4 +395,22 @@ resource "aws_instance" "pipe_timer_backend" {
   }
 
   depends_on = [null_resource.build_docker]
+}
+
+resource "null_resource" "cleanup_tunnel" {
+  triggers = {
+    CF_TOKEN  = local.envs["CF_TOKEN"]
+    TUNNEL_ID = cloudflare_tunnel_config.ssh.tunnel_id
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    command     = "chmod +x ../common-scripts/cleanup-tunnel.sh; ../common-scripts/cleanup-tunnel.sh"
+    environment = {
+      CF_TOKEN  = self.triggers["CF_TOKEN"]
+      TUNNEL_ID = self.triggers["TUNNEL_ID"]
+    }
+    working_dir = path.module
+    interpreter = ["/bin/sh", "-c"]
+  }
 }
