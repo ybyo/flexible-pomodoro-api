@@ -2,7 +2,7 @@ name: destroy-staging
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/30 * * * *'
 
 jobs:
   check-uptime:
@@ -39,7 +39,7 @@ jobs:
           echo "BACKEND_UPTIME=BACKEND_UPTIME" >> $GITHUB_OUTPUT
 
   destroy-staging:
-    if: ${{ steps.check-uptime.outputs.FRONTEND_UPTIME }} >= 600 || ${{ steps.check-uptime.outputs.BACKEND_UPTIME }} >= 600
+    if: ${{ steps.check-uptime.outputs.FRONTEND_UPTIME }} >= 3600 || ${{ steps.check-uptime.outputs.BACKEND_UPTIME }} >= 3600
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -57,7 +57,7 @@ jobs:
         with:
           url: https://${{ secrets.VAULT_URL }}
           token: ${{ secrets.VAULT_TOKEN }}
-          secrets: pt/env/${{ github.base_ref }} $.$;
+          secrets: pt/env/staging $.$;
 
       - name: Secrets to json
         run: |
@@ -67,9 +67,9 @@ jobs:
       - name: Json to dotenv
         run: |
           mkdir -p ./env
-          touch ./env/.${{ github.base_ref }}.env
-          awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.${{ github.base_ref }}.env
+          touch ./env/.staging.env
+          awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.staging.env
 
       - name: Terraform Destroy Staging Server
         id: destroy-staging
-        run: terraform -chdir=./infra/tf/${{ github.base_ref }}/applications/${{ matrix.workdir }} destroy -auto-approve
+        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve
