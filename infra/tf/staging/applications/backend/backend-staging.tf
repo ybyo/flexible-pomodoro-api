@@ -277,6 +277,8 @@ data "template_cloudinit_config" "setup" {
       loki_url          = local.envs["LOKI_URL"]
       registry_password = local.envs["REGISTRY_PASSWORD"]
       registry_id       = local.envs["REGISTRY_ID"]
+      registry_id       = local.envs["REGISTRY_ID"]
+      api_port          = local.envs["API_PORT_0"]
     })
   }
 }
