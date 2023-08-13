@@ -1,0 +1,73 @@
+name: destroy-staging
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+
+jobs:
+  check-uptime:
+    runs-on: ubuntu-20.04
+    outputs:
+      uptime: ${{ steps.check-uptime.outputs.uptime }}
+    steps:
+      - name: Import SSH Private Key
+        id: import-secrets
+        uses: hashicorp/vault-action@v2.7.1
+        with:
+          url: https://${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: pt/ssh SSH_PRIVATE_KEY | SSH_PRIVATE_KEY
+
+      - name: SSH_PRIVATE_KEY to cert file
+        id: ssh-private-key-to-file
+        run: |
+          echo "$SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/ssh
+          chmod 600 ~/.ssh/ssh
+
+      - name: Setup SSH
+        run: sudo apt install openssh-client
+
+      - name: Setup Cloudflared
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+
+      - name: Check Uptime with Cloudflared
+        id: check-uptime
+        run: |
+          UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
+          echo "Uptime: $UPTIME"
+          echo "::set-output name=uptime::$UPTIME"
+
+  destroy-staging:
+    if: needs.check-uptime.outputs.uptime > 3600
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - uses: hashicorp/setup-terraform@v1.4.0
+
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2.7.1
+        with:
+          url: https://${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: pt/env/${{ github.base_ref }} $.$;
+
+      - name: Secrets to json
+        run: |
+          touch secrets.json
+          echo "${{ toJson(steps.import-secrets.outputs) }}" > secrets.json
+
+      - name: Json to dotenv
+        run: |
+          mkdir -p ./env
+          touch ./env/.${{ github.base_ref }}.env
+          awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.${{ github.base_ref }}.env
+
+      - name: Terraform Destroy Staging Server
+        id: destroy-staging
+        run: terraform -chdir=./infra/tf/${{ github.base_ref }}/applications/${{ matrix.workdir }} destroy -auto-approve
