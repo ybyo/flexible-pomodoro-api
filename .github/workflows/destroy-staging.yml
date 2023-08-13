@@ -7,8 +7,6 @@ on:
 jobs:
   check-uptime:
     runs-on: ubuntu-20.04
-    outputs:
-      uptime: ${{ steps.check-uptime.outputs.uptime }}
     steps:
       - name: Import SSH Private Key
         id: import-secrets
@@ -36,11 +34,10 @@ jobs:
         id: check-uptime
         run: |
           UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
-          echo "Uptime: $UPTIME"
-          echo "::set-output name=uptime::$UPTIME"
+          echo "UPTIME=UPTIME" >> $GITHUB_OUTPUT
 
   destroy-staging:
-    if: needs.check-uptime.outputs.uptime > 3600
+    if: ${{ steps.check-uptime.outputs.UPTIME }} >= 600
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
