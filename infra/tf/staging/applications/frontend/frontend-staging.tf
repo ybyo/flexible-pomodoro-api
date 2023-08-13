@@ -69,9 +69,9 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket = "terraform-pt-state"
-    key    = "pt/staging/modules/vpc/terraform.tfstate"
-    region = "ap-northeast-2"
+    bucket         = "terraform-pt-state"
+    key            = "pt/staging/modules/vpc/terraform.tfstate"
+    region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
@@ -110,16 +110,16 @@ resource "aws_security_group" "pt_frontend_staging" {
     }
   }
 
-    dynamic "ingress" {
-      for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
 
-      content {
-        from_port   = local.envs["NODE_EXPORTER_PORT"]
-        to_port     = local.envs["NODE_EXPORTER_PORT"]
-        protocol    = "tcp"
-        cidr_blocks = [ingress.value]
-      }
+    content {
+      from_port   = local.envs["NODE_EXPORTER_PORT"]
+      to_port     = local.envs["NODE_EXPORTER_PORT"]
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
     }
+  }
 
   ingress {
     from_port   = local.envs["NODE_EXPORTER_PORT"]
@@ -260,12 +260,12 @@ data "template_cloudinit_config" "setup" {
     })
   }
 
-  part {
-    content_type = "text/x-shellscript"
-    content = templatefile("../common-scripts/cleanup.sh", {
-      tunnel_id   = cloudflare_tunnel.ssh.id
-    })
-  }
+#  part {
+#    content_type = "text/x-shellscript"
+#    content = templatefile("../common-scripts/cleanup.sh", {
+#      tunnel_id = cloudflare_tunnel.ssh.id
+#    })
+#  }
 
   part {
     content_type = "text/x-shellscript"
@@ -360,5 +360,23 @@ resource "aws_instance" "pipe_timer_frontend" {
 
   tags = {
     Name = "pt-${local.envs["NODE_ENV"]}-frontend"
+  }
+}
+
+resource "null_resource" "cleanup_tunnel" {
+  triggers = {
+    CF_TOKEN  = local.envs["CF_TOKEN"]
+    TUNNEL_ID = cloudflare_tunnel_config.ssh.tunnel_id
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    command     = "../common-scripts/cleanup-tunnel.sh"
+    environment = {
+      CF_TOKEN  = self.triggers["CF_TOKEN"]
+      TUNNEL_ID = self.triggers["TUNNEL_ID"]
+    }
+    working_dir = path.module
+    interpreter = ["/bin/sh", "-c"]
   }
 }

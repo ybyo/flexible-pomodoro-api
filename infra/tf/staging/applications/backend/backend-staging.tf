@@ -182,7 +182,7 @@ resource "cloudflare_tunnel_config" "ssh" {
 
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "ssh-${local.envs["HOST_URL"]}"
+  name    = "ssh-${local.envs["UPSTREAM_BACKEND"]}"
   value   = cloudflare_tunnel.ssh.cname
   type    = "CNAME"
   proxied = "true"
