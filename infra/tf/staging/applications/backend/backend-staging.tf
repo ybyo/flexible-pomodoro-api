@@ -10,13 +10,12 @@ terraform {
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 3.18.0"
+      version = "~> 3.18"
     }
   }
-
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/staging/applications/frontend/terraform.tfstate"
+    key            = "pt/staging/applications/backend/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
@@ -56,6 +55,7 @@ resource "null_resource" "build_docker" {
   }
 }
 
+
 ###################################
 # Security Groups
 ###################################
@@ -69,16 +69,16 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket = "terraform-pt-state"
-    key    = "pt/staging/modules/vpc/terraform.tfstate"
-    region = "ap-northeast-2"
+    bucket         = "terraform-pt-state"
+    key            = "pt/staging/modules/vpc/terraform.tfstate"
+    region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
 
-resource "aws_security_group" "pt_frontend_staging" {
-  name   = "pt_frontend_staging"
+resource "aws_security_group" "pt_backend_staging" {
+  name   = "pt_backend_staging"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -99,31 +99,16 @@ resource "aws_security_group" "pt_frontend_staging" {
     }
   }
 
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-
-    content {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-    dynamic "ingress" {
-      for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-
-      content {
-        from_port   = local.envs["NODE_EXPORTER_PORT"]
-        to_port     = local.envs["NODE_EXPORTER_PORT"]
-        protocol    = "tcp"
-        cidr_blocks = [ingress.value]
-      }
-    }
-
   ingress {
     from_port   = local.envs["NODE_EXPORTER_PORT"]
     to_port     = local.envs["NODE_EXPORTER_PORT"]
+    protocol    = "tcp"
+    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
@@ -132,7 +117,7 @@ resource "aws_security_group" "pt_frontend_staging" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
   }
 
   egress {
@@ -147,7 +132,7 @@ resource "aws_security_group" "pt_frontend_staging" {
 # Vault
 ###################################
 provider "vault" {
-  address = "https://${local.envs["VAULT_URL"]}"
+  address = "https://vault.yidoyoon.com"
   token   = local.envs["VAULT_TOKEN"]
 }
 
@@ -160,7 +145,7 @@ data "vault_generic_secret" "ssl" {
 }
 
 data "vault_generic_secret" "env" {
-  path = "/pt/env/${local.envs["NODE_ENV"]}"
+  path = "/pt/env/${var.env}"
 }
 
 ###################################
@@ -206,7 +191,7 @@ resource "cloudflare_record" "ssh_tunnel" {
 resource "cloudflare_record" "frontend_staging" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["HOST_URL"]
-  value   = aws_instance.pipe_timer_frontend.public_ip
+  value   = aws_instance.pipe_timer_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
@@ -310,11 +295,11 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "pipe_timer_frontend" {
+resource "aws_instance" "pipe_timer_backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.pt_frontend_staging.id]
+  vpc_security_group_ids      = [aws_security_group.pt_backend_staging.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 
@@ -331,34 +316,81 @@ resource "aws_instance" "pipe_timer_frontend" {
     type        = "ssh"
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
-    host        = aws_instance.pipe_timer_frontend.public_ip
+    host        = aws_instance.pipe_timer_backend.public_ip
     agent       = false
   }
 
+#  provisioner "file" {
+#    source      = "./shell-scripts"
+#    destination = local.envs["WORKDIR"]
+#  }
+
+#  provisioner "file" {
+#    source      = "../common-scripts/"
+#    destination = "${local.envs["WORKDIR"]}/shell-scripts/"
+#  }
+
   provisioner "file" {
-    source      = "../../../../../frontend/templates/nginx.conf"
-    destination = "/tmp/nginx.conf"
+    source      = "../../../../../backend/templates/nginx.conf"
+    destination = "/tmp/"
   }
 
   provisioner "file" {
     source      = "../../../../../env"
-    destination = "/tmp/env"
-  }
-
-  provisioner "file" {
-    source      = "../../../../../frontend/public"
-    destination = "/tmp/public"
+    destination = "/tmp/"
   }
 
   provisioner "remote-exec" {
     inline = [
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
-      "sudo mv /tmp/public ${local.envs["WORKDIR"]}/",
+    ]
+  }
+
+#  provisioner "file" {
+#    content     = data.template_file.node_exporter_config.rendered
+#    destination = "${local.envs["WORKDIR"]}/web-config-exporter.yml"
+#  }
+#
+#  provisioner "file" {
+#    content     = data.template_file.promtail_config.rendered
+#    destination = "${local.envs["WORKDIR"]}/promtail-config.yml"
+#  }
+
+#  provisioner "remote-exec" {
+#    inline = [
+#      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
+#      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
+#      "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+#    ]
+#  }
+
+#  provisioner "remote-exec" {
+#    inline = [
+#      "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}'",
+#      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
+#      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
+#      "sudo mkcert -install",
+#    ]
+#  }
+
+#  provisioner "remote-exec" {
+#    inline = [
+#      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
+#      "echo ${local.envs["REGISTRY_PASSWORD"]} | docker login -u ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_URL"]} --password-stdin",
+#      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
+#    ]
+#  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
     ]
   }
 
   tags = {
-    Name = "pt-${local.envs["NODE_ENV"]}-frontend"
+    Name = "pt-${var.env}-backend"
   }
+
+  depends_on = [null_resource.build_docker]
 }
