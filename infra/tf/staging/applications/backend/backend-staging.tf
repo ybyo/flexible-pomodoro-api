@@ -162,7 +162,7 @@ resource "random_password" "ssh_tunnel" {
 
 resource "cloudflare_tunnel" "ssh" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "ssh-${element(split(".", local.envs["HOST_URL"]), 0)}"
+  name       = "backend-${local.envs["CF_ACCOUNT_ID"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
