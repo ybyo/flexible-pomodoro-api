@@ -74,6 +74,7 @@ env="{
 }"
 echo $env
 echo $env > /data/env.json
+export VAULT_TOKEN=$ROOT_KEY
 
 # ********** DO NOT EDIT ***********
 vault operator seal

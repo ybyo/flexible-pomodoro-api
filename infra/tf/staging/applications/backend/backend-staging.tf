@@ -132,7 +132,7 @@ resource "aws_security_group" "pt_backend_staging" {
 # Vault
 ###################################
 provider "vault" {
-  address = "https://vault.yidoyoon.com"
+  address = "https://${local.envs["VAULT_URL"]}"
   token   = local.envs["VAULT_TOKEN"]
 }
 
