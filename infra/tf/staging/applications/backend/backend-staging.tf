@@ -110,13 +110,20 @@ resource "aws_security_group" "pt_backend_staging" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
+    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
+    cidr_blocks = ["${data.http.ip.response_body}/32"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
   }
 
@@ -124,7 +131,7 @@ resource "aws_security_group" "pt_backend_staging" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
 }
 
@@ -188,9 +195,9 @@ resource "cloudflare_record" "ssh_tunnel" {
   proxied = "true"
 }
 
-resource "cloudflare_record" "frontend_staging" {
+resource "cloudflare_record" "backend_staging" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = local.envs["HOST_URL"]
+  name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_instance.pipe_timer_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
@@ -242,13 +249,6 @@ data "template_cloudinit_config" "setup" {
       linux_platform = local.envs["LINUX_PLATFORM"]
       ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
       workdir        = local.envs["WORKDIR"]
-    })
-  }
-
-  part {
-    content_type = "text/x-shellscript"
-    content = templatefile("../common-scripts/cleanup.sh", {
-      tunnel_id   = cloudflare_tunnel.ssh.id
     })
   }
 
@@ -322,24 +322,14 @@ resource "aws_instance" "pipe_timer_backend" {
     agent       = false
   }
 
-#  provisioner "file" {
-#    source      = "./shell-scripts"
-#    destination = local.envs["WORKDIR"]
-#  }
-
-#  provisioner "file" {
-#    source      = "../common-scripts/"
-#    destination = "${local.envs["WORKDIR"]}/shell-scripts/"
-#  }
-
   provisioner "file" {
     source      = "../../../../../backend/templates/nginx.conf"
-    destination = "/tmp/"
+    destination = "/tmp/nginx.conf"
   }
 
   provisioner "file" {
     source      = "../../../../../env"
-    destination = "/tmp/"
+    destination = "/tmp/env"
   }
 
   provisioner "remote-exec" {
@@ -349,50 +339,33 @@ resource "aws_instance" "pipe_timer_backend" {
     ]
   }
 
-#  provisioner "file" {
-#    content     = data.template_file.node_exporter_config.rendered
-#    destination = "${local.envs["WORKDIR"]}/web-config-exporter.yml"
-#  }
-#
-#  provisioner "file" {
-#    content     = data.template_file.promtail_config.rendered
-#    destination = "${local.envs["WORKDIR"]}/promtail-config.yml"
-#  }
-
 #  provisioner "remote-exec" {
 #    inline = [
-#      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-#      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
-#      "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
+#      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
 #    ]
 #  }
-
-#  provisioner "remote-exec" {
-#    inline = [
-#      "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}'",
-#      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
-#      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
-#      "sudo mkcert -install",
-#    ]
-#  }
-
-#  provisioner "remote-exec" {
-#    inline = [
-#      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
-#      "echo ${local.envs["REGISTRY_PASSWORD"]} | docker login -u ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_URL"]} --password-stdin",
-#      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
-#    ]
-#  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
-    ]
-  }
 
   tags = {
     Name = "pt-${var.env}-backend"
   }
 
   depends_on = [null_resource.build_docker]
+}
+
+resource "null_resource" "cleanup_tunnel" {
+  triggers = {
+    CF_TOKEN  = local.envs["CF_TOKEN"]
+    TUNNEL_ID = cloudflare_tunnel_config.ssh.tunnel_id
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    command     = "chmod +x ../common-scripts/cleanup-tunnel.sh; ../common-scripts/cleanup-tunnel.sh"
+    environment = {
+      CF_TOKEN  = self.triggers["CF_TOKEN"]
+      TUNNEL_ID = self.triggers["TUNNEL_ID"]
+    }
+    working_dir = path.module
+    interpreter = ["/bin/sh", "-c"]
+  }
 }
