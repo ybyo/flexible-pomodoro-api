@@ -188,9 +188,9 @@ resource "cloudflare_record" "ssh_tunnel" {
   proxied = "true"
 }
 
-resource "cloudflare_record" "frontend_staging" {
+resource "cloudflare_record" "backend_staging" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = local.envs["HOST_URL"]
+  name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_instance.pipe_timer_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
@@ -244,13 +244,6 @@ data "template_cloudinit_config" "setup" {
       workdir        = local.envs["WORKDIR"]
     })
   }
-
-#  part {
-#    content_type = "text/x-shellscript"
-#    content = templatefile("../common-scripts/cleanup.sh", {
-#      tunnel_id   = cloudflare_tunnel.ssh.id
-#    })
-#  }
 
   part {
     content_type = "text/x-shellscript"
@@ -321,16 +314,6 @@ resource "aws_instance" "pipe_timer_backend" {
     host        = aws_instance.pipe_timer_backend.public_ip
     agent       = false
   }
-
-#  provisioner "file" {
-#    source      = "./shell-scripts"
-#    destination = local.envs["WORKDIR"]
-#  }
-
-#  provisioner "file" {
-#    source      = "../common-scripts/"
-#    destination = "${local.envs["WORKDIR"]}/shell-scripts/"
-#  }
 
   provisioner "file" {
     source      = "../../../../../backend/templates/nginx.conf"
