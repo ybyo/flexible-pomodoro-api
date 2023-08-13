@@ -2,7 +2,7 @@ name: destroy-staging
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   check-uptime:
@@ -33,12 +33,17 @@ jobs:
       - name: Check Uptime with Cloudflared
         id: check-uptime
         run: |
-          UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
-          echo "UPTIME=UPTIME" >> $GITHUB_OUTPUT
+          FRONTEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
+          echo "FRONTEND_UPTIME=FRONTEND_UPTIME" >> $GITHUB_OUTPUT
+          BACKEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@staging-api.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
+          echo "BACKEND_UPTIME=BACKEND_UPTIME" >> $GITHUB_OUTPUT
 
   destroy-staging:
-    if: ${{ steps.check-uptime.outputs.UPTIME }} >= 600
+    if: ${{ steps.check-uptime.outputs.FRONTEND_UPTIME }} >= 600 || ${{ steps.check-uptime.outputs.BACKEND_UPTIME }} >= 600
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        workdir: ['backend', 'frontend']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
