@@ -179,7 +179,7 @@ provider "aws" {
 }
 
 data "template_file" "user_data" {
-  template = file("../scripts/add-ssh-web-app.yaml")
+  template = file("../scripts/cloud-init.yaml")
 
   vars = {
     ssh_public_key  = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
