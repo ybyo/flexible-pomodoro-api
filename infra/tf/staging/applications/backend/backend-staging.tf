@@ -349,44 +349,9 @@ resource "aws_instance" "pipe_timer_backend" {
     ]
   }
 
-#  provisioner "file" {
-#    content     = data.template_file.node_exporter_config.rendered
-#    destination = "${local.envs["WORKDIR"]}/web-config-exporter.yml"
-#  }
-#
-#  provisioner "file" {
-#    content     = data.template_file.promtail_config.rendered
-#    destination = "${local.envs["WORKDIR"]}/promtail-config.yml"
-#  }
-
-#  provisioner "remote-exec" {
-#    inline = [
-#      "chmod 644 ${local.envs["WORKDIR"]}/certs/*",
-#      "chmod -R +x ${local.envs["WORKDIR"]}/shell-scripts/*",
-#      "sh ${local.envs["WORKDIR"]}/shell-scripts/install-docker.sh",
-#    ]
-#  }
-
-#  provisioner "remote-exec" {
-#    inline = [
-#      "sudo curl -JLO 'https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}'",
-#      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
-#      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
-#      "sudo mkcert -install",
-#    ]
-#  }
-
-#  provisioner "remote-exec" {
-#    inline = [
-#      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
-#      "echo ${local.envs["REGISTRY_PASSWORD"]} | docker login -u ${local.envs["REGISTRY_ID"]} ${local.envs["REGISTRY_URL"]} --password-stdin",
-#      "${local.envs["WORKDIR"]}/shell-scripts/run-docker.sh ${local.envs["REGISTRY_URL"]} ${local.envs["WORKDIR"]} ${local.envs["NODE_ENV"]} ${local.envs["API_PORT_0"]} ${local.envs["LOKI_URL"]}",
-#    ]
-#  }
-
   provisioner "remote-exec" {
     inline = [
-      "mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
+      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
     ]
   }
 
