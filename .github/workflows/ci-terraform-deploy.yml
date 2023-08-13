@@ -101,16 +101,16 @@ jobs:
             pt/env/${{ github.base_ref }} AWS_REGION | AWS_REGION;
             pt/env/${{ github.base_ref }} AWS_ACCESS_KEY_ID | AWS_ACCESS_KEY_ID;
             pt/env/${{ github.base_ref }} AWS_SECRET_ACCESS_KEY | AWS_SECRET_ACCESS_KEY;
-
-      - name: Import Certificates
-        id: import-certificates
-        uses: hashicorp/vault-action@v2.7.1
-        with:
-          url: https://${{ secrets.VAULT_URL }}
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            pt/ssl SSL_PUBLIC_KEY | SSL_PUBLIC_KEY ;
-            pt/ssl SSL_PRIVATE_KEY | SSL_PRIVATE_KEY ;
+#
+#      - name: Import Certificates
+#        id: import-certificates
+#        uses: hashicorp/vault-action@v2.7.1
+#        with:
+#          url: https://${{ secrets.VAULT_URL }}
+#          token: ${{ secrets.VAULT_TOKEN }}
+#          secrets: |
+#            pt/ssl SSL_PUBLIC_KEY | SSL_PUBLIC_KEY ;
+#            pt/ssl SSL_PRIVATE_KEY | SSL_PRIVATE_KEY ;
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
