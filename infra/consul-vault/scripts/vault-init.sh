@@ -37,7 +37,6 @@ if [ ! -e "$ENV_FILE" ]; then
   exit 0
 fi
 
-
 export VAULT_UNSEAL_KEY=$(cat $ENV_FILE | jq -r '.unsealKey')
 export VAULT_ROOT_KEY=$(cat $ENV_FILE | jq -r '.rootKey')
 

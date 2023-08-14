@@ -1,14 +1,10 @@
 #!/bin/bash
 
-registry_url="$1"
-cicd_path="$2"
-env="$3"
-api_port="$4"
-loki_url="$5"
+echo "${registry_password}" | docker login -u "${registry_id}" "${registry_url}" --password-stdin
 
-sudo docker network create pipe-timer || { echo 'Failed to create network'; exit 1; }
+docker network create pipe-timer || { echo 'Failed to create network'; exit 1; }
 
-sudo docker run -itd \
+docker run -itd \
   --name promtail \
   --network=pipe-timer \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
@@ -17,7 +13,7 @@ sudo docker run -itd \
   grafana/promtail:2.8.0 \
   --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; exit 1; }
 
-sudo docker run -itd \
+docker run -itd \
   --name nestjs \
   -p "${api_port}":"${api_port}" \
   --env-file "${cicd_path}"/env/."${env}".env \
@@ -28,7 +24,7 @@ sudo docker run -itd \
   --restart on-failure \
   "$registry_url"/pipe-timer-backend:"$env" || { echo 'Failed to run nestjs'; exit 1; }
 
-sudo docker run -d \
+docker run -d \
   --name node-exporter \
   --net host \
   --pid host \
@@ -39,7 +35,7 @@ sudo docker run -d \
   --web.config.file=web-config-exporter.yml \
   --path.rootfs=/host || { echo 'Failed to run node-exporter'; exit 1; }
 
-sudo docker run -itd \
+docker run -itd \
   --name nginx \
   -p 443:443 \
   --env-file "${cicd_path}"/env/."$env".env \
@@ -52,4 +48,4 @@ sudo docker run -itd \
 
 sleep 5
 
-sudo docker ps -a
+docker ps -a
