@@ -99,13 +99,6 @@ resource "aws_security_group" "pt_backend_staging" {
   }
 
   ingress {
-    from_port   = local.envs["NODE_EXPORTER_PORT"]
-    to_port     = local.envs["NODE_EXPORTER_PORT"]
-    protocol    = "tcp"
-    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
-  }
-
-  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
