@@ -356,7 +356,7 @@ resource "null_resource" "cleanup_tunnel" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "chmod +x ../common-scripts/cleanup-tunnel.sh; ../common-scripts/cleanup-tunnel.sh"
+    command = "chmod +x ../common-scripts/cleanup-tunnel.sh; sh ../common-scripts/cleanup-tunnel.sh"
     environment = {
       CF_TOKEN  = self.triggers["CF_TOKEN"]
       TUNNEL_ID = self.triggers["TUNNEL_ID"]

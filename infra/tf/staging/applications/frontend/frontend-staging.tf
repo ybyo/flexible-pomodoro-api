@@ -267,12 +267,12 @@ data "template_cloudinit_config" "setup" {
     })
   }
 
-#  part {
-#    content_type = "text/x-shellscript"
-#    content = templatefile("../common-scripts/cleanup.sh", {
-#      tunnel_id = cloudflare_tunnel.ssh.id
-#    })
-#  }
+  #  part {
+  #    content_type = "text/x-shellscript"
+  #    content = templatefile("../common-scripts/cleanup.sh", {
+  #      tunnel_id = cloudflare_tunnel.ssh.id
+  #    })
+  #  }
 
   part {
     content_type = "text/x-shellscript"
@@ -377,8 +377,8 @@ resource "null_resource" "cleanup_tunnel" {
   }
 
   provisioner "local-exec" {
-    when        = destroy
-    command     = "../common-scripts/cleanup-tunnel.sh"
+    when    = destroy
+    command = "chmod +x ../common-scripts/cleanup-tunnel.sh; sh ../common-scripts/cleanup-tunnel.sh"
     environment = {
       CF_TOKEN  = self.triggers["CF_TOKEN"]
       TUNNEL_ID = self.triggers["TUNNEL_ID"]
