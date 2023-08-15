@@ -88,6 +88,13 @@ resource "aws_security_group" "pt_frontend_staging" {
     cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+  }
+
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
 

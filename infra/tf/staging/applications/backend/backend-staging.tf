@@ -87,6 +87,13 @@ resource "aws_security_group" "pt_backend_staging" {
     cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+  }
+
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
 
@@ -266,7 +273,7 @@ data "template_cloudinit_config" "setup" {
       loki_url          = local.envs["LOKI_URL"]
       registry_password = local.envs["REGISTRY_PASSWORD"]
       registry_id       = local.envs["REGISTRY_ID"]
-      registry_id       = local.envs["REGISTRY_ID"]
+      registry_url      = local.envs["REGISTRY_URL"]
       api_port          = local.envs["API_PORT_0"]
     })
   }
@@ -328,11 +335,11 @@ resource "aws_instance" "pipe_timer_backend" {
     ]
   }
 
-#  provisioner "remote-exec" {
-#    inline = [
-#      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
-#    ]
-#  }
+  #  provisioner "remote-exec" {
+  #    inline = [
+  #      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
+  #    ]
+  #  }
 
   tags = {
     Name = "pt-${var.env}-backend"
@@ -348,8 +355,8 @@ resource "null_resource" "cleanup_tunnel" {
   }
 
   provisioner "local-exec" {
-    when        = destroy
-    command     = "chmod +x ../common-scripts/cleanup-tunnel.sh; ../common-scripts/cleanup-tunnel.sh"
+    when    = destroy
+    command = "chmod +x ../common-scripts/cleanup-tunnel.sh; ../common-scripts/cleanup-tunnel.sh"
     environment = {
       CF_TOKEN  = self.triggers["CF_TOKEN"]
       TUNNEL_ID = self.triggers["TUNNEL_ID"]
