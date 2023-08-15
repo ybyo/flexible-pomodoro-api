@@ -19,7 +19,7 @@ docker run -itd \
   --env-file "${cicd_path}"/env/."${env}".env \
   --network pipe-timer \
   --network-alias nestjs \
-  -v "${cicd_path}"/certs:/certs:ro \
+  -v "${cicd_path}"/certs:/app/certs:ro \
   -v "${cicd_path}"/env:/env:ro \
   --restart on-failure \
   "${registry_url}"/pipe-timer-backend:"${env}" || { echo 'Failed to run nestjs'; }
