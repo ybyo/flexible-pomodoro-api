@@ -55,7 +55,6 @@ resource "null_resource" "build_docker" {
   }
 }
 
-
 ###################################
 # Security Groups
 ###################################
@@ -124,14 +123,7 @@ resource "aws_security_group" "pt_backend_staging" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -202,6 +194,10 @@ resource "cloudflare_record" "backend_staging" {
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
+
+###################################
+# Cloud-init config
+###################################
 
 data "template_cloudinit_config" "setup" {
   gzip          = true
