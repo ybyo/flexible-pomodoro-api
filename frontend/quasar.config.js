@@ -33,6 +33,7 @@ module.exports = configure(function (ctx) {
   console.log(ctx);
 
   return {
+    base: './',
     eslint: {
       // fix: true,
       // include = [],
