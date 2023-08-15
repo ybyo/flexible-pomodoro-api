@@ -5,7 +5,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev:cert:init": "sh shared/helper/create-local-certs.sh",
-    "dev:db": "pnpm start:db --filter backend",
+    "dev:db": "pnpm --filter backend start:db",
     "dev:backend": "pnpm --filter backend start:dev",
     "dev:backend:test": "cross-env TEST=true pnpm --filter backend start:dev",
     "dev:frontend": "pnpm --filter frontend start:dev",
