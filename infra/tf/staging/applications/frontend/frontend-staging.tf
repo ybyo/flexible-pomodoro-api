@@ -372,16 +372,21 @@ resource "aws_instance" "pipe_timer_frontend" {
 
 resource "null_resource" "cleanup_tunnel" {
   triggers = {
-    CF_TOKEN  = local.envs["CF_TOKEN"]
-    TUNNEL_ID = cloudflare_tunnel_config.ssh.tunnel_id
+    CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
+    CF_EMAIL      = local.envs["CF_EMAIL"]
+    TUNNEL_ID     = cloudflare_tunnel.ssh.id
+    TUNNEL_TOKEN  = nonsensitive(cloudflare_tunnel.ssh.tunnel_token)
   }
 
   provisioner "local-exec" {
-    when    = destroy
+    when = destroy
+
     command = "chmod +x ../common-scripts/cleanup-tunnel.sh; sh ../common-scripts/cleanup-tunnel.sh"
     environment = {
-      CF_TOKEN  = self.triggers["CF_TOKEN"]
-      TUNNEL_ID = self.triggers["TUNNEL_ID"]
+      CF_ACCOUNT_ID = self.triggers["CF_ACCOUNT_ID"]
+      CF_EMAIL      = self.triggers["CF_EMAIL"]
+      TUNNEL_ID     = self.triggers["TUNNEL_ID"]
+      TUNNEL_TOKEN  = self.triggers["TUNNEL_TOKEN"]
     }
     working_dir = path.module
     interpreter = ["/bin/sh", "-c"]
