@@ -210,7 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { storeToRefs } from 'pinia';
 import { useQuasar } from 'quasar';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
@@ -244,7 +244,7 @@ const rightDrawerOpen = ref(props.rightDrawerOpen);
 const $q = useQuasar();
 const timerPrompt = ref(false);
 
-const addTimerSchema = toFormValidator(
+const addTimerSchema = toTypedSchema(
   zod
     .object({
       timerName: zod

@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import * as filter from 'leo-profanity';
 import { useQuasar } from 'quasar';
 import { userMsg } from 'src/core/users/domain/user.const';
@@ -50,7 +50,7 @@ const $q = useQuasar();
 const $router = useRouter();
 const userStore = useUserStore();
 
-const changeNameSchema = toFormValidator(
+const changeNameSchema = toTypedSchema(
   zod
     .object({
       newName: zod

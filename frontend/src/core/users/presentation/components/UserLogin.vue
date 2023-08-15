@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useQuasar } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
@@ -81,7 +81,7 @@ onBeforeMount(() => {
   routineStore.bottomDrawerHeight = 36;
 });
 
-const loginSchema = toFormValidator(
+const loginSchema = toTypedSchema(
   zod.object({
     email: zod
       .string()

@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import * as filter from 'leo-profanity';
 import { useQuasar } from 'quasar';
 import {
@@ -94,7 +94,7 @@ const isPwd = ref(true);
 const router = useRouter();
 const userStore = useUserStore();
 
-const registerSchema = toFormValidator(
+const registerSchema = toTypedSchema(
   zod
     .object({
       username: zod

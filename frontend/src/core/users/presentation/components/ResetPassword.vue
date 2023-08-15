@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useQuasar } from 'quasar';
 import {
   CHECK_EMPTY,
@@ -72,7 +72,7 @@ const $q = useQuasar();
 const router = useRouter();
 const isPwd = ref(true);
 
-const registerSchema = toFormValidator(
+const registerSchema = toTypedSchema(
   zod
     .object({
       password: zod

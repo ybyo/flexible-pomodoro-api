@@ -41,17 +41,17 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useQuasar } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
 import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import { userMsg } from 'src/core/users/domain/user.const';
 import { deleteAccountFn } from 'src/core/users/infra/http/user.api';
 import { useUserStore } from 'src/core/users/infra/store/user.store';
 import { IValidationInput } from 'src/type-defs/userTypes';
 import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { useField, useForm } from 'vee-validate';
-import { userMsg } from 'src/core/users/domain/user.const';
 import { useRouter } from 'vue-router';
 import * as zod from 'zod';
 
@@ -62,7 +62,7 @@ const timerStore = useTimerStore();
 const routineStore = useRoutineStore();
 const panelStore = usePanelStore();
 
-const deleteAccountSchema = toFormValidator(
+const deleteAccountSchema = toTypedSchema(
   zod
     .object({
       validation: zod.string({

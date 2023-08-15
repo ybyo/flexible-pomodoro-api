@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useQuasar } from 'quasar';
 import { CHECK_EMPTY, userMsg } from 'src/core/users/domain/user.const';
 import { checkEmailFn } from 'src/core/users/infra/http/user.api';
@@ -50,7 +50,7 @@ const $q = useQuasar();
 
 const userStore = useUserStore();
 
-const registerSchema = toFormValidator(
+const registerSchema = toTypedSchema(
   zod.object({
     email: zod
       .string()

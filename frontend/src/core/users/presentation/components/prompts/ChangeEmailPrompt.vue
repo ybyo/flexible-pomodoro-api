@@ -35,12 +35,12 @@
 
 <script lang="ts" setup>
 import { useMutation } from '@tanstack/vue-query';
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useQuasar } from 'quasar';
 import { userMsg } from 'src/core/users/domain/user.const';
 import {
-  sendChangeEmailTokenFn,
   checkEmailFn,
+  sendChangeEmailTokenFn,
 } from 'src/core/users/infra/http/user.api';
 import { useUserStore } from 'src/core/users/infra/store/user.store';
 import { IEmailInput } from 'src/type-defs/userTypes';
@@ -53,7 +53,7 @@ const $q = useQuasar();
 const $router = useRouter();
 const userStore = useUserStore();
 
-const changeEmailSchema = toFormValidator(
+const changeEmailSchema = toTypedSchema(
   zod
     .object({
       newEmail: zod

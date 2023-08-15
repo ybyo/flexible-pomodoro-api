@@ -190,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { toFormValidator } from '@vee-validate/zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import dayjs from 'dayjs';
 import _ from 'lodash-es';
 import { storeToRefs } from 'pinia';
@@ -238,7 +238,7 @@ const order = ref(0);
 const isEditing = ref(false);
 const editPrompt = ref(false);
 
-const editTimerSchema = toFormValidator(
+const editTimerSchema = toTypedSchema(
   zod
     .object({
       timerName: zod.string().min(1, '최소 1글자 이상으로 설정해주세요.'),
