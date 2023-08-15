@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as argon2 from 'argon2';
+import * as argon2 from '@node-rs/argon2';
 import { plainToClassFromExist } from 'class-transformer';
 import {
   DataSource,

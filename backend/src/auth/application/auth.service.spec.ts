@@ -6,7 +6,7 @@ import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import * as argon2 from 'argon2';
+import * as argon2 from '@node-rs/argon2';
 import { Request } from 'express';
 import { createRequest } from 'node-mocks-http';
 
