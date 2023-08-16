@@ -6,6 +6,5 @@ export default registerAs<CookieOptions>('accessToken', () => ({
   httpOnly: true,
   secure: true,
   sameSite: 'lax',
-  domain: process.env.HOST_URL,
   path: '/',
 }));

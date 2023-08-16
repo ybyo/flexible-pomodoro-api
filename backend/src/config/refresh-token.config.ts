@@ -6,6 +6,5 @@ export default registerAs<CookieOptions>('refreshToken', () => ({
   httpOnly: true,
   secure: true,
   sameSite: 'lax',
-  domain: process.env.HOST_URL,
   path: '/',
 }));
