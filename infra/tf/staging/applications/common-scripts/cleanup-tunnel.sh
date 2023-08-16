@@ -2,7 +2,7 @@
 
 if [ ! -z "${TUNNEL_ID}" ]; then
   curl --request DELETE \
-    --url https://api.cloudflare.com/client/v4/accounts/"${CF_ACCOUNT_ID}"/cfd_tunnel/"${TUNNEL_ID}" \
+    --url https://api.cloudflare.com/client/v4/accounts/"${CF_ACCOUNT_ID}"/cfd_tunnel/"${TUNNEL_ID}"/connections \
     --header "Content-Type: application/json" \
     --header "X-Auth-Email: ${CF_EMAIL}" \
     --header "X-Auth-Key: ${TUNNEL_TOKEN}"
