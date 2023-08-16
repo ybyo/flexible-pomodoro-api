@@ -130,6 +130,13 @@ resource "aws_security_group" "pt_backend_staging" {
     cidr_blocks = ["${data.http.ip.response_body}/32"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
