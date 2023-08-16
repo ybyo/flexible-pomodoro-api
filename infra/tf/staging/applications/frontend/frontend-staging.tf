@@ -77,27 +77,19 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-resource "aws_security_group" "pt_frontend_staging" {
-  name   = "pt_frontend_staging"
+resource "aws_security_group" "pt_frontend_staging_ssh" {
+  name   = "pt_frontend_staging_ssh"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+    cidr_blocks = ["${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32"]
   }
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-
     content {
       from_port   = 22
       to_port     = 22
@@ -106,9 +98,52 @@ resource "aws_security_group" "pt_frontend_staging" {
     }
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "pt_frontend_staging_dns" {
+  name   = "pt_frontend_staging_dns"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = 53
+      to_port     = 53
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
 
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = 53
+      to_port     = 53
+      protocol    = "udp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "pt_frontend_staging_443" {
+  name   = "pt_frontend_staging_443"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
     content {
       from_port   = 443
       to_port     = 443
@@ -117,9 +152,27 @@ resource "aws_security_group" "pt_frontend_staging" {
     }
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "pt_frontend_staging_node_exporter" {
+  name   = "pt_frontend_staging_node_exporter"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-
     content {
       from_port   = local.envs["NODE_EXPORTER_PORT"]
       to_port     = local.envs["NODE_EXPORTER_PORT"]
@@ -133,13 +186,6 @@ resource "aws_security_group" "pt_frontend_staging" {
     to_port     = local.envs["NODE_EXPORTER_PORT"]
     protocol    = "tcp"
     cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -267,12 +313,12 @@ data "template_cloudinit_config" "setup" {
     })
   }
 
-  #  part {
-  #    content_type = "text/x-shellscript"
-  #    content = templatefile("../common-scripts/cleanup.sh", {
-  #      tunnel_id = cloudflare_tunnel.ssh.id
-  #    })
-  #  }
+  #    part {
+  #      content_type = "text/x-shellscript"
+  #      content = templatefile("../common-scripts/cleanup.sh", {
+  #        tunnel_id = cloudflare_tunnel.ssh.id
+  #      })
+  #    }
 
   part {
     content_type = "text/x-shellscript"
@@ -321,7 +367,10 @@ resource "aws_instance" "pipe_timer_frontend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.pt_frontend_staging.id]
+  vpc_security_group_ids      = [aws_security_group.pt_frontend_staging_443.id,
+                                  aws_security_group.pt_frontend_staging_dns.id,
+                                  aws_security_group.pt_frontend_staging_node_exporter.id,
+                                  aws_security_group.pt_frontend_staging_ssh.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 

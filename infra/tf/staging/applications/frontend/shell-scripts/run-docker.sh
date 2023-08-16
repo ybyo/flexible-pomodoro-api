@@ -7,8 +7,8 @@ docker run -itd \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  grafana/promtail:2.8.0 \
-  --config.file=/mnt/config/promtail-config.yml
+  --config.file=/mnt/config/promtail-config.yml \
+  grafana/promtail:2.8.0
 
 docker run -d \
   --name node-exporter \
@@ -22,14 +22,14 @@ docker run -d \
   --path.rootfs=/host
 
 docker run -itd \
-  -p 443:443 \
   -p 80:80 \
-  --env-file="${cicd_path}"/env/."${env}".env \
+  -p 443:443 \
   -v "${cicd_path}"/certs:/etc/nginx/certs/:ro \
   -v "${cicd_path}"/nginx.conf:/etc/nginx/templates/nginx.conf.template \
   -v "${cicd_path}"/public:/public:ro \
+  --env-file="${cicd_path}"/env/."${env}".env \
   --name=frontend \
-  --restart=on-failure \
+  --restart=always \
   --add-host=host.docker.internal:host-gateway \
   "${registry_url}"/pipe-timer-frontend:"${env}"
 

@@ -76,27 +76,19 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-resource "aws_security_group" "pt_backend_staging" {
-  name   = "pt_backend_staging"
+resource "aws_security_group" "pt_backend_staging_ssh" {
+  name   = "pt_backend_staging_ssh"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+    cidr_blocks = ["${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32"]
   }
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-
     content {
       from_port   = 22
       to_port     = 22
@@ -105,9 +97,69 @@ resource "aws_security_group" "pt_backend_staging" {
     }
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "pt_backend_staging_node_exporter" {
+  name   = "pt_backend_staging_node_exporter"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = local.envs["NODE_EXPORTER_PORT"]
+      to_port     = local.envs["NODE_EXPORTER_PORT"]
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
 
+  ingress {
+    from_port   = local.envs["NODE_EXPORTER_PORT"]
+    to_port     = local.envs["NODE_EXPORTER_PORT"]
+    protocol    = "tcp"
+    cidr_blocks = ["${data.http.ip.response_body}/32"]
+  }
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = 53
+      to_port     = 53
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = 53
+      to_port     = 53
+      protocol    = "udp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "pt_backend_staging_443" {
+  name   = "pt_backend_staging_443"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
     content {
       from_port   = 443
       to_port     = 443
@@ -120,21 +172,7 @@ resource "aws_security_group" "pt_backend_staging" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["${local.envs["DEV_SERVER"]}/32"]
+    cidr_blocks = ["${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32", data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
   }
 
   egress {
@@ -144,6 +182,7 @@ resource "aws_security_group" "pt_backend_staging" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
 
 ###################################
 # Vault
@@ -222,6 +261,15 @@ data "template_cloudinit_config" "setup" {
 
   part {
     content_type = "text/cloud-config"
+    content = templatefile("../scripts/cloud-init.yaml", {
+      linux_platform = local.envs["LINUX_PLATFORM"]
+      ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+      workdir        = local.envs["WORKDIR"]
+    })
+  }
+
+  part {
+    content_type = "text/cloud-config"
     content = yamlencode({
       write_files = [
         {
@@ -253,15 +301,6 @@ data "template_cloudinit_config" "setup" {
           content     = base64decode(data.vault_generic_secret.ssl.data["SSL_PRIVATE_KEY"])
         },
       ]
-    })
-  }
-
-  part {
-    content_type = "text/cloud-config"
-    content = templatefile("../scripts/cloud-init.yaml", {
-      linux_platform = local.envs["LINUX_PLATFORM"]
-      ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
-      workdir        = local.envs["WORKDIR"]
     })
   }
 
@@ -314,7 +353,9 @@ resource "aws_instance" "pipe_timer_backend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = local.envs["EC2_FLAVOR"]
   subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.pt_backend_staging.id]
+  vpc_security_group_ids      = [aws_security_group.pt_backend_staging_443.id,
+                                  aws_security_group.pt_backend_staging_node_exporter.id,
+                                  aws_security_group.pt_backend_staging_ssh.id ]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 
@@ -347,6 +388,7 @@ resource "aws_instance" "pipe_timer_backend" {
 
   provisioner "remote-exec" {
     inline = [
+      "mkdir -p ${local.envs["WORKDIR"]}/certs",
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
     ]
@@ -369,6 +411,7 @@ resource "null_resource" "cleanup_tunnel" {
   triggers = {
     CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
     CF_EMAIL      = local.envs["CF_EMAIL"]
+    CF_TOKEN      = local.envs["CF_TOKEN"]
     TUNNEL_ID     = cloudflare_tunnel.ssh.id
     TUNNEL_TOKEN  = nonsensitive(cloudflare_tunnel.ssh.tunnel_token)
   }
@@ -380,6 +423,7 @@ resource "null_resource" "cleanup_tunnel" {
     environment = {
       CF_ACCOUNT_ID = self.triggers["CF_ACCOUNT_ID"]
       CF_EMAIL      = self.triggers["CF_EMAIL"]
+      CF_TOKEN      = self.triggers["CF_TOKEN"]
       TUNNEL_ID     = self.triggers["TUNNEL_ID"]
       TUNNEL_TOKEN  = self.triggers["TUNNEL_TOKEN"]
     }
