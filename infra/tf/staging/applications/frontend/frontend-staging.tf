@@ -34,7 +34,7 @@ locals {
 ###################################
 # Remote Docker Container Setup
 ###################################
-resource "null_resource" "remove-docker" {
+resource "null_resource" "remove_docker" {
   provisioner "local-exec" {
     command     = "chmod +x ../common-scripts/remove-images.sh; ../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
     working_dir = path.module
@@ -228,15 +228,15 @@ resource "random_password" "ssh_tunnel" {
   special = false
 }
 
-resource "cloudflare_tunnel" "ssh" {
+resource "cloudflare_tunnel" "staging" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "frontend-${local.envs["CF_ACCOUNT_ID"]}"
+  name       = "frontend-${local.envs["NODE_ENV"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
-resource "cloudflare_tunnel_config" "ssh" {
+resource "cloudflare_tunnel_config" "staging" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  tunnel_id  = cloudflare_tunnel.ssh.id
+  tunnel_id  = cloudflare_tunnel.staging.id
 
   config {
     warp_routing {
@@ -251,7 +251,7 @@ resource "cloudflare_tunnel_config" "ssh" {
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = "ssh-${local.envs["HOST_URL"]}"
-  value   = cloudflare_tunnel.ssh.cname
+  value   = cloudflare_tunnel.staging.cname
   type    = "CNAME"
   proxied = "true"
 }
@@ -267,6 +267,15 @@ resource "cloudflare_record" "frontend_staging" {
 data "template_cloudinit_config" "setup" {
   gzip          = true
   base64_encode = true
+
+  part {
+    content_type = "text/cloud-config"
+    content = templatefile("../scripts/cloud-init.yaml", {
+      linux_platform = local.envs["LINUX_PLATFORM"]
+      ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
+      workdir        = local.envs["WORKDIR"]
+    })
+  }
 
   part {
     content_type = "text/cloud-config"
@@ -305,22 +314,6 @@ data "template_cloudinit_config" "setup" {
   }
 
   part {
-    content_type = "text/cloud-config"
-    content = templatefile("../scripts/cloud-init.yaml", {
-      linux_platform = local.envs["LINUX_PLATFORM"]
-      ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
-      workdir        = local.envs["WORKDIR"]
-    })
-  }
-
-  #    part {
-  #      content_type = "text/x-shellscript"
-  #      content = templatefile("../common-scripts/cleanup.sh", {
-  #        tunnel_id = cloudflare_tunnel.ssh.id
-  #      })
-  #    }
-
-  part {
     content_type = "text/x-shellscript"
     content      = file("../common-scripts/install-docker.sh")
   }
@@ -329,9 +322,9 @@ data "template_cloudinit_config" "setup" {
     content_type = "text/x-shellscript"
     content = templatefile("./shell-scripts/cf-tunnel.sh", {
       account     = local.envs["CF_ACCOUNT_ID"]
-      tunnel_id   = cloudflare_tunnel.ssh.id
-      tunnel_name = cloudflare_tunnel.ssh.name
-      secret      = cloudflare_tunnel.ssh.secret
+      tunnel_id   = cloudflare_tunnel.staging.id
+      tunnel_name = cloudflare_tunnel.staging.name
+      secret      = cloudflare_tunnel.staging.secret
       web_zone    = local.envs["HOST_URL"]
     })
   }
@@ -423,8 +416,8 @@ resource "null_resource" "cleanup_tunnel" {
   triggers = {
     CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
     CF_EMAIL      = local.envs["CF_EMAIL"]
-    TUNNEL_ID     = cloudflare_tunnel.ssh.id
-    TUNNEL_TOKEN  = nonsensitive(cloudflare_tunnel.ssh.tunnel_token)
+    CF_TOKEN      = local.envs["CF_TOKEN"]
+    TUNNEL_ID     = cloudflare_tunnel.staging.id
   }
 
   provisioner "local-exec" {
@@ -434,8 +427,8 @@ resource "null_resource" "cleanup_tunnel" {
     environment = {
       CF_ACCOUNT_ID = self.triggers["CF_ACCOUNT_ID"]
       CF_EMAIL      = self.triggers["CF_EMAIL"]
+      CF_TOKEN      = self.triggers["CF_TOKEN"]
       TUNNEL_ID     = self.triggers["TUNNEL_ID"]
-      TUNNEL_TOKEN  = self.triggers["TUNNEL_TOKEN"]
     }
     working_dir = path.module
     interpreter = ["/bin/sh", "-c"]

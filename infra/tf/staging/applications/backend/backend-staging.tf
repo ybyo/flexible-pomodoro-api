@@ -33,7 +33,7 @@ locals {
 ###################################
 # Remote Docker Container Setup
 ###################################
-resource "null_resource" "remove-docker" {
+resource "null_resource" "remove_docker" {
   provisioner "local-exec" {
     command     = "chmod +x ../common-scripts/remove-images.sh; ../common-scripts/remove-images.sh ${local.envs["REGISTRY_URL"]}"
     working_dir = path.module
@@ -216,15 +216,15 @@ resource "random_password" "ssh_tunnel" {
   special = false
 }
 
-resource "cloudflare_tunnel" "ssh" {
+resource "cloudflare_tunnel" "staging" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "backend-${local.envs["CF_ACCOUNT_ID"]}"
+  name       = "backend-${local.envs["NODE_ENV"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
-resource "cloudflare_tunnel_config" "ssh" {
+resource "cloudflare_tunnel_config" "staging" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  tunnel_id  = cloudflare_tunnel.ssh.id
+  tunnel_id  = cloudflare_tunnel.staging.id
 
   config {
     warp_routing {
@@ -239,7 +239,7 @@ resource "cloudflare_tunnel_config" "ssh" {
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = "ssh-${local.envs["UPSTREAM_BACKEND"]}"
-  value   = cloudflare_tunnel.ssh.cname
+  value   = cloudflare_tunnel.staging.cname
   type    = "CNAME"
   proxied = "true"
 }
@@ -313,9 +313,9 @@ data "template_cloudinit_config" "setup" {
     content_type = "text/x-shellscript"
     content = templatefile("./shell-scripts/cf-tunnel.sh", {
       account     = local.envs["CF_ACCOUNT_ID"]
-      tunnel_id   = cloudflare_tunnel.ssh.id
-      tunnel_name = cloudflare_tunnel.ssh.name
-      secret      = cloudflare_tunnel.ssh.secret
+      tunnel_id   = cloudflare_tunnel.staging.id
+      tunnel_name = cloudflare_tunnel.staging.name
+      secret      = cloudflare_tunnel.staging.secret
       web_zone    = local.envs["HOST_URL"]
     })
   }
@@ -350,12 +350,12 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "pipe_timer_backend" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.envs["EC2_FLAVOR"]
-  subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.pt_backend_staging_443.id,
-                                  aws_security_group.pt_backend_staging_node_exporter.id,
-                                  aws_security_group.pt_backend_staging_ssh.id ]
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = local.envs["EC2_FLAVOR"]
+  subnet_id     = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
+  vpc_security_group_ids = [aws_security_group.pt_backend_staging_443.id,
+    aws_security_group.pt_backend_staging_node_exporter.id,
+  aws_security_group.pt_backend_staging_ssh.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 
@@ -412,8 +412,7 @@ resource "null_resource" "cleanup_tunnel" {
     CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
     CF_EMAIL      = local.envs["CF_EMAIL"]
     CF_TOKEN      = local.envs["CF_TOKEN"]
-    TUNNEL_ID     = cloudflare_tunnel.ssh.id
-    TUNNEL_TOKEN  = nonsensitive(cloudflare_tunnel.ssh.tunnel_token)
+    TUNNEL_ID     = cloudflare_tunnel.staging.id
   }
 
   provisioner "local-exec" {
@@ -425,7 +424,6 @@ resource "null_resource" "cleanup_tunnel" {
       CF_EMAIL      = self.triggers["CF_EMAIL"]
       CF_TOKEN      = self.triggers["CF_TOKEN"]
       TUNNEL_ID     = self.triggers["TUNNEL_ID"]
-      TUNNEL_TOKEN  = self.triggers["TUNNEL_TOKEN"]
     }
     working_dir = path.module
     interpreter = ["/bin/sh", "-c"]

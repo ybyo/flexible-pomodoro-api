@@ -4,45 +4,45 @@ echo "${registry_password}" | docker login -u "${registry_id}" "${registry_url}"
 
 docker network create pipe-timer || { echo 'Failed to create network'; }
 
-docker run -itd \
-  --name promtail \
-  --network pipe-timer \
+docker run -d \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  grafana/promtail:2.8.0 \
-  --config.file /mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; }
+  --name promtail \
+  --network pipe-timer \
+  --config.file /mnt/config/promtail-config.yml \
+  grafana/promtail:2.8.0 || { echo 'Failed to run promtail'; }
 
-docker run -itd \
-  --name nestjs \
+docker run -d \
   -p "${api_port}":"${api_port}" \
+  -v "${cicd_path}"/certs:/app/certs:ro \
+  -v "${cicd_path}"/env:/env:ro \
+  --restart always \
+  --name nestjs \
   --env-file "${cicd_path}"/env/."${env}".env \
   --network pipe-timer \
   --network-alias nestjs \
-  -v "${cicd_path}"/certs:/app/certs:ro \
-  -v "${cicd_path}"/env:/env:ro \
-  --restart on-failure \
   "${registry_url}"/pipe-timer-backend:"${env}" || { echo 'Failed to run nestjs'; }
 
 docker run -d \
-  --name node-exporter \
-  --net host \
-  --pid host \
   -v /:/host:ro,rslave \
   -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml:ro \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs:ro \
-  quay.io/prometheus/node-exporter:latest \
+  --name node-exporter \
+  --net host \
+  --pid host \
   --web.config.file web-config-exporter.yml \
-  --path.rootfs /host || { echo 'Failed to run node-exporter'; }
+  --path.rootfs /host \
+  quay.io/prometheus/node-exporter:latest || { echo 'Failed to run node-exporter'; }
 
-docker run -itd \
-  --name nginx \
+docker run -d \
   -p 443:443 \
+  -v "${cicd_path}"/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro \
+  -v "${cicd_path}"/certs:/etc/nginx/certs:ro \
+  --name nginx \
   --env-file "${cicd_path}"/env/."${env}".env \
   --network pipe-timer \
   --network-alias nginx \
-  -v "${cicd_path}"/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro \
-  -v "${cicd_path}"/certs:/etc/nginx/certs:ro \
   --add-host host.docker.internal:host-gateway \
   nginx || { echo 'Failed to run nginx'; }
 
