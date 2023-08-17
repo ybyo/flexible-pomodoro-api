@@ -1,59 +1,50 @@
 #!/bin/bash
 
-registry_url="$1"
-cicd_path="$2"
-env="$3"
-api_port="$4"
-loki_url="$5"
-registry_password="$6"
-registry_id="$7"
-registry_url="$8"
+echo "${registry_password}" | docker login -u "${registry_id}" "${registry_url}" --password-stdin
 
-echo "${registry_password}" | sudo docker login -u "${registry_id}" "${registry_url}" --password-stdin
+docker network create pipe-timer || { echo 'Failed to create network'; }
 
-docker network create pipe-timer || { echo 'Failed to create network'; exit 1; }
-
-docker run -itd \
-  --name promtail \
-  --network=pipe-timer \
+docker run -d \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  grafana/promtail:2.8.0 \
-  --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; exit 1; }
-
-docker run -itd \
-  --name nestjs \
-  -p "${api_port}":"${api_port}" \
-  --env-file "${cicd_path}"/env/."${env}".env \
-  --network=pipe-timer \
-  --network-alias=nestjs \
-  -v "$cicd_path"/certs:/certs:ro \
-  -v "$cicd_path"/env:/env:ro \
-  --restart on-failure \
-  "$registry_url"/pipe-timer-backend:"$env" || { echo 'Failed to run nestjs'; exit 1; }
+  --name promtail \
+  --network pipe-timer \
+  --config.file /mnt/config/promtail-config.yml \
+  grafana/promtail:2.8.0 || { echo 'Failed to run promtail'; }
 
 docker run -d \
-  --name node-exporter \
-  --net host \
-  --pid host \
+  -p "${api_port}":"${api_port}" \
+  -v "${cicd_path}"/certs:/app/certs:ro \
+  -v "${cicd_path}"/env:/env:ro \
+  --restart always \
+  --name nestjs \
+  --env-file "${cicd_path}"/env/."${env}".env \
+  --network pipe-timer \
+  --network-alias nestjs \
+  "${registry_url}"/pipe-timer-backend:"${env}" || { echo 'Failed to run nestjs'; }
+
+docker run -d \
   -v /:/host:ro,rslave \
   -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml:ro \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs:ro \
-  quay.io/prometheus/node-exporter:latest \
-  --web.config.file=web-config-exporter.yml \
-  --path.rootfs=/host || { echo 'Failed to run node-exporter'; exit 1; }
+  --name node-exporter \
+  --net host \
+  --pid host \
+  --web.config.file web-config-exporter.yml \
+  --path.rootfs /host \
+  quay.io/prometheus/node-exporter:latest || { echo 'Failed to run node-exporter'; }
 
-docker run -itd \
-  --name nginx \
+docker run -d \
   -p 443:443 \
-  --env-file "${cicd_path}"/env/."$env".env \
-  --network=pipe-timer \
-  --network-alias=nginx \
   -v "${cicd_path}"/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro \
   -v "${cicd_path}"/certs:/etc/nginx/certs:ro \
-  --add-host=host.docker.internal:host-gateway \
-  nginx || { echo 'Failed to run nginx'; exit 1; }
+  --name nginx \
+  --env-file "${cicd_path}"/env/."${env}".env \
+  --network pipe-timer \
+  --network-alias nginx \
+  --add-host host.docker.internal:host-gateway \
+  nginx || { echo 'Failed to run nginx'; }
 
 sleep 5
 
