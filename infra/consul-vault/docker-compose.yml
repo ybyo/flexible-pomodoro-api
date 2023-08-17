@@ -116,7 +116,7 @@ services:
       - ~/.ssh:/etc/.ssh:ro
       - ../certs:/vault/certs:ro
       - ../../env/:/env/:ro
-    command: ["sh", "/data/vault-init.sh"]
+    command: sh /data/vault-init.sh
     depends_on:
       - vault
     networks:
