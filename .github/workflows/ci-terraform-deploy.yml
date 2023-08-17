@@ -38,7 +38,8 @@ jobs:
         with:
           url: https://${{ secrets.VAULT_URL }}
           token: ${{ secrets.VAULT_TOKEN }}
-          secrets: pt/env/${{ github.base_ref }} $.$;
+          secrets: |
+            pt/env/${{ github.base_ref }} $.$;
 
       - name: Secrets to json
         run: |
@@ -126,10 +127,6 @@ jobs:
         with:
           name: frontend-certs
           path: ./frontend/certs
-
-      - name: Terraform Fmt
-        id: fmt
-        run: terraform fmt --recursive
 
       - name: Terraform Init
         id: init
