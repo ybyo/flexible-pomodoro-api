@@ -63,7 +63,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v1.4.0
 
       - name: Import Secrets
-        id: import-secrets
+        id: import-cred-secrets
         uses: hashicorp/vault-action@v2.7.1
         with:
           url: https://${{ secrets.VAULT_URL }}
