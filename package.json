@@ -4,7 +4,7 @@
   "description": "One app for flexible piping of timers to enhance productivity",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev:cert:init": "sh shared/helper/create-local-certs.sh",
+    "dev:cert:init": "sh shared/helper/generate-local-certs.sh",
     "dev:db": "pnpm --filter backend start:db",
     "dev:backend": "pnpm --filter backend start:dev",
     "dev:backend:test": "cross-env TEST=true pnpm --filter backend start:dev",
@@ -22,8 +22,9 @@
     "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles",
     "vault:up": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env up -d",
     "vault:down": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env down",
-    "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path /tmp/artifacts",
-    "act:production": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-production.json --artifact-server-path /tmp/artifacts",
+    "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path=/tmp/artifacts",
+    "act:production": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-production.json --artifact-server-path=/tmp/artifacts",
+    "act:push": "act --secret-file=./env/.staging.env --insecure-secrets --artifact-server-path=/tmp/artifacts",
     "barrels": "barrelsby -d -e \"**/*.spec.ts\""
   },
   "repository": {

@@ -15,7 +15,7 @@ terraform {
   }
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/staging/applications/backend/terraform.tfstate"
+    key            = "pt/production/applications/backend/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
@@ -69,15 +69,15 @@ data "terraform_remote_state" "vpc" {
 
   config = {
     bucket         = "terraform-pt-state"
-    key            = "pt/staging/modules/vpc/terraform.tfstate"
+    key            = "pt/production/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_ssh" {
-  name   = "pt_backend_staging_ssh"
+resource "aws_security_group" "pt_backend_production_ssh" {
+  name   = "pt_backend_production_ssh"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -105,8 +105,8 @@ resource "aws_security_group" "pt_backend_staging_ssh" {
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_node_exporter" {
-  name   = "pt_backend_staging_node_exporter"
+resource "aws_security_group" "pt_backend_production_node_exporter" {
+  name   = "pt_backend_production_node_exporter"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -154,8 +154,8 @@ resource "aws_security_group" "pt_backend_staging_node_exporter" {
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_443" {
-  name   = "pt_backend_staging_443"
+resource "aws_security_group" "pt_backend_production_443" {
+  name   = "pt_backend_production_443"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -216,15 +216,15 @@ resource "random_password" "ssh_tunnel" {
   special = false
 }
 
-resource "cloudflare_tunnel" "staging" {
+resource "cloudflare_tunnel" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "backend-${local.envs["NODE_ENV"]}"
+  name       = "backend-${local.envs["CF_ACCOUNT_ID"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
-resource "cloudflare_tunnel_config" "staging" {
+resource "cloudflare_tunnel_config" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  tunnel_id  = cloudflare_tunnel.staging.id
+  tunnel_id  = cloudflare_tunnel.production.id
 
   config {
     warp_routing {
@@ -239,12 +239,12 @@ resource "cloudflare_tunnel_config" "staging" {
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = "ssh-${local.envs["UPSTREAM_BACKEND"]}"
-  value   = cloudflare_tunnel.staging.cname
+  value   = cloudflare_tunnel.production.cname
   type    = "CNAME"
   proxied = "true"
 }
 
-resource "cloudflare_record" "backend_staging" {
+resource "cloudflare_record" "backend_production" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_instance.pipe_timer_backend.public_ip
@@ -313,9 +313,9 @@ data "template_cloudinit_config" "setup" {
     content_type = "text/x-shellscript"
     content = templatefile("./shell-scripts/cf-tunnel.sh", {
       account     = local.envs["CF_ACCOUNT_ID"]
-      tunnel_id   = cloudflare_tunnel.staging.id
-      tunnel_name = cloudflare_tunnel.staging.name
-      secret      = cloudflare_tunnel.staging.secret
+      tunnel_id   = cloudflare_tunnel.production.id
+      tunnel_name = cloudflare_tunnel.production.name
+      secret      = cloudflare_tunnel.production.secret
       web_zone    = local.envs["HOST_URL"]
     })
   }
@@ -353,9 +353,9 @@ resource "aws_instance" "pipe_timer_backend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = local.envs["EC2_FLAVOR"]
   subnet_id     = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids = [aws_security_group.pt_backend_staging_443.id,
-    aws_security_group.pt_backend_staging_node_exporter.id,
-  aws_security_group.pt_backend_staging_ssh.id]
+  vpc_security_group_ids = [aws_security_group.pt_backend_production_443.id,
+    aws_security_group.pt_backend_production_node_exporter.id,
+  aws_security_group.pt_backend_production_ssh.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 
@@ -412,7 +412,7 @@ resource "null_resource" "cleanup_tunnel" {
     CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
     CF_EMAIL      = local.envs["CF_EMAIL"]
     CF_TOKEN      = local.envs["CF_TOKEN"]
-    TUNNEL_ID     = cloudflare_tunnel.staging.id
+    TUNNEL_ID     = cloudflare_tunnel.production.id
   }
 
   provisioner "local-exec" {

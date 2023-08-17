@@ -34,12 +34,23 @@ jobs:
         id: check-uptime
         run: |
           FRONTEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
-          echo "FRONTEND_UPTIME=FRONTEND_UPTIME" >> $GITHUB_OUTPUT
-          BACKEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@staging-api.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
-          echo "BACKEND_UPTIME=BACKEND_UPTIME" >> $GITHUB_OUTPUT
+          echo "Frontend Uptime: $FRONTEND_UPTIME"
+          echo "FRONTEND_UPTIME=$FRONTEND_UPTIME" >> $GITHUB_ENV
+          BACKEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging-api.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging-api.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
+          echo "Backend Uptime: $BACKEND_UPTIME"
+          echo "BACKEND_UPTIME=$BACKEND_UPTIME" >> $GITHUB_ENV
+
+      - name: Set env SHOULD_DESTROY
+        run: |
+          if awk "BEGIN {exit !($BACKEND_UPTIME >= 3600 && $FRONTEND_UPTIME >= 3600)}"; then
+              echo "SHOULD_DESTROY=true" >> $GITHUB_ENV
+          else
+              echo "SHOULD_DESTROY=false" >> $GITHUB_ENV
+          fi
 
   destroy-staging:
-    if: ${{ steps.check-uptime.outputs.FRONTEND_UPTIME }} >= 3600 || ${{ steps.check-uptime.outputs.BACKEND_UPTIME }} >= 3600
+    needs: check-uptime
+    if: env.SHOULD_DESTROY != 'false'
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -57,7 +68,26 @@ jobs:
         with:
           url: https://${{ secrets.VAULT_URL }}
           token: ${{ secrets.VAULT_TOKEN }}
-          secrets: pt/env/staging $.$;
+          secrets: |
+            pt/env/staging AWS_REGION | AWS_REGION;
+            pt/env/staging AWS_ACCESS_KEY_ID | AWS_ACCESS_KEY_ID;
+            pt/env/staging AWS_SECRET_ACCESS_KEY | AWS_SECRET_ACCESS_KEY;
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2.7.1
+        with:
+          url: https://${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            pt/env/staging $.$;
 
       - name: Secrets to json
         run: |
@@ -70,6 +100,10 @@ jobs:
           touch ./env/.staging.env
           awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.staging.env
 
-      - name: Terraform Destroy Staging Server
+      - name: Terraform Init Staging
+        id: init-staging
+        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} init
+
+      - name: Terraform Destroy Staging
         id: destroy-staging
         run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve

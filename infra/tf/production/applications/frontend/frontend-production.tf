@@ -10,12 +10,13 @@ terraform {
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 3.18"
+      version = "~> 3.18.0"
     }
   }
+
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/staging/applications/backend/terraform.tfstate"
+    key            = "pt/production/applications/frontend/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
@@ -69,15 +70,15 @@ data "terraform_remote_state" "vpc" {
 
   config = {
     bucket         = "terraform-pt-state"
-    key            = "pt/staging/modules/vpc/terraform.tfstate"
+    key            = "pt/production/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_ssh" {
-  name   = "pt_backend_staging_ssh"
+resource "aws_security_group" "pt_frontend_production_ssh" {
+  name   = "pt_frontend_production_ssh"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -105,26 +106,9 @@ resource "aws_security_group" "pt_backend_staging_ssh" {
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_node_exporter" {
-  name   = "pt_backend_staging_node_exporter"
+resource "aws_security_group" "pt_frontend_production_dns" {
+  name   = "pt_frontend_production_dns"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = local.envs["NODE_EXPORTER_PORT"]
-      to_port     = local.envs["NODE_EXPORTER_PORT"]
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  ingress {
-    from_port   = local.envs["NODE_EXPORTER_PORT"]
-    to_port     = local.envs["NODE_EXPORTER_PORT"]
-    protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
@@ -154,8 +138,8 @@ resource "aws_security_group" "pt_backend_staging_node_exporter" {
   }
 }
 
-resource "aws_security_group" "pt_backend_staging_443" {
-  name   = "pt_backend_staging_443"
+resource "aws_security_group" "pt_frontend_production_443" {
+  name   = "pt_frontend_production_443"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -172,7 +156,7 @@ resource "aws_security_group" "pt_backend_staging_443" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32", data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -183,6 +167,34 @@ resource "aws_security_group" "pt_backend_staging_443" {
   }
 }
 
+resource "aws_security_group" "pt_frontend_production_node_exporter" {
+  name   = "pt_frontend_production_node_exporter"
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  dynamic "ingress" {
+    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
+    content {
+      from_port   = local.envs["NODE_EXPORTER_PORT"]
+      to_port     = local.envs["NODE_EXPORTER_PORT"]
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  ingress {
+    from_port   = local.envs["NODE_EXPORTER_PORT"]
+    to_port     = local.envs["NODE_EXPORTER_PORT"]
+    protocol    = "tcp"
+    cidr_blocks = ["${data.http.ip.response_body}/32"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
 ###################################
 # Vault
@@ -201,7 +213,7 @@ data "vault_generic_secret" "ssl" {
 }
 
 data "vault_generic_secret" "env" {
-  path = "/pt/env/${var.env}"
+  path = "/pt/env/${local.envs["NODE_ENV"]}"
 }
 
 ###################################
@@ -216,15 +228,15 @@ resource "random_password" "ssh_tunnel" {
   special = false
 }
 
-resource "cloudflare_tunnel" "staging" {
+resource "cloudflare_tunnel" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "backend-${local.envs["NODE_ENV"]}"
+  name       = "frontend-${local.envs["CF_ACCOUNT_ID"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
-resource "cloudflare_tunnel_config" "staging" {
+resource "cloudflare_tunnel_config" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  tunnel_id  = cloudflare_tunnel.staging.id
+  tunnel_id  = cloudflare_tunnel.production.id
 
   config {
     warp_routing {
@@ -238,23 +250,20 @@ resource "cloudflare_tunnel_config" "staging" {
 
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "ssh-${local.envs["UPSTREAM_BACKEND"]}"
-  value   = cloudflare_tunnel.staging.cname
+  name    = "ssh-${local.envs["HOST_URL"]}"
+  value   = cloudflare_tunnel.production.cname
   type    = "CNAME"
   proxied = "true"
 }
 
-resource "cloudflare_record" "backend_staging" {
+resource "cloudflare_record" "frontend_production" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = local.envs["UPSTREAM_BACKEND"]
-  value   = aws_instance.pipe_timer_backend.public_ip
+  name    = local.envs["HOST_URL"]
+  value   = aws_instance.pipe_timer_frontend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
 
-###################################
-# Cloud-init config
-###################################
 data "template_cloudinit_config" "setup" {
   gzip          = true
   base64_encode = true
@@ -313,9 +322,9 @@ data "template_cloudinit_config" "setup" {
     content_type = "text/x-shellscript"
     content = templatefile("./shell-scripts/cf-tunnel.sh", {
       account     = local.envs["CF_ACCOUNT_ID"]
-      tunnel_id   = cloudflare_tunnel.staging.id
-      tunnel_name = cloudflare_tunnel.staging.name
-      secret      = cloudflare_tunnel.staging.secret
+      tunnel_id   = cloudflare_tunnel.production.id
+      tunnel_name = cloudflare_tunnel.production.name
+      secret      = cloudflare_tunnel.production.secret
       web_zone    = local.envs["HOST_URL"]
     })
   }
@@ -329,8 +338,6 @@ data "template_cloudinit_config" "setup" {
       loki_url          = local.envs["LOKI_URL"]
       registry_password = local.envs["REGISTRY_PASSWORD"]
       registry_id       = local.envs["REGISTRY_ID"]
-      registry_url      = local.envs["REGISTRY_URL"]
-      api_port          = local.envs["API_PORT_0"]
     })
   }
 }
@@ -349,13 +356,14 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "pipe_timer_backend" {
+resource "aws_instance" "pipe_timer_frontend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = local.envs["EC2_FLAVOR"]
   subnet_id     = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids = [aws_security_group.pt_backend_staging_443.id,
-    aws_security_group.pt_backend_staging_node_exporter.id,
-  aws_security_group.pt_backend_staging_ssh.id]
+  vpc_security_group_ids = [aws_security_group.pt_frontend_production_443.id,
+    aws_security_group.pt_frontend_production_dns.id,
+    aws_security_group.pt_frontend_production_node_exporter.id,
+  aws_security_group.pt_frontend_production_ssh.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 
@@ -372,12 +380,12 @@ resource "aws_instance" "pipe_timer_backend" {
     type        = "ssh"
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
-    host        = aws_instance.pipe_timer_backend.public_ip
+    host        = aws_instance.pipe_timer_frontend.public_ip
     agent       = false
   }
 
   provisioner "file" {
-    source      = "../../../../../backend/templates/nginx.conf"
+    source      = "../../../../../frontend/templates/nginx.conf"
     destination = "/tmp/nginx.conf"
   }
 
@@ -386,25 +394,22 @@ resource "aws_instance" "pipe_timer_backend" {
     destination = "/tmp/env"
   }
 
+  provisioner "file" {
+    source      = "../../../../../frontend/public"
+    destination = "/tmp/public"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      "mkdir -p ${local.envs["WORKDIR"]}/certs",
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
+      "sudo mv /tmp/public ${local.envs["WORKDIR"]}/",
     ]
   }
 
-  #  provisioner "remote-exec" {
-  #    inline = [
-  #      "sudo mysql -h ${local.envs["DB_BASE_URL"]} -u ${local.envs["DB_USERNAME"]} -p${local.envs["DB_PASSWORD"]} -e 'CREATE DATABASE IF NOT EXISTS ${local.envs["DB_NAME"]};'",
-  #    ]
-  #  }
-
   tags = {
-    Name = "pt-${var.env}-backend"
+    Name = "pt-${local.envs["NODE_ENV"]}-frontend"
   }
-
-  depends_on = [null_resource.build_docker]
 }
 
 resource "null_resource" "cleanup_tunnel" {
@@ -412,7 +417,7 @@ resource "null_resource" "cleanup_tunnel" {
     CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
     CF_EMAIL      = local.envs["CF_EMAIL"]
     CF_TOKEN      = local.envs["CF_TOKEN"]
-    TUNNEL_ID     = cloudflare_tunnel.staging.id
+    TUNNEL_ID     = cloudflare_tunnel.production.id
   }
 
   provisioner "local-exec" {

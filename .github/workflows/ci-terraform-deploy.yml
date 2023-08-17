@@ -38,7 +38,8 @@ jobs:
         with:
           url: https://${{ secrets.VAULT_URL }}
           token: ${{ secrets.VAULT_TOKEN }}
-          secrets: pt/env/${{ github.base_ref }} $.$;
+          secrets: |
+            pt/env/${{ github.base_ref }} $.$;
 
       - name: Secrets to json
         run: |
@@ -52,7 +53,7 @@ jobs:
           awk -F '[:,]' '/__/{ gsub(/ |\042|\{|\}/,""); gsub(/\$/,"\\$"); print $2 "=" $3}' secrets.json > ./env/.${{ github.base_ref }}.env
 
       - name: Install dummy certs for test
-        run: sudo apt update && sh shared/helper/create-local-certs.sh -y
+        run: sudo apt update && sh shared/helper/generate-local-certs.sh -y
 
       - name: Test backend
         run: pnpm --filter backend test
@@ -126,10 +127,6 @@ jobs:
         with:
           name: frontend-certs
           path: ./frontend/certs
-
-      - name: Terraform Fmt
-        id: fmt
-        run: terraform fmt --recursive
 
       - name: Terraform Init
         id: init
