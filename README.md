@@ -43,7 +43,7 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    git clone https://github.com/yidoyoon/pipe-timer.git
    cd pipe-timer
    ```
-2. 서버를 HTTPS로 구동하기 위한 인증서를 mkcert로 생성합니다. 아래 명령어는 mkcert 설치와 실행에 필요한 패키지를 설치하고 인증서를 생성하는 스크립트를 실행합니다. 스크립트는 `.github/scripts/create-local-certs.sh`에 위치하고 있으며, 필요하다면 수정해서 사용할 수 있습니다.
+2. 서버를 HTTPS로 구동하기 위한 인증서를 mkcert로 생성합니다. 아래 명령어는 mkcert 설치와 실행에 필요한 패키지를 설치하고 인증서를 생성하는 스크립트를 실행합니다. 스크립트는 `.github/scripts/generate-local-certs.sh`에 위치하고 있으며, 필요하다면 수정해서 사용할 수 있습니다.
    ```sh
    pnpm dev:cert:init
    ```

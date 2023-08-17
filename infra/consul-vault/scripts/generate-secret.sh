@@ -2,6 +2,12 @@
 set -e
 
 ###################################
+# Get token
+###################################
+export ENV_FILE="/data/env.json"
+export VAULT_TOKEN=$(cat $ENV_FILE | jq -r '.rootKey')
+
+###################################
 # Dotenv
 ###################################
 prod_env="/env/.production.env"
