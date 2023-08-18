@@ -40,17 +40,17 @@ jobs:
           echo "Backend Uptime: $BACKEND_UPTIME"
           echo "BACKEND_UPTIME=$BACKEND_UPTIME" >> $GITHUB_ENV
 
-      - name: Set env SHOULD_DESTROY
+      - name: Set Output should_destroy
         run: |
           if awk "BEGIN {exit !($BACKEND_UPTIME >= 3600 && $FRONTEND_UPTIME >= 3600)}"; then
-              echo "SHOULD_DESTROY=true" >> $GITHUB_ENV
+              echo "should_destroy=true" >> $GITHUB_OUTPUT
           else
-              echo "SHOULD_DESTROY=false" >> $GITHUB_ENV
+              echo "should_destroy=false" >> $GITHUB_OUTPUT
           fi
 
   destroy-staging:
     needs: check-uptime
-    if: env.SHOULD_DESTROY != 'false'
+    if: needs.check-uptime.outputs.should_destroy != 'false'
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -63,7 +63,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v1.4.0
 
       - name: Import Secrets
-        id: import-secrets
+        id: import-cred-secrets
         uses: hashicorp/vault-action@v2.7.1
         with:
           url: https://${{ secrets.VAULT_URL }}
