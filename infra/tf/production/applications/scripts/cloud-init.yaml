@@ -19,13 +19,6 @@ runcmd:
   - chown -R ubuntu:ubuntu ${workdir}
   - chown -R ubuntu:ubuntu ${workdir}/certs
   - chmod -R 755 ${workdir}/certs
-  # Install mkcert
-  - curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/${linux_platform}
-  - chmod +x mkcert-v*-linux-${linux_platform}
-  - cp mkcert-v*-linux-${linux_platform} /usr/local/bin/mkcert
-  - mkcert -install
-  # Install Mysql
-  - apt install mysql-server
 
 write_files:
   - path: /etc/netplan/99-cloudflare-dns.yaml

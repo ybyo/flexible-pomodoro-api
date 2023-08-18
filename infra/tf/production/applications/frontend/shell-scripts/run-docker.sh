@@ -2,13 +2,13 @@
 
 echo "${registry_password}" | sudo docker login -u "${registry_id}" "${registry_url}" --password-stdin
 
-docker run -itd \
+docker run -d \
   --name promtail \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  --config.file=/mnt/config/promtail-config.yml \
-  grafana/promtail:2.8.0
+  grafana/promtail:2.8.0 \
+  --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; }
 
 docker run -d \
   --name node-exporter \
@@ -19,9 +19,9 @@ docker run -d \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs \
   quay.io/prometheus/node-exporter:latest \
   --web.config.file=web-config-exporter.yml \
-  --path.rootfs=/host
+  --path.rootfs=/host || { echo 'Failed to run node-exporter'; }
 
-docker run -itd \
+docker run -d \
   -p 80:80 \
   -p 443:443 \
   -v "${cicd_path}"/certs:/etc/nginx/certs/:ro \
@@ -34,3 +34,5 @@ docker run -itd \
   "${registry_url}"/pipe-timer-frontend:"${env}"
 
 sleep 5
+
+docker ps -a
