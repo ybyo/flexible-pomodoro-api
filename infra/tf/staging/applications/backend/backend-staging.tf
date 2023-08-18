@@ -391,6 +391,10 @@ resource "aws_instance" "pipe_timer_backend" {
       "mkdir -p ${local.envs["WORKDIR"]}/certs",
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
+      "sudo curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}",
+      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
+      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
+      "sudo mkcert -install"
     ]
   }
 
