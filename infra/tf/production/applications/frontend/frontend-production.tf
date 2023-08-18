@@ -230,7 +230,7 @@ resource "random_password" "ssh_tunnel" {
 
 resource "cloudflare_tunnel" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "frontend-${local.envs["CF_ACCOUNT_ID"]}"
+  name       = "frontend-${local.envs["NODE_ENV"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
@@ -250,10 +250,10 @@ resource "cloudflare_tunnel_config" "production" {
 
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "ssh-${local.envs["HOST_URL"]}"
+  name    = "ssh.${local.envs["HOST_URL"]}"
   value   = cloudflare_tunnel.production.cname
   type    = "CNAME"
-  proxied = "true"
+  proxied = local.envs["PROXIED"]
 }
 
 resource "cloudflare_record" "frontend_production" {
@@ -404,6 +404,10 @@ resource "aws_instance" "pipe_timer_frontend" {
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/public ${local.envs["WORKDIR"]}/",
+      "sudo curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}",
+      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
+      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
+      "sudo mkcert -install"
     ]
   }
 

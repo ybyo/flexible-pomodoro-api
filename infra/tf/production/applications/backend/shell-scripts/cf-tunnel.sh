@@ -21,8 +21,8 @@ url: ssh://localhost:22
 loglevel: info
 EOF
 
-wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-sudo dpkg -i cloudflared-linux-amd64.deb
+wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb
+sudo dpkg -i cloudflared-linux-arm64.deb
 
 sudo cloudflared --config /etc/cloudflared/config.yml service install
 sudo cloudflared start &

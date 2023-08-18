@@ -183,7 +183,6 @@ resource "aws_security_group" "pt_backend_production_443" {
   }
 }
 
-
 ###################################
 # Vault
 ###################################
@@ -218,7 +217,7 @@ resource "random_password" "ssh_tunnel" {
 
 resource "cloudflare_tunnel" "production" {
   account_id = local.envs["CF_ACCOUNT_ID"]
-  name       = "backend-${local.envs["CF_ACCOUNT_ID"]}"
+  name       = "backend-${local.envs["NODE_ENV"]}"
   secret     = random_password.ssh_tunnel.result
 }
 
@@ -241,7 +240,7 @@ resource "cloudflare_record" "ssh_tunnel" {
   name    = "ssh-${local.envs["UPSTREAM_BACKEND"]}"
   value   = cloudflare_tunnel.production.cname
   type    = "CNAME"
-  proxied = "true"
+  proxied = local.envs["PROXIED"]
 }
 
 resource "cloudflare_record" "backend_production" {
@@ -391,6 +390,10 @@ resource "aws_instance" "pipe_timer_backend" {
       "mkdir -p ${local.envs["WORKDIR"]}/certs",
       "sudo mv /tmp/nginx.conf ${local.envs["WORKDIR"]}/",
       "sudo mv /tmp/env ${local.envs["WORKDIR"]}/",
+      "sudo curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/${local.envs["LINUX_PLATFORM"]}",
+      "sudo chmod +x mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]}",
+      "sudo cp mkcert-v*-linux-${local.envs["LINUX_PLATFORM"]} /usr/local/bin/mkcert",
+      "sudo mkcert -install"
     ]
   }
 
