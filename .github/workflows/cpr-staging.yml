@@ -3,14 +3,12 @@ on:
   push:
     branches-ignore:
       - main
-      - production
       - staging
       - cpr/**
 
 jobs:
   sync-branches:
     runs-on: ubuntu-latest
-    name: Sync branches to ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -21,20 +19,22 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           git_user_signingkey: true
           git_commit_gpgsign: true
-
       - name: Reset branch
         run: |
           git fetch origin ${{ github.ref_name }}:${{ github.ref_name }} --update-head-ok
           git reset --hard ${{ github.ref_name }}
-      - name: Create Pull Request
+
+      - name: Get last commit
+        run: echo "COMMIT_TITLE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
+
+      - name: Create pull request
         uses: peter-evans/create-pull-request@v5
         with:
           branch: cpr/${{ github.ref_name }}
-          title: Sync ${{ github.ref_name }} to staging
+          title: ${{ env.COMMIT_TITLE }}
           delete-branch: true
           signoff: true
           body: |
           labels: |
-            staging
             autoPR
           token: ${{ secrets.PAT }}
