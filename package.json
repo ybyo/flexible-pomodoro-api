@@ -22,9 +22,9 @@
     "production:test:e2e": "cross-env TEST=true NODE_ENV=production jest --config test/jest-e2e.json --detectOpenHandles",
     "vault:up": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env up -d",
     "vault:down": "docker compose -f ./infra/consul-vault/docker-compose.yml --env-file=./env/.staging.env down",
-    "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path=/tmp/artifacts --dryrun",
-    "act:main": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-main.json --artifact-server-path=/tmp/artifacts --dryrun",
-    "act:push": "act --secret-file=./env/.staging.env --insecure-secrets --artifact-server-path=/tmp/artifacts --dryrun",
+    "act:staging": "act pull_request --secret-file=./env/.staging.env --insecure-secrets -e ./act-staging.json --artifact-server-path=/tmp/artifacts",
+    "act:main": "act pull_request --secret-file=./env/.production.env --insecure-secrets -e ./act-main.json --artifact-server-path=/tmp/artifacts",
+    "act:push": "act --secret-file=./env/.staging.env --insecure-secrets --artifact-server-path=/tmp/artifacts",
     "barrels": "barrelsby -d -e \"**/*.spec.ts\""
   },
   "repository": {
