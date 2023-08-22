@@ -2,7 +2,7 @@ name: destroy-staging
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/60 * * * *'
 
 jobs:
   check-uptime:
