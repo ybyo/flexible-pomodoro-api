@@ -278,6 +278,11 @@ data "template_cloudinit_config" "setup" {
   }
 
   part {
+    content_type = "text/x-shellscript"
+    content      = file("../common-scripts/add-dns.sh")
+  }
+
+  part {
     content_type = "text/cloud-config"
     content = yamlencode({
       write_files = [

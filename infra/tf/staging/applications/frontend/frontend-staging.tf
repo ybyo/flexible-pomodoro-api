@@ -253,7 +253,7 @@ resource "cloudflare_record" "ssh_tunnel" {
   name    = "ssh-${local.envs["HOST_URL"]}"
   value   = cloudflare_tunnel.staging.cname
   type    = "CNAME"
-  proxied = "true"
+  proxied = local.envs["PROXIED"]
 }
 
 resource "cloudflare_record" "frontend_staging" {
@@ -275,6 +275,11 @@ data "template_cloudinit_config" "setup" {
       ssh_public_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PUBLIC_KEY"])
       workdir        = local.envs["WORKDIR"]
     })
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = file("../common-scripts/add-dns.sh")
   }
 
   part {
