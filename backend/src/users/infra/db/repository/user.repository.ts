@@ -105,6 +105,13 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  /**
+   * Sends a change email token to the specified old email and new email.
+   *
+   * @param {string} oldEmail - The old email address.
+   * @param {string} newEmail - The new email address.
+   * @return {Promise<UpdateResult>} A promise that resolves to the result of the update operation.
+   */
   async sendChangeEmailToken(
     oldEmail: string,
     newEmail: string
@@ -144,6 +151,12 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  /**
+   * Deletes a user by their ID.
+   *
+   * @param {string} id - The ID of the user to delete.
+   * @return {Promise<DeleteResult>} A promise that resolves to the delete result.
+   */
   async deleteUser(id: string): Promise<DeleteResult> {
     const deleteResult = await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
