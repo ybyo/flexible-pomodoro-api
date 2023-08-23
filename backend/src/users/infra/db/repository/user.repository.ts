@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from '@node-rs/argon2';
 import { plainToClassFromExist } from 'class-transformer';
@@ -16,7 +16,6 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IUserRepository } from '@/users/domain/iuser.repository';
-import { UserFactory } from '@/users/domain/user.factory';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
@@ -26,12 +25,6 @@ export class UserRepository implements IUserRepository {
     private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-    @InjectRepository(RoutineEntity)
-    private routineRepository: Repository<RoutineEntity>,
-    @InjectRepository(RoutineToTimerEntity)
-    private routineToTimerRepository: Repository<RoutineToTimerEntity>,
-    private userFactory: UserFactory,
-    @Inject(Logger) private logger: LoggerService,
     @Inject('EmailService') private emailService: IEmailAdapter,
     private redisService: RedisTokenService
   ) {}
@@ -122,7 +115,6 @@ export class UserRepository implements IUserRepository {
     try {
       return await this.dataSource.transaction(async (manager) => {
         await this.emailService.sendChangeEmailToken(newEmail, token);
-
         await this.redisService.setPXAT(
           `changeEmailToken:${token}`,
           '1',
