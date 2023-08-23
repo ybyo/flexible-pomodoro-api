@@ -150,13 +150,11 @@ export class UserRepository implements IUserRepository {
    * @return {Promise<DeleteResult>} A promise that resolves to the delete result.
    */
   async deleteUser(id: string): Promise<DeleteResult> {
-    const deleteResult = await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
 
       return await manager.delete(UserEntity, id);
     });
-
-    return deleteResult;
   }
 
   async deleteRoutine(id: string): Promise<void> {
