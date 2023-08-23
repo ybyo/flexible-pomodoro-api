@@ -89,12 +89,6 @@ export class UserRepository implements IUserRepository {
     return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
-  private calculateExpirationTime(): number {
-    return new Date(
-      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
-    ).getTime();
-  }
-
   async registerUser(user: User): Promise<UserEntity> {
     const id = ulid();
     const token = ulid();
@@ -292,5 +286,11 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
     }
+  }
+
+  private calculateExpirationTime(): number {
+    return new Date(
+      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
+    ).getTime();
   }
 }
