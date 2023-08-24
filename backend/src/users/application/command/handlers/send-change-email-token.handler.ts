@@ -18,13 +18,22 @@ export class SendChangeEmailTokenHandler
     @Inject('UserRepository') private userRepository: IUserRepository
   ) {}
 
+  /**
+   * Executes the sendChangeEmailToken command asynchronously.
+   *
+   * @param {SendChangeEmailTokenCommand} command - The command containing the old and new email addresses.
+   * @return {Promise<SuccessDto>} A Promise that resolves to a SuccessDto object if the email token is sent successfully.
+   * @throws {InternalServerErrorException} Throws an exception if the email token cannot be sent.
+   */
   async execute(command: SendChangeEmailTokenCommand): Promise<SuccessDto> {
     const result = await this.userRepository.sendChangeEmailToken(
       command.oldEmail,
       command.newEmail
     );
-    if (result.affected) return { success: true };
-
-    throw new InternalServerErrorException('Cannot send change email token');
+    if (result.affected) {
+      return { success: true };
+    } else {
+      throw new InternalServerErrorException('Cannot send change email token');
+    }
   }
 }
