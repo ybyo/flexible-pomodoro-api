@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from '@node-rs/argon2';
 import { plainToClassFromExist } from 'class-transformer';
@@ -16,7 +16,6 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IUserRepository } from '@/users/domain/iuser.repository';
-import { UserFactory } from '@/users/domain/user.factory';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
@@ -26,12 +25,6 @@ export class UserRepository implements IUserRepository {
     private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-    @InjectRepository(RoutineEntity)
-    private routineRepository: Repository<RoutineEntity>,
-    @InjectRepository(RoutineToTimerEntity)
-    private routineToTimerRepository: Repository<RoutineToTimerEntity>,
-    private userFactory: UserFactory,
-    @Inject(Logger) private logger: LoggerService,
     @Inject('EmailService') private emailService: IEmailAdapter,
     private redisService: RedisTokenService
   ) {}
@@ -89,12 +82,6 @@ export class UserRepository implements IUserRepository {
     return plainToClassFromExist(new UserWithoutPassword(), userEntity);
   }
 
-  private calculateExpirationTime(): number {
-    return new Date(
-      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
-    ).getTime();
-  }
-
   async registerUser(user: User): Promise<UserEntity> {
     const id = ulid();
     const token = ulid();
@@ -111,6 +98,13 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  /**
+   * Sends a change email token to the specified old email and new email.
+   *
+   * @param {string} oldEmail - The old email address.
+   * @param {string} newEmail - The new email address.
+   * @return {Promise<UpdateResult>} A promise that resolves to the result of the update operation.
+   */
   async sendChangeEmailToken(
     oldEmail: string,
     newEmail: string
@@ -121,7 +115,6 @@ export class UserRepository implements IUserRepository {
     try {
       return await this.dataSource.transaction(async (manager) => {
         await this.emailService.sendChangeEmailToken(newEmail, token);
-
         await this.redisService.setPXAT(
           `changeEmailToken:${token}`,
           '1',
@@ -150,14 +143,18 @@ export class UserRepository implements IUserRepository {
     );
   }
 
+  /**
+   * Deletes a user by their ID.
+   *
+   * @param {string} id - The ID of the user to delete.
+   * @return {Promise<DeleteResult>} A promise that resolves to the delete result.
+   */
   async deleteUser(id: string): Promise<DeleteResult> {
-    const deleteResult = await this.dataSource.transaction(async (manager) => {
+    return await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
 
       return await manager.delete(UserEntity, id);
     });
-
-    return deleteResult;
   }
 
   async deleteRoutine(id: string): Promise<void> {
@@ -292,5 +289,11 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
     }
+  }
+
+  private calculateExpirationTime(): number {
+    return new Date(
+      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
+    ).getTime();
   }
 }
