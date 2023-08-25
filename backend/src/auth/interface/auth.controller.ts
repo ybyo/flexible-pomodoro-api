@@ -37,9 +37,7 @@ import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/interface/guard/local.guard';
 import { LoggedInGuard } from '@/auth/interface/guard/logged-in.guard';
 import accessTokenConfig from '@/config/access-token.config';
-import refreshTokenConfig from '@/config/refresh-token.config';
 import { Session } from '@/shared/types/common-types';
-import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { CheckDuplicateEmailDto } from '@/users/interface/dto/check-duplicate-email.dto';
 import { LoginUserDto } from '@/users/interface/dto/login-user.dto';
 import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
@@ -50,9 +48,6 @@ export class AuthController {
   constructor(
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
-    @Inject(refreshTokenConfig.KEY)
-    private refreshConf: ConfigType<typeof refreshTokenConfig>,
-    @Inject('EmailService') private emailService: IEmailAdapter,
     private authService: AuthService,
     private commandBus: CommandBus,
     private queryBus: QueryBus
