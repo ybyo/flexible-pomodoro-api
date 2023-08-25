@@ -43,7 +43,7 @@ const queryHandlers = [CheckSignupTokenValidityHandler];
 const strategies = [PasswordResetStrategy, RedisTokenStrategy];
 
 const externalService = [
-  { provide: 'EmailService', useClass: EmailService },
+  EmailService,
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
