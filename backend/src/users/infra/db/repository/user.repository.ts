@@ -33,16 +33,18 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({ email });
     if (!userEntity) {
       return null;
+    } else {
+      return plainToClassFromExist(new User(), userEntity);
     }
-
-    return plainToClassFromExist(new User(), userEntity);
   }
 
   async findById(id: string): Promise<UserJwt | null> {
     const userEntity = await this.userRepository.findOneBy({ id });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserJwt(), userEntity);
+    if (userEntity === null) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserJwt(), userEntity);
+    }
   }
 
   async findByEmailAndPassword(
@@ -53,9 +55,11 @@ export class UserRepository implements IUserRepository {
       email: email,
       password: password,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (userEntity === null) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findBySignupToken(token: string): Promise<UserWithoutPassword | null> {
