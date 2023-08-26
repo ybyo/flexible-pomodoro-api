@@ -97,6 +97,7 @@ jobs:
     env:
       base_ref: ${{ needs.set-base-ref.outputs.base_ref }}
     strategy:
+      fail-fast: false
       matrix:
         workdir: ['backend', 'frontend']
     steps:
