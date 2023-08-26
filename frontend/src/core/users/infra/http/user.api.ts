@@ -1,4 +1,3 @@
-import { api } from 'boot/axios';
 import { Notify } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { ITimer } from 'src/core/timers/domain/timer.model';
@@ -16,6 +15,9 @@ import {
   IValidationInput,
 } from 'src/type-defs/userTypes';
 
+import { api } from '../../../../boot/axios';
+import { useRoutineStore } from '../../../routines/infra/store/routine.store';
+
 export const refreshAccessTokenFn = () => {
   return api.get<IRes<IUser>>('auth/refresh');
 };
@@ -25,15 +27,12 @@ api.interceptors.response.use(
   (res) => {
     return res;
   },
-  // TODO: 토큰 만료 확인 기능 추가
-  // 토큰 만료로 인한 에러 메시지 발생
   // TODO: 서버 자체가 열려있지 않을 때 로그인 비활성화
-  // TODO: 에러메시지를 각 서비스로 분산
-  // TODO: 미들웨어에서 router.push 수행하도록 수정
   async (err) => {
     const userStore = useUserStore();
-    const panelStore = usePanelStore();
     const timerStore = useTimerStore();
+    const routineStore = useRoutineStore();
+    const panelStore = usePanelStore();
 
     const errMsg = err.response.data?.message as string;
 
@@ -42,8 +41,9 @@ api.interceptors.response.use(
         await refreshAccessTokenFn();
       } catch {
         userStore.$reset();
-        panelStore.$reset();
         timerStore.$reset();
+        routineStore.$reset();
+        panelStore.$reset();
 
         Notify.create({
           html: true,
