@@ -409,11 +409,11 @@ resource "aws_instance" "pipe_timer_backend" {
   #    ]
   #  }
 
+  depends_on = [null_resource.build_docker]
+
   tags = {
     Name = "pt-${var.env}-backend"
   }
-
-  depends_on = [null_resource.build_docker]
 }
 
 resource "null_resource" "cleanup_tunnel" {
