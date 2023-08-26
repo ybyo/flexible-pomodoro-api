@@ -92,6 +92,7 @@ jobs:
           path: ./frontend/certs
 
   deploy-servers:
+    timeout-minutes: 20
     needs: [build-setup, set-base-ref]
     runs-on: ubuntu-20.04
     env:
