@@ -27,10 +27,7 @@ import { AuthService } from '@/auth/application/auth.service';
 import { SuccessDto } from '@/auth/interface/dto/success.dto';
 import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import accessTokenConfig from '@/config/access-token.config';
-import { REDIS_TOKEN } from '@/redis/redis.constants';
 import { Session } from '@/shared/types/common-types';
-import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
-import { IRedisTokenAdapter } from '@/users/application/adapter/iredis-token.adapter';
 import { DeleteUserCommand } from '@/users/application/command/impl/delete-user.command';
 import { SendChangeEmailTokenCommand } from '@/users/application/command/impl/send-change-email-token.command';
 import { SendResetPasswordTokenCommand } from '@/users/application/command/impl/send-reset-password-token.command';
@@ -47,8 +44,6 @@ import { RedisTokenGuard } from '@/users/interface/guard/redis-token.guard';
 @Controller('users')
 export class UserController {
   constructor(
-    @Inject('EmailService') private emailService: IEmailAdapter,
-    @Inject(REDIS_TOKEN) private redisService: IRedisTokenAdapter,
     @Inject(accessTokenConfig.KEY)
     private accessConf: ConfigType<typeof accessTokenConfig>,
     private authService: AuthService,
@@ -186,7 +181,6 @@ export class UserController {
   })
   async deleteAccount(
     @Req() req: Request,
-    @Body() body: DeleteAccountDto,
     @Res({ passthrough: true }) res
   ): Promise<Session> {
     const command = new DeleteUserCommand(req.user.id);

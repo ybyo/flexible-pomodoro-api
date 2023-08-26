@@ -1,6 +1,5 @@
 import * as argon2 from '@node-rs/argon2';
 import {
-  BaseEntity,
   BeforeInsert,
   Column,
   CreateDateColumn,
@@ -16,7 +15,7 @@ import { Timer } from '@/timers/domain/timer.model';
 import { TimerEntity } from '@/timers/infra/db/entity/timer.entity';
 
 @Entity('User')
-export class UserEntity extends BaseEntity {
+export class UserEntity {
   @PrimaryColumn({ unique: true })
   id: string;
 
@@ -57,4 +56,8 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => RoutineEntity, (routineEntity) => routineEntity.user)
   routine: Routine[];
+
+  constructor(partial: Partial<UserEntity>) {
+    Object.assign(this, partial);
+  }
 }
