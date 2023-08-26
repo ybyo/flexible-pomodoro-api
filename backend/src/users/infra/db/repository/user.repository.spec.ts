@@ -61,5 +61,43 @@ describe('UserRepository', () => {
 
       expect(user).toEqual({ email: 'email@example.com' });
     });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const user = await userRepo.findByEmail('email@example.com');
+
+      expect(user).toEqual(null);
+    });
+  });
+
+  describe('findByEmailAndPassword', () => {
+    it('should return a user', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue({
+        email: 'email@example.com',
+        password: 'password',
+      });
+
+      const user = await userRepo.findByEmailAndPassword(
+        'email@example.com',
+        'password'
+      );
+
+      expect(user).toEqual({
+        email: 'email@example.com',
+        password: 'password',
+      });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const user = await userRepo.findByEmailAndPassword(
+        'email@example.com',
+        'password'
+      );
+
+      expect(user).toEqual(null);
+    });
   });
 });
