@@ -50,6 +50,7 @@ jobs:
           fi
 
   destroy-staging:
+    timeout-minutes: 1
     needs: check-uptime
     if: needs.check-uptime.outputs.should_destroy != 'false'
     runs-on: ubuntu-20.04
@@ -107,7 +108,7 @@ jobs:
 
       - name: Terraform Destroy Tunnel
         id: destroy-tunnel
-        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -target=null_resource.cleanup_tunnel
+        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -target=null_resource.cleanup_tunnel -auto-approve
 
       - name: Terraform Destroy Staging
         id: destroy-staging
