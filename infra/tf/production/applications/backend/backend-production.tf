@@ -414,26 +414,3 @@ resource "aws_instance" "pipe_timer_backend" {
 
   depends_on = [null_resource.build_docker]
 }
-
-resource "null_resource" "cleanup_tunnel" {
-  triggers = {
-    CF_ACCOUNT_ID = local.envs["CF_ACCOUNT_ID"]
-    CF_EMAIL      = local.envs["CF_EMAIL"]
-    CF_TOKEN      = local.envs["CF_TOKEN"]
-    TUNNEL_ID     = cloudflare_tunnel.production.id
-  }
-
-  provisioner "local-exec" {
-    when = destroy
-
-    command = "chmod +x ../common-scripts/cleanup-tunnel.sh; sh ../common-scripts/cleanup-tunnel.sh"
-    environment = {
-      CF_ACCOUNT_ID = self.triggers["CF_ACCOUNT_ID"]
-      CF_EMAIL      = self.triggers["CF_EMAIL"]
-      CF_TOKEN      = self.triggers["CF_TOKEN"]
-      TUNNEL_ID     = self.triggers["TUNNEL_ID"]
-    }
-    working_dir = path.module
-    interpreter = ["/bin/sh", "-c"]
-  }
-}
