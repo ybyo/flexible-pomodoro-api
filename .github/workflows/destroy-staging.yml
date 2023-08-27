@@ -113,10 +113,20 @@ jobs:
         id: init-staging
         run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} init
 
-      - name: Terraform Destroy Tunnel
-        id: destroy-tunnel
-        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -target=null_resource.cleanup_tunnel -auto-approve
-
       - name: Terraform Destroy Staging
         id: destroy-staging
-        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve
+        run: |
+          retry_count=0
+          max_retries=3
+
+          while [[ "$retry_count" -lt "$max_retries" ]]; do
+            terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve && break
+            retry_count=$((retry_count + 1))
+            echo "Terraform Destroy failed. Retrying ($retry_count/$max_retries)..."
+            sleep 3
+          done
+
+          if [[ "$retry_count" -eq "$max_retries" ]]; then
+            echo "Terraform Destroy failed after $max_retries attempts. Exiting."
+            exit 1
+          fi
