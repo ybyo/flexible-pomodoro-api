@@ -36,6 +36,8 @@ jobs:
       - name: Check Uptime with Cloudflared
         id: check-uptime
         run: |
+          BACKEND_UPTIME=${BACKEND_UPTIME:-0}
+          FRONTEND_UPTIME=${FRONTEND_UPTIME:-0}
           FRONTEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
           echo "Frontend Uptime: $FRONTEND_UPTIME"
           echo "FRONTEND_UPTIME=$FRONTEND_UPTIME" >> $GITHUB_ENV
