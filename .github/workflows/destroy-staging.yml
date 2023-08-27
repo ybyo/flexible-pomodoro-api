@@ -7,6 +7,8 @@ on:
 jobs:
   check-uptime:
     runs-on: ubuntu-20.04
+    outputs:
+      should_destroy: ${{ steps.set-should-destroy.outputs.should_destroy }}
     steps:
       - name: Import SSH Private Key
         id: import-secrets
@@ -34,6 +36,8 @@ jobs:
       - name: Check Uptime with Cloudflared
         id: check-uptime
         run: |
+          BACKEND_UPTIME=${BACKEND_UPTIME:-0}
+          FRONTEND_UPTIME=${FRONTEND_UPTIME:-0}
           FRONTEND_UPTIME=$(ssh -o "ProxyCommand=/usr/local/bin/cloudflared access ssh --hostname ssh-staging.pipetimer.com" -o "StrictHostKeyChecking no" -i ~/.ssh/ssh ubuntu@ssh-staging.pipetimer.com cat /proc/uptime | tail -n 1 | awk '{print $1}')
           echo "Frontend Uptime: $FRONTEND_UPTIME"
           echo "FRONTEND_UPTIME=$FRONTEND_UPTIME" >> $GITHUB_ENV
@@ -42,21 +46,24 @@ jobs:
           echo "BACKEND_UPTIME=$BACKEND_UPTIME" >> $GITHUB_ENV
 
       - name: Set Output should_destroy
+        id: set-should-destroy
         run: |
-          if awk "BEGIN {exit !($BACKEND_UPTIME >= 3600 && $FRONTEND_UPTIME >= 3600)}"; then
-              echo "should_destroy=true" >> $GITHUB_OUTPUT
+          if awk "BEGIN {exit !($BACKEND_UPTIME >= 1 || $FRONTEND_UPTIME >= 1)}"; then
+              echo "should_destroy=true" >> "$GITHUB_OUTPUT"
           else
-              echo "should_destroy=false" >> $GITHUB_OUTPUT
+              echo "should_destroy=false" >> "$GITHUB_OUTPUT"
           fi
 
   destroy-staging:
-    timeout-minutes: 1
+    timeout-minutes: 5
     needs: check-uptime
-    if: needs.check-uptime.outputs.should_destroy != 'false'
+    if: needs.check-uptime.outputs.should_destroy == 'true'
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         workdir: ['backend', 'frontend']
+    env:
+      SHOULD_DESTROY: ${{ needs.check-uptime.outputs.should_destroy }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -106,10 +113,20 @@ jobs:
         id: init-staging
         run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} init
 
-      - name: Terraform Destroy Tunnel
-        id: destroy-tunnel
-        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -target=null_resource.cleanup_tunnel -auto-approve
-
       - name: Terraform Destroy Staging
         id: destroy-staging
-        run: terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve
+        run: |
+          retry_count=0
+          max_retries=3
+
+          while [[ "$retry_count" -lt "$max_retries" ]]; do
+            terraform -chdir=./infra/tf/staging/applications/${{ matrix.workdir }} destroy -auto-approve && break
+            retry_count=$((retry_count + 1))
+            echo "Terraform Destroy failed. Retrying ($retry_count/$max_retries)..."
+            sleep 3
+          done
+
+          if [[ "$retry_count" -eq "$max_retries" ]]; then
+            echo "Terraform Destroy failed after $max_retries attempts. Exiting."
+            exit 1
+          fi

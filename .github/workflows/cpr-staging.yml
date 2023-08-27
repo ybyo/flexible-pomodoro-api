@@ -24,14 +24,11 @@ jobs:
           git fetch origin ${{ github.ref_name }}:${{ github.ref_name }} --update-head-ok
           git reset --hard ${{ github.ref_name }}
 
-      - name: Get last commit
-        run: echo "COMMIT_TITLE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
-
       - name: Create pull request
         uses: peter-evans/create-pull-request@v5
         with:
           branch: cpr/${{ github.ref_name }}
-          title: ${{ env.COMMIT_TITLE }}
+          title: Sync ${{ github.ref_name }} to Staging
           delete-branch: true
           signoff: true
           body: |
