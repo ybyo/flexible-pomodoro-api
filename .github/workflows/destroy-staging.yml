@@ -55,7 +55,7 @@ jobs:
           fi
 
   destroy-staging:
-    timeout-minutes: 1
+    timeout-minutes: 5
     needs: check-uptime
     if: needs.check-uptime.outputs.should_destroy == 'true'
     runs-on: ubuntu-20.04
