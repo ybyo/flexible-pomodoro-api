@@ -7,6 +7,8 @@ on:
 jobs:
   check-uptime:
     runs-on: ubuntu-20.04
+    outputs:
+      should_destroy: ${{ steps.set-should-destroy.outputs.should_destroy }}
     steps:
       - name: Import SSH Private Key
         id: import-secrets
@@ -42,21 +44,24 @@ jobs:
           echo "BACKEND_UPTIME=$BACKEND_UPTIME" >> $GITHUB_ENV
 
       - name: Set Output should_destroy
+        id: set-should-destroy
         run: |
-          if awk "BEGIN {exit !($BACKEND_UPTIME >= 3600 && $FRONTEND_UPTIME >= 3600)}"; then
-              echo "should_destroy=true" >> $GITHUB_OUTPUT
+          if awk "BEGIN {exit !($BACKEND_UPTIME >= 1 || $FRONTEND_UPTIME >= 1)}"; then
+              echo "should_destroy=true" >> "$GITHUB_OUTPUT"
           else
-              echo "should_destroy=false" >> $GITHUB_OUTPUT
+              echo "should_destroy=false" >> "$GITHUB_OUTPUT"
           fi
 
   destroy-staging:
     timeout-minutes: 1
     needs: check-uptime
-    if: needs.check-uptime.outputs.should_destroy != 'false'
+    if: needs.check-uptime.outputs.should_destroy == 'true'
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         workdir: ['backend', 'frontend']
+    env:
+      SHOULD_DESTROY: ${{ needs.check-uptime.outputs.should_destroy }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
