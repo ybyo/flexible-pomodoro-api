@@ -17,6 +17,7 @@ import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-time
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
+import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 @Injectable()
@@ -25,21 +26,25 @@ export class UserRepository implements IUserRepository {
     private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-    @Inject('EmailService') private emailService: IEmailAdapter,
+    @Inject(EmailService) private emailService: IEmailAdapter,
     private redisService: RedisTokenService
   ) {}
   async findByEmail(email: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ email });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new User(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new User(), userEntity);
+    }
   }
 
   async findById(id: string): Promise<UserJwt | null> {
     const userEntity = await this.userRepository.findOneBy({ id });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserJwt(), userEntity);
+    if (userEntity === null) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserJwt(), userEntity);
+    }
   }
 
   async findByEmailAndPassword(
@@ -50,9 +55,11 @@ export class UserRepository implements IUserRepository {
       email: email,
       password: password,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (userEntity === null) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findBySignupToken(token: string): Promise<UserWithoutPassword | null> {
@@ -85,7 +92,7 @@ export class UserRepository implements IUserRepository {
   async registerUser(user: User): Promise<UserEntity> {
     const id = ulid();
     const token = ulid();
-    const userEntity = UserEntity.create({ ...user, id, signupToken: token });
+    const userEntity = new UserEntity({ ...user, id, signupToken: token });
     const expiredAt = this.calculateExpirationTime();
 
     return await this.dataSource.transaction(

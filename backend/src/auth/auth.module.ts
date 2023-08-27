@@ -34,7 +34,7 @@ const QueryHandlers = [
 const EventHandlers = [];
 
 const externalService = [
-  { provide: 'EmailService', useClass: EmailService },
+  EmailService,
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
