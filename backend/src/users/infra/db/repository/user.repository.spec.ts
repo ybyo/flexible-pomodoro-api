@@ -1,8 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { plainToClassFromExist } from 'class-transformer';
 import { DataSource, Repository } from 'typeorm';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
+import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
@@ -53,37 +55,84 @@ describe('UserRepository', () => {
 
   describe('findByEmail', () => {
     it('should return a user', async () => {
-      repo.findOneBy = jest
-        .fn()
-        .mockResolvedValue({ email: 'email@example.com' });
+      const expectedUserEntity = new UserEntity({ email: 'email@example.com' });
+      const expectedUser = plainToClassFromExist(
+        new User(),
+        expectedUserEntity
+      );
 
-      const user = await userRepo.findByEmail('email@example.com');
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
 
-      expect(user).toEqual({ email: 'email@example.com' });
+      const actualUser = await userRepo.findByEmail('email@example.com');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        email: 'email@example.com',
+      });
     });
 
     it('should return a null', async () => {
       repo.findOneBy = jest.fn().mockResolvedValue(null);
 
-      const user = await userRepo.findByEmail('email@example.com');
+      const actualUser = await userRepo.findByEmail('email@example.com');
 
-      expect(user).toEqual(null);
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        email: 'email@example.com',
+      });
+    });
+  });
+
+  describe('findById', () => {
+    it('should return a user', async () => {
+      const expectedUserEntity = new UserEntity({ id: 'example' });
+      const expectedUser = plainToClassFromExist(
+        new UserJwt(),
+        expectedUserEntity
+      );
+
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findById('example');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        id: 'example',
+      });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const actualUser = await userRepo.findById('example');
+
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        id: 'example',
+      });
     });
   });
 
   describe('findByEmailAndPassword', () => {
     it('should return a user', async () => {
-      repo.findOneBy = jest.fn().mockResolvedValue({
+      const expectedUserEntity = new UserEntity({
         email: 'email@example.com',
         password: 'password',
       });
+      const expectedUser = plainToClassFromExist(
+        new UserWithoutPassword(),
+        expectedUserEntity
+      );
 
-      const user = await userRepo.findByEmailAndPassword(
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findByEmailAndPassword(
         'email@example.com',
         'password'
       );
 
-      expect(user).toEqual({
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
         email: 'email@example.com',
         password: 'password',
       });
@@ -92,12 +141,64 @@ describe('UserRepository', () => {
     it('should return a null', async () => {
       repo.findOneBy = jest.fn().mockResolvedValue(null);
 
-      const user = await userRepo.findByEmailAndPassword(
+      const actualUser = await userRepo.findByEmailAndPassword(
         'email@example.com',
         'password'
       );
 
-      expect(user).toEqual(null);
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        email: 'email@example.com',
+        password: 'password',
+      });
+    });
+  });
+
+  describe('findBySignupToken', () => {
+    it('should return a userEntity', async () => {
+      const expectedUser = new UserEntity({ signupToken: 'token' });
+
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findBySignupToken('token');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ signupToken: 'token' });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const actualUser = await userRepo.findBySignupToken('token');
+
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ signupToken: 'token' });
+    });
+  });
+
+  describe('findByResetPasswordToken', () => {
+    it('should return a userEntity', async () => {
+      const expectedUser = new UserEntity({ resetPasswordToken: 'token' });
+
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findByResetPasswordToken('token');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        resetPasswordToken: 'token',
+      });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const actualUser = await userRepo.findByResetPasswordToken('token');
+
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({
+        resetPasswordToken: 'token',
+      });
     });
   });
 });
