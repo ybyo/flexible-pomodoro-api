@@ -52,8 +52,8 @@ export class UserRepository implements IUserRepository {
     password: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
-      email: email,
-      password: password,
+      email,
+      password,
     });
     if (userEntity === null) {
       return null;
@@ -66,9 +66,11 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({
       signupToken: token,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findByResetPasswordToken(
@@ -77,9 +79,11 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({
       resetPasswordToken: token,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findByUsername(username: string): Promise<UserWithoutPassword | null> {
