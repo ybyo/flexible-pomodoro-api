@@ -22,7 +22,7 @@ export interface IUserRepository {
     event: string,
     token: string
   ) => Promise<UserWithoutPassword | null>;
-  registerUser: (user: User) => Promise<UserEntity>;
+  registerUser: (user: User) => Promise<UserWithoutPassword>;
   deleteUser: (email: string) => Promise<DeleteResult>;
   changePassword: (
     id: string,

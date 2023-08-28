@@ -88,18 +88,20 @@ export class UserRepository implements IUserRepository {
 
   async findByUsername(username: string): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({ username });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
-  async registerUser(user: User): Promise<UserEntity> {
+  async registerUser(user: User): Promise<UserWithoutPassword> {
     const id = ulid();
     const token = ulid();
     const userEntity = new UserEntity({ ...user, id, signupToken: token });
     const expiredAt = this.calculateExpirationTime();
 
-    return await this.dataSource.transaction(
+    const savedUser = await this.dataSource.transaction(
       async (manager): Promise<UserEntity> => {
         await this.emailService.sendSignupEmailToken(user.email, token);
         await this.redisService.setPXAT(`signupToken:${token}`, '1', expiredAt);
@@ -107,6 +109,8 @@ export class UserRepository implements IUserRepository {
         return await manager.save(userEntity);
       }
     );
+
+    return plainToClassFromExist(new UserWithoutPassword(), savedUser);
   }
 
   /**
