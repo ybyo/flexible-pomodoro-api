@@ -201,4 +201,48 @@ describe('UserRepository', () => {
       });
     });
   });
+
+  describe('findByUsername', () => {
+    it('should return a user', async () => {
+      const expectedUser = new UserEntity({ username: 'testuser' });
+
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findByUsername('testuser');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const actualUser = await userRepo.findByUsername('testuser');
+
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
+    });
+  });
+
+  describe('registerUser', () => {
+    it('should return a user', async () => {
+      const expectedUser = new UserEntity({ username: 'testuser' });
+
+      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+
+      const actualUser = await userRepo.findByUsername('testuser');
+
+      expect(actualUser).toEqual(expectedUser);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
+    });
+
+    it('should return a null', async () => {
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const actualUser = await userRepo.findByUsername('testuser');
+
+      expect(actualUser).toEqual(null);
+      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
+    });
+  });
 });
