@@ -68,10 +68,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register user' })
   @ApiBody({ type: RegisterUserDto })
   @ApiResponse({ type: SuccessDto })
-  async registerUser(
-    @Req() req: Request,
-    @Body() body: RegisterUserDto
-  ): Promise<SuccessDto> {
+  async registerUser(@Body() body: RegisterUserDto): Promise<SuccessDto> {
     return await this.authService.registerUser(body);
   }
 
