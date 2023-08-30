@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { plainToClassFromExist } from 'class-transformer';
 import { DataSource, Repository } from 'typeorm';
+import { ulid } from 'ulid';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
@@ -10,8 +11,11 @@ import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
 describe('UserRepository', () => {
-  let userRepo: UserRepository;
   let repo: Repository<UserEntity>;
+  let userRepo: UserRepository;
+  let dataSource: DataSource;
+  let emailService: EmailService;
+  let redisService: RedisTokenService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -47,6 +51,9 @@ describe('UserRepository', () => {
 
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
     userRepo = module.get<UserRepository>(UserRepository);
+    dataSource = module.get<DataSource>(DataSource);
+    emailService = module.get<EmailService>(EmailService);
+    redisService = module.get<RedisTokenService>(RedisTokenService);
   });
 
   afterEach(() => {
@@ -225,24 +232,27 @@ describe('UserRepository', () => {
   });
 
   describe('registerUser', () => {
-    it('should return a user', async () => {
-      const expectedUser = new UserEntity({ username: 'testuser' });
+    it('should register a user', async () => {
+      const expectedUser = new User();
+      expectedUser.email = 'test@example.com';
+      expectedUser.username = 'test';
+      expectedUser.password = 'password';
+      const token = ulid();
 
-      repo.findOneBy = jest.fn().mockResolvedValue(expectedUser);
+      const actualUser = new UserEntity({
+        ...expectedUser,
+        id: ulid(),
+        signupToken: token,
+      });
 
-      const actualUser = await userRepo.findByUsername('testuser');
+      dataSource.transaction = jest.fn().mockResolvedValue(actualUser);
 
-      expect(actualUser).toEqual(expectedUser);
-      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
-    });
+      const result = await userRepo.registerUser(expectedUser);
 
-    it('should return a null', async () => {
-      repo.findOneBy = jest.fn().mockResolvedValue(null);
-
-      const actualUser = await userRepo.findByUsername('testuser');
-
-      expect(actualUser).toEqual(null);
-      expect(repo.findOneBy).toHaveBeenCalledWith({ username: 'testuser' });
+      expect(result.email).toEqual(expectedUser.email);
+      expect(result.username).toEqual(expectedUser.username);
+      expect(result.id).toBeDefined();
+      expect(result.signupToken).toBeDefined();
     });
   });
 });
