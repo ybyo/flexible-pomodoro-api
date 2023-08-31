@@ -19,6 +19,7 @@ import { IUserRepository } from '@/users/domain/iuser.repository';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
+import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -99,7 +100,7 @@ export class UserRepository implements IUserRepository {
     const id = ulid();
     const token = ulid();
     const userEntity = new UserEntity({ ...user, id, signupToken: token });
-    const expiredAt = this.calculateExpirationTime();
+    const expiredAt = calculateExpirationTime();
 
     const savedUser = await this.dataSource.transaction(
       async (manager): Promise<UserEntity> => {
@@ -125,7 +126,7 @@ export class UserRepository implements IUserRepository {
     newEmail: string
   ): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = this.calculateExpirationTime();
+    const expiredAt = calculateExpirationTime();
 
     try {
       return await this.dataSource.transaction(async (manager) => {
@@ -193,7 +194,7 @@ export class UserRepository implements IUserRepository {
 
   async sendResetPasswordToken(email: string): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = this.calculateExpirationTime();
+    const expiredAt = calculateExpirationTime();
 
     return await this.dataSource.transaction(async (manager) => {
       await this.emailService.sendResetPasswordToken(email, token);
@@ -304,11 +305,5 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
     }
-  }
-
-  private calculateExpirationTime(): number {
-    return new Date(
-      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
-    ).getTime();
   }
 }
