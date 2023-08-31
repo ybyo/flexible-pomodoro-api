@@ -9,6 +9,7 @@ import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
+import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
 
 jest.mock('ulid');
 
@@ -240,12 +241,12 @@ describe('UserRepository', () => {
       expectedUser.username = 'test';
       expectedUser.password = 'password';
       (ulid as jest.Mock).mockReturnValue('token');
-      const token = ulid();
+      const expiredAt = calculateExpirationTime();
 
       const actualUser = new UserEntity({
         ...expectedUser,
         id: ulid(),
-        signupToken: token,
+        signupToken: 'token',
       });
 
       dataSource.transaction = jest
@@ -266,9 +267,13 @@ describe('UserRepository', () => {
       expect(result.signupToken).toBeDefined();
       expect(emailService.sendSignupEmailToken).toHaveBeenCalledWith(
         expectedUser.email,
-        token
+        'token'
       );
-      expect(redisService.setPXAT).toHaveBeenCalledTimes(1);
+      expect(redisService.setPXAT).toHaveBeenCalledWith(
+        `signupToken:token`,
+        '1',
+        expiredAt
+      );
     });
   });
 });
