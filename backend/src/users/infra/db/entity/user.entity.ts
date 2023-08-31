@@ -40,6 +40,9 @@ export class UserEntity {
   @Column({ nullable: true, default: null })
   newEmail: string;
 
+  @Column({ default: 0 })
+  todayTotal: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
