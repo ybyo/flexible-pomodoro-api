@@ -10,6 +10,8 @@ import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
+jest.mock('ulid');
+
 describe('UserRepository', () => {
   let repo: Repository<UserEntity>;
   let userRepo: UserRepository;
@@ -237,6 +239,7 @@ describe('UserRepository', () => {
       expectedUser.email = 'test@example.com';
       expectedUser.username = 'test';
       expectedUser.password = 'password';
+      (ulid as jest.Mock).mockReturnValue('token');
       const token = ulid();
 
       const actualUser = new UserEntity({
@@ -245,7 +248,15 @@ describe('UserRepository', () => {
         signupToken: token,
       });
 
-      dataSource.transaction = jest.fn().mockResolvedValue(actualUser);
+      dataSource.transaction = jest
+        .fn()
+        .mockImplementation(async (callback) => {
+          await callback({
+            save: jest.fn().mockResolvedValue(actualUser),
+          });
+
+          return actualUser;
+        });
 
       const result = await userRepo.registerUser(expectedUser);
 
@@ -253,6 +264,11 @@ describe('UserRepository', () => {
       expect(result.username).toEqual(expectedUser.username);
       expect(result.id).toBeDefined();
       expect(result.signupToken).toBeDefined();
+      expect(emailService.sendSignupEmailToken).toHaveBeenCalledWith(
+        expectedUser.email,
+        token
+      );
+      expect(redisService.setPXAT).toHaveBeenCalledTimes(1);
     });
   });
 });
