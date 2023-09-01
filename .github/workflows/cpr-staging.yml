@@ -28,7 +28,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           branch: cpr/${{ github.ref_name }}
-          title: Sync ${{ github.ref_name }} to Staging
+          title: ${{ github.ref_name }}
           delete-branch: true
           signoff: true
           body: |
