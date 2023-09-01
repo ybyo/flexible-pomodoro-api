@@ -236,43 +236,51 @@ describe('UserRepository', () => {
 
   describe('registerUser', () => {
     it('should register a user', async () => {
-      const expectedUser = new User();
-      expectedUser.email = 'test@example.com';
-      expectedUser.username = 'test';
-      expectedUser.password = 'password';
       (ulid as jest.Mock).mockReturnValue('token');
-      const expiredAt = calculateExpirationTime();
-
-      const actualUser = new UserEntity({
-        ...expectedUser,
+      const requestedUser = new User();
+      requestedUser.email = 'test@example.com';
+      requestedUser.username = 'test';
+      requestedUser.password = 'password';
+      const savedUser = new UserEntity({
+        ...requestedUser,
         id: ulid(),
         signupToken: 'token',
       });
+      const expiredAt = calculateExpirationTime();
+      const mockSave = jest.fn().mockResolvedValue(savedUser);
 
-      dataSource.transaction = jest
-        .fn()
-        .mockImplementation(async (callback) => {
-          await callback({
-            save: jest.fn().mockResolvedValue(actualUser),
-          });
+      dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
+        await cb({ save: mockSave });
+        return savedUser;
+      });
 
-          return actualUser;
-        });
+      const result = await userRepo.registerUser(requestedUser);
 
-      const result = await userRepo.registerUser(expectedUser);
-
-      expect(result.email).toEqual(expectedUser.email);
-      expect(result.username).toEqual(expectedUser.username);
-      expect(result.id).toBeDefined();
-      expect(result.signupToken).toBeDefined();
+      expect(result.email).toEqual(requestedUser.email);
+      expect(result.username).toEqual(requestedUser.username);
       expect(emailService.sendSignupEmailToken).toHaveBeenCalledWith(
-        expectedUser.email,
+        requestedUser.email,
         'token'
       );
       expect(redisService.setPXAT).toHaveBeenCalledWith(
         `signupToken:token`,
         '1',
         expiredAt
+      );
+      expect(mockSave).toHaveBeenCalledWith(savedUser);
+    });
+
+    it("should return Error when 'sendEmailAndSetToken' fails", async () => {
+      (ulid as jest.Mock).mockReturnValue('token');
+      const requestedUser = new User();
+      requestedUser.email = 'test@example.com';
+      requestedUser.username = 'test';
+      requestedUser.password = 'password';
+
+      dataSource.transaction = jest.fn().mockRejectedValue(new Error());
+
+      await expect(userRepo.registerUser(requestedUser)).rejects.toThrowError(
+        new Error()
       );
     });
   });
