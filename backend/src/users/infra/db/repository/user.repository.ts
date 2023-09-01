@@ -100,12 +100,15 @@ export class UserRepository implements IUserRepository {
     const id = ulid();
     const token = ulid();
     const userEntity = new UserEntity({ ...user, id, signupToken: token });
-    const expiredAt = calculateExpirationTime();
 
     const savedUser = await this.dataSource.transaction(
       async (manager): Promise<UserEntity> => {
-        await this.emailService.sendSignupEmailToken(user.email, token);
-        await this.redisService.setPXAT(`signupToken:${token}`, '1', expiredAt);
+        await this.sendEmailAndSetToken(
+          userEntity.email,
+          this.emailService.sendSignupEmailToken,
+          'signupToken',
+          token
+        );
 
         return await manager.save(userEntity);
       }
@@ -126,15 +129,14 @@ export class UserRepository implements IUserRepository {
     newEmail: string
   ): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = calculateExpirationTime();
 
     try {
       return await this.dataSource.transaction(async (manager) => {
-        await this.emailService.sendChangeEmailToken(newEmail, token);
-        await this.redisService.setPXAT(
-          `changeEmailToken:${token}`,
-          '1',
-          expiredAt
+        await this.sendEmailAndSetToken(
+          newEmail,
+          this.emailService.sendChangeEmailToken,
+          'changeEmailToken',
+          token
         );
 
         return await manager.update(
@@ -146,6 +148,25 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       await this.redisService.deleteValue(`changeEmailToken:${token}`);
     }
+  }
+
+  async sendResetPasswordToken(email: string): Promise<UpdateResult> {
+    const token = ulid();
+
+    return await this.dataSource.transaction(async (manager) => {
+      await this.sendEmailAndSetToken(
+        email,
+        this.emailService.sendResetPasswordToken,
+        'resetPasswordToken',
+        token
+      );
+
+      return await manager.update(
+        UserEntity,
+        { email },
+        { resetPasswordToken: token }
+      );
+    });
   }
 
   async updateUser(
@@ -190,26 +211,6 @@ export class UserRepository implements IUserRepository {
 
   getDataSource(): DataSource {
     return this.dataSource;
-  }
-
-  async sendResetPasswordToken(email: string): Promise<UpdateResult> {
-    const token = ulid();
-    const expiredAt = calculateExpirationTime();
-
-    return await this.dataSource.transaction(async (manager) => {
-      await this.emailService.sendResetPasswordToken(email, token);
-      await this.redisService.setPXAT(
-        `resetPasswordToken:${token}`,
-        '1',
-        expiredAt
-      );
-
-      return await manager.update(
-        UserEntity,
-        { email },
-        { resetPasswordToken: token }
-      );
-    });
   }
 
   async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
@@ -305,5 +306,17 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
     }
+  }
+
+  private async sendEmailAndSetToken(
+    email: string,
+    sendEmailFunction: (email: string, token: string) => Promise<void>,
+    event: string,
+    token: string
+  ): Promise<void> {
+    const expiredAt = calculateExpirationTime();
+
+    await this.redisService.setPXAT(`${event}:${token}`, '1', expiredAt);
+    await sendEmailFunction(email, token);
   }
 }
