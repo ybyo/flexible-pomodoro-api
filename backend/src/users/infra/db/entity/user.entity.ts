@@ -8,6 +8,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ulid } from 'ulid';
 
 import { Routine } from '@/routines/domain/routine.model';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
@@ -57,7 +58,20 @@ export class UserEntity {
   @OneToMany(() => RoutineEntity, (routineEntity) => routineEntity.user)
   routine: Routine[];
 
-  constructor(partial: Partial<UserEntity>) {
-    Object.assign(this, partial);
+  constructor(p: Partial<UserEntity> = {}) {
+    this.id = p.id || ulid();
+    this.email = p.email || '';
+    this.username = p.username || '';
+    this.password = p.password || '';
+    this.signupToken = p.signupToken || null;
+    this.resetPasswordToken = p.resetPasswordToken || null;
+    this.changeEmailToken = p.changeEmailToken || null;
+    this.newEmail = p.newEmail || null;
+    this.createdAt = p.createdAt || new Date();
+    this.updatedAt = p.updatedAt || new Date();
+    this.timer = p.timer || [];
+    this.routine = p.routine || [];
+
+    Object.assign(this, p);
   }
 }

@@ -19,6 +19,7 @@ import { IUserRepository } from '@/users/domain/iuser.repository';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
 import { EmailService } from '@/users/infra/adapter/email.service';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
+import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -52,8 +53,8 @@ export class UserRepository implements IUserRepository {
     password: string
   ): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({
-      email: email,
-      password: password,
+      email,
+      password,
     });
     if (userEntity === null) {
       return null;
@@ -66,9 +67,11 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({
       signupToken: token,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findByResetPasswordToken(
@@ -77,55 +80,56 @@ export class UserRepository implements IUserRepository {
     const userEntity = await this.userRepository.findOneBy({
       resetPasswordToken: token,
     });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
   async findByUsername(username: string): Promise<UserWithoutPassword | null> {
     const userEntity = await this.userRepository.findOneBy({ username });
-    if (!userEntity) return null;
-
-    return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    if (!userEntity) {
+      return null;
+    } else {
+      return plainToClassFromExist(new UserWithoutPassword(), userEntity);
+    }
   }
 
-  async registerUser(user: User): Promise<UserEntity> {
+  async registerUser(user: User): Promise<UserWithoutPassword> {
     const id = ulid();
     const token = ulid();
     const userEntity = new UserEntity({ ...user, id, signupToken: token });
-    const expiredAt = this.calculateExpirationTime();
 
-    return await this.dataSource.transaction(
+    const savedUser = await this.dataSource.transaction(
       async (manager): Promise<UserEntity> => {
-        await this.emailService.sendSignupEmailToken(user.email, token);
-        await this.redisService.setPXAT(`signupToken:${token}`, '1', expiredAt);
+        await this.sendEmailAndSetToken(
+          userEntity.email,
+          this.emailService.sendSignupEmailToken,
+          'signupToken',
+          token
+        );
 
         return await manager.save(userEntity);
       }
     );
+
+    return plainToClassFromExist(new UserWithoutPassword(), savedUser);
   }
 
-  /**
-   * Sends a change email token to the specified old email and new email.
-   *
-   * @param {string} oldEmail - The old email address.
-   * @param {string} newEmail - The new email address.
-   * @return {Promise<UpdateResult>} A promise that resolves to the result of the update operation.
-   */
   async sendChangeEmailToken(
     oldEmail: string,
     newEmail: string
   ): Promise<UpdateResult> {
     const token = ulid();
-    const expiredAt = this.calculateExpirationTime();
 
     try {
       return await this.dataSource.transaction(async (manager) => {
-        await this.emailService.sendChangeEmailToken(newEmail, token);
-        await this.redisService.setPXAT(
-          `changeEmailToken:${token}`,
-          '1',
-          expiredAt
+        await this.sendEmailAndSetToken(
+          newEmail,
+          this.emailService.sendChangeEmailToken,
+          'changeEmailToken',
+          token
         );
 
         return await manager.update(
@@ -139,6 +143,25 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  async sendResetPasswordToken(email: string): Promise<UpdateResult> {
+    const token = ulid();
+
+    return await this.dataSource.transaction(async (manager) => {
+      await this.sendEmailAndSetToken(
+        email,
+        this.emailService.sendResetPasswordToken,
+        'resetPasswordToken',
+        token
+      );
+
+      return await manager.update(
+        UserEntity,
+        { email },
+        { resetPasswordToken: token }
+      );
+    });
+  }
+
   async updateUser(
     user: Partial<UserWithoutPassword>,
     column: Partial<UserWithoutPassword>
@@ -150,12 +173,6 @@ export class UserRepository implements IUserRepository {
     );
   }
 
-  /**
-   * Deletes a user by their ID.
-   *
-   * @param {string} id - The ID of the user to delete.
-   * @return {Promise<DeleteResult>} A promise that resolves to the delete result.
-   */
   async deleteUser(id: string): Promise<DeleteResult> {
     return await this.dataSource.transaction(async (manager) => {
       await this.deleteRoutine(id);
@@ -181,26 +198,6 @@ export class UserRepository implements IUserRepository {
 
   getDataSource(): DataSource {
     return this.dataSource;
-  }
-
-  async sendResetPasswordToken(email: string): Promise<UpdateResult> {
-    const token = ulid();
-    const expiredAt = this.calculateExpirationTime();
-
-    return await this.dataSource.transaction(async (manager) => {
-      await this.emailService.sendResetPasswordToken(email, token);
-      await this.redisService.setPXAT(
-        `resetPasswordToken:${token}`,
-        '1',
-        expiredAt
-      );
-
-      return await manager.update(
-        UserEntity,
-        { email },
-        { resetPasswordToken: token }
-      );
-    });
   }
 
   async verifySignupToken(id: string, token: string): Promise<UpdateResult> {
@@ -298,9 +295,15 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  private calculateExpirationTime(): number {
-    return new Date(
-      new Date().getTime() + +process.env.VERIFICATION_LIFETIME * 60 * 1000
-    ).getTime();
+  private async sendEmailAndSetToken(
+    email: string,
+    sendEmailFunction: (email: string, token: string) => Promise<void>,
+    event: string,
+    token: string
+  ): Promise<void> {
+    const expiredAt = calculateExpirationTime();
+
+    await this.redisService.setPXAT(`${event}:${token}`, '1', expiredAt);
+    await sendEmailFunction(email, token);
   }
 }
