@@ -1,7 +1,6 @@
 import { DataSource, DeleteResult, UpdateResult } from 'typeorm';
 
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { UserEntity } from '@/users/infra/db/entity/user.entity';
 
 export interface IUserRepository {
   findByEmail: (email: string) => Promise<User | null>;
