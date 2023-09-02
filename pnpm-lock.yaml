@@ -161,6 +161,9 @@ importers:
       rxjs:
         specifier: ^7.2.0
         version: 7.8.1
+      socket.io:
+        specifier: ^4.7.2
+        version: 4.7.2
       typeorm:
         specifier: ^0.3.10
         version: 0.3.17(ioredis@5.3.2)(mysql2@2.3.3)(ts-node@10.9.1)
@@ -315,6 +318,9 @@ importers:
       leo-profanity:
         specifier: ^1.7.0
         version: 1.7.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -3302,12 +3308,12 @@ packages:
     resolution: {integrity: sha512-9K4zoImiZc3HlIp6AVUDE4CWYx22a+lhSZMYNpbjW04+YF0KWj4pJXnEMjdnFTiQibFFmElcsasJXDbdI/EPhA==}
     dependencies:
       '@types/eslint': 8.44.2
-      '@types/estree': 0.0.45
+      '@types/estree': 1.0.1
 
   /@types/eslint@8.44.2:
     resolution: {integrity: sha512-sdPRb9K6iL5XZOmBubg8yiFp5yS/JdUDQsq5e6h95km91MCYMuvp7mh1fjPEYUhvHepKpZOjnEaMBR4PxjWDzg==}
     dependencies:
-      '@types/estree': 0.0.45
+      '@types/estree': 1.0.1
       '@types/json-schema': 7.0.12
 
   /@types/estree@0.0.39:
@@ -3319,7 +3325,6 @@ packages:
 
   /@types/estree@1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
-    dev: true
 
   /@types/express-serve-static-core@4.17.35:
     resolution: {integrity: sha512-wALWQwrgiB2AWTT91CB62b6Yt0sNHpznUXeZEcnPU3DRdlDIz74x8Qg1UUYKSVFi+va5vKOLYRBI1bRKiLLKIg==}
