@@ -72,8 +72,8 @@ export class UserEntity {
     this.newEmail = p.newEmail || null;
     this.createdAt = p.createdAt || new Date();
     this.updatedAt = p.updatedAt || new Date();
-    this.timer = p.timer || [];
-    this.routine = p.routine || [];
+    this.timer = p.timer || null;
+    this.routine = p.routine || null;
 
     Object.assign(this, p);
   }
