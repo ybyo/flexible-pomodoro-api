@@ -34,4 +34,5 @@ jobs:
           body: |
           labels: |
             autoPR
+            staging
           token: ${{ secrets.PAT }}
