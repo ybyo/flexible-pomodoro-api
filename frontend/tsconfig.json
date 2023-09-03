@@ -8,6 +8,7 @@
     "strictPropertyInitialization": false,
     "paths": {
       "boot/*": ["src/boot/*"],
+      "stores/*": ["src/stores/*"]
     }
   }
 }
