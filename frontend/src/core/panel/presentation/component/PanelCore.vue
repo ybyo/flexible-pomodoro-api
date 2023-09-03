@@ -54,20 +54,20 @@
         v-if="panelStore.state !== 'start'"
         color="green-7"
         text-color="white"
-        @click="start"
+        @click="startTimer"
         >start
       </q-btn>
       <q-btn
         v-else-if="panelStore.state === 'start'"
         color="yellow"
         text-color="black"
-        @click="pause"
+        @click="pauseTimer"
         >pause
       </q-btn>
-      <q-btn class="q-ml-lg" color="blue" text-color="white" @click="skip"
+      <q-btn class="q-ml-lg" color="blue" text-color="white" @click="skipTimer"
         >skip
       </q-btn>
-      <q-btn class="q-ml-lg" color="red" text-color="white" @click="stop"
+      <q-btn class="q-ml-lg" color="red" text-color="white" @click="stopTimer"
         >stop
       </q-btn>
     </div>
@@ -131,7 +131,7 @@ onBeforeMount(() => {
     clearInterval(panelStore.intervalId);
   }
   if (panelStore.state === 'start') {
-    start();
+    startTimer();
   }
 });
 
@@ -174,7 +174,7 @@ const formattedCurrentTime = computed(() => {
   return timeFormatter(currDuration.value);
 });
 
-const start = () => {
+const startTimer = () => {
   if ('routineToTimer' in panelStore.routine || 'timerId' in panelStore.timer) {
     panelStore.intervalId = setInterval(elapse, 1000);
   } else {
@@ -188,7 +188,7 @@ const start = () => {
   }
 };
 
-const pause = () => {
+const pauseTimer = () => {
   // TODO: 시간 정보 출력 부분이 깜빡이는 트랜지션 추가
   if (panelStore.state === 'pause') return;
   panelStore.state = 'pause';
@@ -196,7 +196,7 @@ const pause = () => {
   clearInterval(panelStore.intervalId);
 };
 
-const skip = () => {
+const skipTimer = () => {
   if (panelStore.round < panelStore.routine.routineToTimer.length - 1) {
     panelStore.round = panelStore.round + 1;
   } else {
@@ -208,8 +208,10 @@ const skip = () => {
   clearInterval(panelStore.intervalId);
 };
 
-const stop = () => {
-  if (panelStore.state === 'stop') return;
+const stopTimer = () => {
+  if (panelStore.state === 'stop') {
+    return;
+  }
   loadBackupTimer();
 
   panelStore.state = 'stop';
@@ -453,8 +455,11 @@ document.onkeydown = function (e) {
   if (dialogBackdrop !== null) return;
 
   if (e.key === ' ') {
-    if (panelStore.state === 'pause') start();
-    else if (panelStore.state === 'start') pause();
+    if (panelStore.state === 'pause') {
+      startTimer();
+    } else if (panelStore.state === 'start') {
+      pauseTimer();
+    }
   }
 };
 </script>
