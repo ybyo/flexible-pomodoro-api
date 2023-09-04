@@ -26,6 +26,7 @@ import { RedisModule } from '@/redis/redis.module';
 import { RoutineModule } from '@/routines/routine.module';
 import { TimerModule } from '@/timers/timer.module';
 import { UserModule } from '@/users/user.module';
+import { TimerGateway } from '@/ws/timer.gateway';
 
 import jwtConfig from './config/jwt.config';
 
@@ -77,6 +78,7 @@ const envPath = path.join(
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    TimerGateway,
   ],
 })
 export class AppModule implements NestModule {

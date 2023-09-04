@@ -11,6 +11,7 @@ export class User extends AUserJwt {
   signupToken: string;
   changePasswordToken: string;
   changeEmailToken: string;
+  todayTotal: number;
 }
 
 export class UserWithoutPassword extends OmitType(User, ['password']) {}

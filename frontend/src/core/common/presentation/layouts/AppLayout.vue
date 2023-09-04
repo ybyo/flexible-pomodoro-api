@@ -1,9 +1,7 @@
 <template>
   <q-layout view="lHr lpR lFr">
-    <!--    Right drawer button-->
-    <!--    <q-page-sticky position="top-right" class="z-top">-->
-    <!--      <q-btn @click="toggleRightDrawer" icon="menu" flat color="black" dense />-->
-    <!--    </q-page-sticky>-->
+    <!--    Timer Socket-->
+    <TimerSocket />
 
     <!--    Invisible header-->
     <q-header>
@@ -39,6 +37,8 @@ import ButtonHeader from 'src/core/common/presentation/components/ButtonHeader.v
 import TabsMain from 'src/core/tabs/presentation/TabsMain.vue';
 import RightDrawer from 'src/core/timers/presentation/TimerMain.vue';
 import { ref } from 'vue';
+
+import TimerSocket from '../../../panel/presentation/component/TimerSocket.vue';
 
 const $q = useQuasar();
 

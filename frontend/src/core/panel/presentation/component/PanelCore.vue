@@ -54,20 +54,20 @@
         v-if="panelStore.state !== 'start'"
         color="green-7"
         text-color="white"
-        @click="start"
+        @click="startTimer"
         >start
       </q-btn>
       <q-btn
         v-else-if="panelStore.state === 'start'"
         color="yellow"
         text-color="black"
-        @click="pause"
+        @click="pauseTimer"
         >pause
       </q-btn>
-      <q-btn class="q-ml-lg" color="blue" text-color="white" @click="skip"
+      <q-btn class="q-ml-lg" color="blue" text-color="white" @click="skipTimer"
         >skip
       </q-btn>
-      <q-btn class="q-ml-lg" color="red" text-color="white" @click="stop"
+      <q-btn class="q-ml-lg" color="red" text-color="white" @click="stopTimer"
         >stop
       </q-btn>
     </div>
@@ -84,11 +84,11 @@ import { IRoutine } from 'src/core/routines/domain/routine.model';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
 import { ITimer } from 'src/core/timers/domain/timer.model';
 import { useTimerStore } from 'src/core/timers/infra/store/timer.store';
+import { useSocketStore } from 'stores/socket.store';
 import {
   computed,
   onBeforeMount,
   onMounted,
-  onUnmounted,
   onUpdated,
   ref,
   watch,
@@ -101,6 +101,7 @@ const $q = useQuasar();
 const panelStore = usePanelStore();
 const routineStore = useRoutineStore();
 const timerStore = useTimerStore();
+const socketStore = useSocketStore();
 
 const panelStoreRefs = storeToRefs(panelStore);
 
@@ -120,6 +121,18 @@ const endless = ref(panelStore.endless);
 const autoStart = ref(panelStore.autoStart);
 const notification = ref(panelStore.notification);
 
+// Service worker listener
+onMounted(() => {
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data === 'confirm') {
+        intervalCleaner();
+        panelStore.intervalId = setInterval(elapse, 1000);
+      }
+    });
+  }
+});
+
 watchEffect(() => {
   panelStore.endless = endless.value;
   panelStore.autoStart = autoStart.value;
@@ -128,10 +141,10 @@ watchEffect(() => {
 
 onBeforeMount(() => {
   if (panelStore.intervalId !== undefined) {
-    clearInterval(panelStore.intervalId);
+    clearInterval(+panelStore.intervalId);
   }
   if (panelStore.state === 'start') {
-    start();
+    startTimer();
   }
 });
 
@@ -174,7 +187,7 @@ const formattedCurrentTime = computed(() => {
   return timeFormatter(currDuration.value);
 });
 
-const start = () => {
+const startTimer = () => {
   if ('routineToTimer' in panelStore.routine || 'timerId' in panelStore.timer) {
     panelStore.intervalId = setInterval(elapse, 1000);
   } else {
@@ -184,19 +197,27 @@ const start = () => {
       textColor: 'black',
     });
 
-    clearInterval(panelStore.intervalId);
+    if (panelStore.intervalId !== undefined) {
+      clearInterval(+panelStore.intervalId);
+    }
   }
+
+  socketStore.startTimer();
 };
 
-const pause = () => {
+const pauseTimer = () => {
   // TODO: 시간 정보 출력 부분이 깜빡이는 트랜지션 추가
   if (panelStore.state === 'pause') return;
   panelStore.state = 'pause';
 
-  clearInterval(panelStore.intervalId);
+  if (panelStore.intervalId !== undefined) {
+    clearInterval(+panelStore.intervalId);
+  }
+
+  socketStore.pauseTimer();
 };
 
-const skip = () => {
+const skipTimer = () => {
   if (panelStore.round < panelStore.routine.routineToTimer.length - 1) {
     panelStore.round = panelStore.round + 1;
   } else {
@@ -205,17 +226,23 @@ const skip = () => {
 
   loadBackupTimer();
   panelStore.state = 'pause';
-  clearInterval(panelStore.intervalId);
+  if (panelStore.intervalId !== undefined) {
+    clearInterval(+panelStore.intervalId);
+  }
 };
 
-const stop = () => {
-  if (panelStore.state === 'stop') return;
+const stopTimer = () => {
+  if (panelStore.state === 'stop') {
+    return;
+  }
   loadBackupTimer();
 
   panelStore.state = 'stop';
   panelStore.round = 0;
 
-  clearInterval(panelStore.intervalId);
+  if (panelStore.intervalId !== undefined) {
+    clearInterval(+panelStore.intervalId);
+  }
   useMeta({ title: 'Pipe Timer' });
 };
 
@@ -236,8 +263,8 @@ const elapse = () => {
     panelStore.timer = _.cloneDeep(timer);
   }
   if (timer !== null && timer.duration < 0) {
-    if (!!notification.value) {
-      clearInterval(panelStore.intervalId);
+    if (!!notification.value && panelStore.intervalId !== undefined) {
+      clearInterval(+panelStore.intervalId);
       notifyRoundEnd();
     }
     panelStore.round++;
@@ -370,25 +397,27 @@ const timeEnd = () => {
     if (endless.value === true) {
       round.value = 0;
     } else {
-      clearInterval(panelStore.intervalId);
-
+      if (panelStore.intervalId !== undefined) {
+        clearInterval(+panelStore.intervalId);
+      }
       panelStoreRefs.state = ref('');
       panelStoreRefs.round = ref(0);
 
       $q.notify({ message: '타이머를 종료합니다', color: 'green' });
-      stop();
+      stopTimer();
     }
   } else if (panelStore.mode === 'timer' && +round.value >= 1) {
     if (endless.value === true) {
       round.value = 0;
     } else {
-      clearInterval(panelStore.intervalId);
-
+      if (panelStore.intervalId !== undefined) {
+        clearInterval(+panelStore.intervalId);
+      }
       panelStore.state = '';
       panelStore.round = 0;
 
       $q.notify({ message: '타이머를 종료합니다', color: 'green' });
-      stop();
+      stopTimer();
     }
   }
 
@@ -425,27 +454,13 @@ const endRoundPush = (timerInfo: any) => {
         panelStore.mode === 'timer'
       ) {
         new Notification('모든 타이머를 실행했습니다.');
-        stop();
+        stopTimer();
       }
     });
   }
 };
 
-// Service worker listener
-
-onMounted(() => {
-  if (navigator.serviceWorker) {
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      if (e.data === 'confirm') {
-        intervalCleaner();
-        panelStore.intervalId = setInterval(elapse, 1000);
-      }
-    });
-  }
-});
-
 // Shortcut
-
 document.onkeydown = function (e) {
   const dialogBackdrop = document.querySelector(
     '.q-dialog__backdrop.fixed-full'
@@ -453,8 +468,11 @@ document.onkeydown = function (e) {
   if (dialogBackdrop !== null) return;
 
   if (e.key === ' ') {
-    if (panelStore.state === 'pause') start();
-    else if (panelStore.state === 'start') pause();
+    if (panelStore.state === 'pause') {
+      startTimer();
+    } else if (panelStore.state === 'start') {
+      pauseTimer();
+    }
   }
 };
 </script>
