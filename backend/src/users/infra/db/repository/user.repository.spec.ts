@@ -251,6 +251,7 @@ describe('UserRepository', () => {
 
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         await cb({ save: mockSave });
+
         return savedUser;
       });
 
