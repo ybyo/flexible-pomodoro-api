@@ -99,16 +99,10 @@ async function bootstrap() {
   app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
-  const corsOption = {
-    origin: [
-      `https://${process.env.HOST_URL}`,
-      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
-      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_2}`,
-    ],
-    credentials: true,
-    optionsSuccessStatus: 200,
-  };
-  app.enableCors(corsOption);
+  const configService = app.get(ConfigService);
+  const corsOptions = configService.get('cors');
+
+  app.enableCors(corsOptions);
   app.use(cookieParser());
   app.use(helmet());
 

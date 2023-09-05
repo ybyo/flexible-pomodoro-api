@@ -48,7 +48,13 @@ const envPath = path.join(
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       envFilePath: [envPath],
-      load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
+      load: [
+        jwtConfig,
+        refreshTokenConfig,
+        accessTokenConfig,
+        emailConfig,
+        corsConfig,
+      ],
       isGlobal: true,
       validationSchema,
     }),
@@ -93,15 +99,15 @@ export class AppModule implements NestModule {
     consumer
       .apply(
         session({
+          cookie: this.refreshTokenConf,
+          name: 'refreshToken',
+          resave: false,
+          saveUninitialized: false,
+          secret: process.env.SESSION_SECRET,
           store: new (RedisStore(session))({
             client: this.redisClient,
             logErrors: true,
           }),
-          name: 'refreshToken',
-          saveUninitialized: false,
-          resave: false,
-          secret: process.env.SESSION_SECRET,
-          cookie: this.refreshTokenConf,
         }),
         passport.initialize(),
         passport.session()
