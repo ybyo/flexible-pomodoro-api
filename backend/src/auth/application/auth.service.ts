@@ -26,12 +26,12 @@ import { RegisterUserDto } from '@/users/interface/dto/register-user.dto';
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
+    @Inject('UserRepository') private userRepository: IUserRepository,
     @Inject(jwtConfig.KEY) private jwtConf: ConfigType<typeof jwtConfig>,
     private commandBus: CommandBus,
-    private queryBus: QueryBus,
     private jwtService: JwtService,
-    @Inject('RedisTokenService') private redisService: IRedisTokenAdapter,
-    @Inject('UserRepository') private userRepository: IUserRepository
+    private queryBus: QueryBus
   ) {}
   async verifyPassword(
     hashedPassword: string,

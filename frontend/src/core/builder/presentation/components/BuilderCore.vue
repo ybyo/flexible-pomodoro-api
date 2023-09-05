@@ -143,7 +143,6 @@ import { IRoutine } from 'src/core/routines/domain/routine.model';
 import { ITimer } from 'src/core/timers/domain/timer.model';
 import { isEmptyObj } from 'src/util/is-empty-object.util';
 import { computed, reactive, ref } from 'vue';
-import _ from 'lodash';
 import draggable from 'vuedraggable';
 
 const builderStore = useBuilderStore();
