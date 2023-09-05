@@ -55,6 +55,7 @@
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query';
 import { toTypedSchema } from '@vee-validate/zod';
+import axios, { AxiosError } from 'axios';
 import { useQuasar } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { useRoutineStore } from 'src/core/routines/infra/store/routine.store';
@@ -101,14 +102,15 @@ const { value: password, errorMessage: passwordError } = useField('password');
 const { mutate } = useMutation(
   (credentials: ILoginInput) => loginUserFn(credentials),
   {
-    onError: (err: any) => {
-      const errMsg = err.response.data.message as string;
-
-      if (
-        errMsg === 'Incorrect email or password' ||
-        errMsg === 'No matching account information'
-      ) {
-        setErrors('이메일 혹은 비밀번호가 일치하지 않습니다.');
+    onError: (error: AxiosError) => {
+      if (axios.isAxiosError(error) && error.response) {
+        const errMsg = error.response.data.message as string;
+        if (
+          errMsg === 'Incorrect email or password' ||
+          errMsg === 'No matching account information'
+        ) {
+          setErrors('이메일 혹은 비밀번호가 일치하지 않습니다.');
+        }
       }
     },
     onSuccess: async () => {

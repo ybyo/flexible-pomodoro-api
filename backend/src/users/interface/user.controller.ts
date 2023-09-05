@@ -66,6 +66,7 @@ export class UserController {
     @Body() dto: SendResetPasswordEmailDto
   ): Promise<SuccessDto> {
     const command = new SendResetPasswordTokenCommand(dto.email);
+
     return await this.commandBus.execute(command);
   }
 
@@ -120,6 +121,7 @@ export class UserController {
     @Body() body: SendChangeEmailTokenDto
   ): Promise<SuccessDto> {
     const command = new SendChangeEmailTokenCommand(req.user.email, body.email);
+
     return await this.commandBus.execute(command);
   }
 
@@ -158,7 +160,7 @@ export class UserController {
   async changeName(
     @Req() req: Request,
     @Body() body: ChangeUsernameDto,
-    @Res({ passthrough: true }) res
+    @Res({ passthrough: true }) res: Response
   ): Promise<any> {
     const result = await this.authService.changeNameAndJWT(
       req.user.id,
@@ -167,6 +169,7 @@ export class UserController {
     );
 
     res.cookie('accessToken', result.data, this.accessConf);
+
     return { success: result.success };
   }
 
@@ -181,7 +184,7 @@ export class UserController {
   })
   async deleteAccount(
     @Req() req: Request,
-    @Res({ passthrough: true }) res
+    @Res({ passthrough: true }) res: Response
   ): Promise<Session> {
     const command = new DeleteUserCommand(req.user.id);
     await this.commandBus.execute(command);
