@@ -14,6 +14,7 @@ import * as path from 'path';
 
 import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/access-token.config';
+import corsConfig from '@/config/cors.config';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refresh-token.config';
 import { validationSchema } from '@/config/validation.schema';
