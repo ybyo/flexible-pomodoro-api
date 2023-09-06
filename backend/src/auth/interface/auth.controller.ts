@@ -35,7 +35,7 @@ import { SuccessDto } from '@/auth/interface/dto/success.dto';
 import { UserJwtWithVerifiedDto } from '@/auth/interface/dto/user-jwt-with-verified.dto';
 import { JwtAuthGuard } from '@/auth/interface/guard/jwt-auth.guard';
 import { LocalGuard } from '@/auth/interface/guard/local.guard';
-import { LoggedInGuard } from '@/auth/interface/guard/logged-in.guard';
+import { RefreshTokenGuard } from '@/auth/interface/guard/refresh-token.guard';
 import accessTokenConfig from '@/config/access-token.config';
 import { Session } from '@/shared/types/common-types';
 import { CheckDuplicateEmailDto } from '@/users/interface/dto/check-duplicate-email.dto';
@@ -79,17 +79,17 @@ export class AuthController {
   @ApiResponse({ type: UserJwtWithVerifiedDto })
   async login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const token = await this.authService.issueJWT(req.user);
-
     res.cookie('accessToken', token, this.accessConf);
+
     return req.user;
   }
 
-  @UseGuards(LoggedInGuard)
+  @UseGuards(RefreshTokenGuard)
   @Get('refresh')
-  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiOperation({ summary: 'Refresh accessToken' })
   @ApiQuery({ type: RequestWithUserDto })
   @ApiResponse({
-    description: 'Access token renewed successfully',
+    description: 'accessToken renewed successfully',
   })
   async refreshAuth(
     @Req() req: Request,
