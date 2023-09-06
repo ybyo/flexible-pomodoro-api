@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/vault"
       version = "~> 3.18.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 5.0"
+    }
   }
 
   backend "s3" {
@@ -29,6 +33,18 @@ locals {
   envs = {
     for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(tuple[1], "\r")
   }
+}
+
+###################################
+# GitHub Branch Revision Number
+###################################
+provider "github" {
+  token = local.envs["GITHUB_TOKEN"]
+}
+
+data "github_branch" "revision_number" {
+  repository = "pipe-timer"
+  branch     = "staging"
 }
 
 ###################################
@@ -50,7 +66,7 @@ resource "null_resource" "build_docker" {
   }
 
   provisioner "local-exec" {
-    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
+    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${data.github_branch.revision_number.sha} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -264,6 +280,9 @@ resource "cloudflare_record" "frontend_staging" {
   proxied = local.envs["PROXIED"]
 }
 
+###################################
+# Cloud-init Template
+###################################
 data "template_cloudinit_config" "setup" {
   gzip          = true
   base64_encode = true
@@ -343,6 +362,7 @@ data "template_cloudinit_config" "setup" {
       loki_url          = local.envs["LOKI_URL"]
       registry_password = local.envs["REGISTRY_PASSWORD"]
       registry_id       = local.envs["REGISTRY_ID"]
+      revision_number   = data.github_branch.revision_number.sha
     })
   }
 }
@@ -362,13 +382,13 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "pipe_timer_frontend" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = local.envs["EC2_FLAVOR"]
-  subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
-  vpc_security_group_ids      = [aws_security_group.pt_frontend_staging_443.id,
-                                  aws_security_group.pt_frontend_staging_dns.id,
-                                  aws_security_group.pt_frontend_staging_node_exporter.id,
-                                  aws_security_group.pt_frontend_staging_ssh.id]
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = local.envs["EC2_FLAVOR"]
+  subnet_id     = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
+  vpc_security_group_ids = [aws_security_group.pt_frontend_staging_443.id,
+    aws_security_group.pt_frontend_staging_dns.id,
+    aws_security_group.pt_frontend_staging_node_exporter.id,
+  aws_security_group.pt_frontend_staging_ssh.id]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
 

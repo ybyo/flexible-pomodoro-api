@@ -12,7 +12,12 @@ terraform {
       source  = "hashicorp/vault"
       version = "~> 3.18"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 5.0"
+    }
   }
+
   backend "s3" {
     bucket         = "terraform-pt-state"
     key            = "pt/production/applications/backend/terraform.tfstate"
@@ -28,6 +33,18 @@ locals {
   envs = {
     for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${var.env}.env")) : tuple[0] => trim(tuple[1], "\r")
   }
+}
+
+###################################
+# GitHub Branch Revision Number
+###################################
+provider "github" {
+  token = local.envs["GITHUB_TOKEN"]
+}
+
+data "github_branch" "revision_number" {
+  repository = "pipe-timer"
+  branch     = "main"
 }
 
 ###################################
@@ -49,7 +66,7 @@ resource "null_resource" "build_docker" {
   }
 
   provisioner "local-exec" {
-    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
+    command     = "chmod +x ./shell-scripts/build-push-registry.sh; ./shell-scripts/build-push-registry.sh ${local.envs["LINUX_PLATFORM"]} ${data.github_branch.revision_number.sha} ${local.envs["REGISTRY_URL"]} ${local.envs["NODE_ENV"]}"
     working_dir = path.module
     interpreter = ["/bin/bash", "-c"]
   }
@@ -183,6 +200,7 @@ resource "aws_security_group" "pt_backend_production_443" {
   }
 }
 
+
 ###################################
 # Vault
 ###################################
@@ -252,7 +270,7 @@ resource "cloudflare_record" "backend_production" {
 }
 
 ###################################
-# Cloud-init config
+# Cloud-init Template
 ###################################
 data "template_cloudinit_config" "setup" {
   gzip          = true
@@ -335,6 +353,7 @@ data "template_cloudinit_config" "setup" {
       registry_id       = local.envs["REGISTRY_ID"]
       registry_url      = local.envs["REGISTRY_URL"]
       api_port          = local.envs["API_PORT_0"]
+      revision_number   = data.github_branch.revision_number.sha
     })
   }
 }
@@ -408,9 +427,9 @@ resource "aws_instance" "pipe_timer_backend" {
   #    ]
   #  }
 
+  depends_on = [null_resource.build_docker]
+
   tags = {
     Name = "pt-${var.env}-backend"
   }
-
-  depends_on = [null_resource.build_docker]
 }
