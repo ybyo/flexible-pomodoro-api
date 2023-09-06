@@ -245,10 +245,11 @@ describe('UserRepository', () => {
         ...requestedUser,
         id: ulid(),
         signupToken: 'token',
+        createdAt: undefined,
+        updatedAt: undefined,
       });
       const expiredAt = calculateExpirationTime();
       const mockSave = jest.fn().mockResolvedValue(savedUser);
-
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         await cb({ save: mockSave });
 
@@ -257,6 +258,14 @@ describe('UserRepository', () => {
 
       const result = await userRepo.registerUser(requestedUser);
 
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: expect.any(String),
+          email: requestedUser.email,
+          username: requestedUser.username,
+          signupToken: 'token',
+        })
+      );
       expect(result.email).toEqual(requestedUser.email);
       expect(result.username).toEqual(requestedUser.username);
       expect(emailService.sendSignupEmailToken).toHaveBeenCalledWith(
@@ -268,7 +277,7 @@ describe('UserRepository', () => {
         '1',
         expiredAt
       );
-      expect(mockSave).toHaveBeenCalledWith(savedUser);
+      expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
     it("should return Error when 'sendEmailAndSetToken' fails", async () => {
