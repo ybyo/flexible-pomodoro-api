@@ -14,6 +14,17 @@ docker run -d \
   --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; }
 
 docker run -d \
+  -v /:/host:ro,rslave \
+  -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml:ro \
+  -v "${cicd_path}"/certs:"${cicd_path}"/certs:ro \
+  --name=node-exporter \
+  --net=host \
+  --pid=host \
+  quay.io/prometheus/node-exporter:latest \
+  --web.config.file=web-config-exporter.yml \
+  --path.rootfs=/host || { echo 'Failed to run node-exporter'; }
+
+docker run -d \
   -p "${api_port}":"${api_port}" \
   -v "${cicd_path}"/certs:/app/certs:ro \
   -v "${cicd_path}"/env:/env:ro \
@@ -22,7 +33,7 @@ docker run -d \
   --network=pipe-timer \
   --network-alias=nestjs \
   --restart=on-failure \
-  "${registry_url}"/pipe-timer-backend:"${env}" || { echo 'Failed to run nestjs'; }
+  "${registry_url}"/pt-backend-"${env}":"${revision_number}" || { echo 'Failed to run nestjs'; }
 
 docker run -d \
   -p 443:443 \
@@ -34,17 +45,6 @@ docker run -d \
   --network-alias=nginx \
   --add-host=host.docker.internal:host-gateway \
   nginx || { echo 'Failed to run nginx'; }
-
-docker run -d \
-  -v /:/host:ro,rslave \
-  -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml:ro \
-  -v "${cicd_path}"/certs:"${cicd_path}"/certs:ro \
-  --name=node-exporter \
-  --net=host \
-  --pid=host \
-  quay.io/prometheus/node-exporter:latest \
-  --web.config.file=web-config-exporter.yml \
-  --path.rootfs=/host || { echo 'Failed to run node-exporter'; }
 
 sleep 5
 
