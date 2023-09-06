@@ -27,9 +27,9 @@ import { RedisModule } from '@/redis/redis.module';
 import { RoutineModule } from '@/routines/routine.module';
 import { TimerModule } from '@/timers/timer.module';
 import { UserModule } from '@/users/user.module';
-import { TimerGateway } from '@/ws/timer.gateway';
 
 import jwtConfig from './config/jwt.config';
+import { TimerSocketModule } from '@/ws/timer-socket.module';
 
 const envPath = path.join(
   __dirname,
@@ -78,6 +78,7 @@ const envPath = path.join(
     ExceptionModule,
     TimerModule,
     RoutineModule,
+    TimerSocketModule,
   ],
   controllers: [HealthCheckController],
   providers: [
@@ -85,7 +86,6 @@ const envPath = path.join(
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    TimerGateway,
   ],
 })
 export class AppModule implements NestModule {
