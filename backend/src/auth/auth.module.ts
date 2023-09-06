@@ -12,6 +12,7 @@ import { GetUserByIdHandler } from '@/auth/application/query/handlers/get-user-b
 import { AuthController } from '@/auth/interface/auth.controller';
 import { JwtStrategy } from '@/auth/interface/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/interface/strategy/local.strategy';
+import { RefreshTokenStrategy } from '@/auth/interface/strategy/refresh-token.strategy';
 import { AuthSerializer } from '@/auth/serialization.provider';
 import { EmailModule } from '@/email/email.module';
 import { RedisModule } from '@/redis/redis.module';
@@ -38,7 +39,12 @@ const externalService = [
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
-const strategies = [LocalStrategy, JwtStrategy, RedisTokenStrategy];
+const strategies = [
+  LocalStrategy,
+  JwtStrategy,
+  RefreshTokenStrategy,
+  RedisTokenStrategy,
+];
 
 const repositories = [
   { provide: 'RoutineRepository', useClass: RoutineRepository },
