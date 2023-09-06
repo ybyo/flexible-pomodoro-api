@@ -25,10 +25,9 @@ api.interceptors.response.use(
   // TODO: 서버 자체가 열려있지 않을 때 로그인 비활성화
   async (error) => {
     const errorMessage = error.response.data?.message as string;
-
     if (errorMessage === 'Unauthorized' || errorMessage === 'User not found') {
       try {
-        return await api.get<IRes<IUser>>('auth/refresh');
+        await api.get<IRes<IUser>>('auth/refresh');
       } catch (error) {
         const userStore = useUserStore();
         const timerStore = useTimerStore();
