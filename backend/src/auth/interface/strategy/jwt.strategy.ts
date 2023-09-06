@@ -3,20 +3,15 @@ import { JwtPayload } from 'jsonwebtoken';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { AuthService } from '@/auth/application/auth.service';
+import { tokenExtractor } from '@/auth/interface/strategy/cookie-extractor';
 import { UserJwt } from '@/users/domain/user.model';
-
-const cookieExtractor = (req) => {
-  let token = null;
-  if (req && req.cookies) {
-    token = req.cookies['accessToken'];
-  }
-  return token;
-};
 
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        tokenExtractor('accessToken'),
+      ]),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
       authService: AuthService,
