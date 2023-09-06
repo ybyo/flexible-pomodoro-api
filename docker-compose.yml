@@ -28,8 +28,8 @@ services:
     profiles:
       - local
 
-  backend-pt:
-    image: backend-pt
+  pt-backend:
+    image: pt-backend 
     build:
       platforms:
         - ${PLATFORM}
@@ -39,7 +39,7 @@ services:
         NODE_ENV: ${NODE_ENV}
         API_PORT_0: ${API_PORT_0}
       tags:
-        - ${REGISTRY_URL}/pipe-timer-backend:${NODE_ENV}
+        - ${REGISTRY_URL}/pt-backend-${NODE_ENV}:${TAG}
     env_file:
       - env/.${NODE_ENV}.env
     container_name: backend
@@ -51,8 +51,8 @@ services:
     restart: always
     depends_on: [mysql-pt, redis-pt]
 
-  nginx-pt:
-    image: nginx-pt
+  pt-frontend:
+    image: pt-frontend
     build:
       platforms:
         - ${PLATFORM}
@@ -65,7 +65,7 @@ services:
         FRONT_PORT_2: ${FRONT_PORT_2}
         API_PORT_3: ${API_PORT_3}
       tags:
-        - ${REGISTRY_URL}/pipe-timer-frontend:${NODE_ENV}
+        - ${REGISTRY_URL}/pt-frontend-${NODE_ENV}:${TAG}
     env_file:
       - env/.${NODE_ENV}.env
     environment:
@@ -79,7 +79,7 @@ services:
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
     restart: always
-    depends_on: [mysql-pt, redis-pt, backend-pt]
+    depends_on: [mysql-pt, redis-pt, pt-backend]
 
   mysql-test:
     image: mysql:8
