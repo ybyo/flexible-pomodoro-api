@@ -36,6 +36,7 @@ const userStore = useUserStore();
 const timerStore = useTimerStore();
 const routineStore = useRoutineStore();
 const panelStore = usePanelStore();
+const socketStore = useSocketStore();
 
 const userStoreRefs = storeToRefs(userStore);
 
@@ -45,6 +46,9 @@ const { mutate: logoutUser } = useMutation(() => logoutUserFn(), {
     timerStore.$reset();
     routineStore.$reset();
     panelStore.$reset();
+
+    socketStore.disconnect();
+    socketStore.initSocket();
 
     router.push({ name: 'login' });
   },
