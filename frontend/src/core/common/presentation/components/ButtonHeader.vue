@@ -41,7 +41,7 @@ const panelStore = usePanelStore();
 const userStoreRefs = storeToRefs(userStore);
 
 const { mutate: logoutUser } = useMutation(() => logoutUserFn(), {
-  onMutate: () => {
+  onSuccess: () => {
     userStore.$reset();
     timerStore.$reset();
     routineStore.$reset();
