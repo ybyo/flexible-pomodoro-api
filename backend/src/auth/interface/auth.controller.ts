@@ -23,6 +23,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { parse } from 'cookie';
 import { Request, Response } from 'express';
 
 import { AuthService } from '@/auth/application/auth.service';
@@ -78,8 +79,16 @@ export class AuthController {
   @ApiBody({ type: LoginUserDto })
   @ApiResponse({ type: UserJwtWithVerifiedDto })
   async login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const cookieObject = parse(req.headers.cookie);
+    if (cookieObject.hasOwnProperty('guest')) {
+      const guestId = cookieObject.guest;
+      console.log(guestId);
+    }
+
     const token = await this.authService.issueJWT(req.user);
-    res.cookie('accessToken', token, this.accessConf);
+    res
+      .clearCookie('guest', { ...this.accessConf, maxAge: 0 })
+      .cookie('accessToken', token, this.accessConf);
 
     return req.user;
   }
@@ -135,7 +144,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ): Promise<Session> {
     req.logout((err) => {
-      if (err) return err;
+      if (err) {
+        return err;
+      }
     });
 
     res.clearCookie('accessToken', { ...this.accessConf, maxAge: 0 });
@@ -156,6 +167,7 @@ export class AuthController {
   })
   async resendSignupEmail(@Body() dto: ResendEmailDto): Promise<SuccessDto> {
     const command = new ResendEmailCommand(dto.email);
+
     return await this.commandBus.execute(command);
   }
 

@@ -17,7 +17,7 @@ import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-time
 import { IEmailAdapter } from '@/users/application/adapter/iemail.adapter';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
 
@@ -27,9 +27,22 @@ export class UserRepository implements IUserRepository {
     private dataSource: DataSource,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
-    @Inject(EmailService) private emailService: IEmailAdapter,
+    @Inject(EmailAdapter) private emailService: IEmailAdapter,
     private redisService: RedisTokenService
   ) {}
+
+  private async sendEmailAndSetToken(
+    email: string,
+    sendEmailFunction: (email: string, token: string) => Promise<void>,
+    event: string,
+    token: string
+  ): Promise<void> {
+    const expiredAt = calculateExpirationTime();
+
+    await this.redisService.setPXAT(`${event}:${token}`, '1', expiredAt);
+    await sendEmailFunction(email, token);
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     const userEntity = await this.userRepository.findOneBy({ email });
     if (!userEntity) {
@@ -293,17 +306,5 @@ export class UserRepository implements IUserRepository {
     } catch (err) {
       redis.rename(`signupToken:${newToken}`, `signupToken:${oldToken}`);
     }
-  }
-
-  private async sendEmailAndSetToken(
-    email: string,
-    sendEmailFunction: (email: string, token: string) => Promise<void>,
-    event: string,
-    token: string
-  ): Promise<void> {
-    const expiredAt = calculateExpirationTime();
-
-    await this.redisService.setPXAT(`${event}:${token}`, '1', expiredAt);
-    await sendEmailFunction(email, token);
   }
 }

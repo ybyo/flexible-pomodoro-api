@@ -33,6 +33,7 @@ export class AuthService {
     private jwtService: JwtService,
     private queryBus: QueryBus
   ) {}
+
   async verifyPassword(
     hashedPassword: string,
     password: string

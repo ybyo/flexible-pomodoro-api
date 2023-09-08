@@ -1,22 +1,32 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
-import * as sgMail from '@sendgrid/mail';
-import * as ejs from 'ejs';
-import * as nodemailer from 'nodemailer';
-import * as path from 'path';
+import * as sgmail from '@sendgrid/mail';
+import { renderFile } from 'ejs';
+import { createTransport, Transporter } from 'nodemailer';
+import { join } from 'path';
 
 import emailConfig from '@/config/email.config';
+import { EmailFactory } from '@/email/domain/email.factory';
+import {
+  NodemailerEmailOptions,
+  SendGridEmailOptions,
+} from '@/email/domain/email.model';
 
 @Injectable()
 export class EmailService {
   private readonly host: string;
-  private transporter: nodemailer.Transporter;
+  private readonly templates = {
+    signup: 'signup-email-inlined.ejs',
+    changeEmail: 'change-email-inlined.ejs',
+    resetPassword: 'reset-password-inlined.ejs',
+  };
+  private transporter: Transporter;
 
   constructor(
     @Inject(emailConfig.KEY)
     private config: ConfigType<typeof emailConfig>,
-    private logger: Logger
+    private logger: Logger,
+    private emailFactory: EmailFactory
   ) {
     this.host =
       process.env.NODE_ENV === 'development' ||
@@ -25,9 +35,9 @@ export class EmailService {
         : `${this.config.host}`;
 
     if (this.config.auth.sgMailKey) {
-      sgMail.setApiKey(this.config.auth.sgMailKey);
+      sgmail.setApiKey(this.config.auth.sgMailKey);
     } else {
-      this.transporter = nodemailer.createTransport({
+      this.transporter = createTransport({
         service: config.auth.testService,
         auth: {
           user: config.auth.testUser,
@@ -37,39 +47,49 @@ export class EmailService {
     }
   }
 
-  private sendToken(email, subject, url, template): void {
-    let rendered;
+  private async sendEmail(
+    email: string,
+    subject: string,
+    templateName: keyof typeof this.templates,
+    token: string,
+    tokenQueryParam: string
+  ) {
+    const url = `https://${this.host}/users/verify-${templateName}?${tokenQueryParam}=${token}`;
+    const templatePath = join(
+      __dirname,
+      `../public/${this.templates[templateName]}`
+    );
+    const rendered = this.renderEmail(url, templatePath);
+    if (rendered) {
+      this.sendVerificationEmail(email, subject, rendered);
+    }
+  }
 
-    const variables = {
-      app_name: 'Pipe Timer',
-      verification_url: url,
-    };
-
-    ejs.renderFile(template, variables, (err, data) => {
-      if (err) console.log(err);
-      rendered = data;
-    });
-
-    const mailOptions: MailDataRequired = {
-      to: email,
-      subject: `Pipe Timer - ${subject}`,
-      from: 'no-reply@pipetimer.com',
-      html: rendered,
-    };
-
-    const nodemailerOptions = {
-      to: email,
-      subject: `Pipe Timer - ${subject}`,
-      html: rendered,
-    };
-
+  private sendVerificationEmail(
+    email: string,
+    subject: string,
+    rendered: string
+  ): void {
     if (this.config.auth.sgMailKey) {
-      sgMail.send(mailOptions).then(() => {
+      const sendgridEmailOptions = this.emailFactory.createOption(
+        email,
+        `Pipe Timer - ${subject}`,
+        'no-reply@pipetimer.com',
+        rendered
+      ) as SendGridEmailOptions;
+
+      sgmail.send(sendgridEmailOptions).then(() => {
         this.logger.verbose(
           `Email sent successfully...\nTo: ${email}\nSubject: ${subject}`
         );
       });
     } else {
+      const nodemailerOptions = this.emailFactory.createOption(
+        email,
+        `Pipe Timer - ${subject}`,
+        rendered
+      ) as NodemailerEmailOptions;
+
       this.transporter.sendMail(nodemailerOptions).then(() => {
         this.logger.verbose(
           `[Nodemailer] Email sent with Nodemailer successfully...\nTo: ${email}\nSubject: ${subject}`
@@ -78,32 +98,46 @@ export class EmailService {
     }
   }
 
-  sendSignupEmailToken(email: string, token: string): void {
-    const subject = '회원가입 인증';
-    const url = `https://${this.host}/users/verify-email?signupToken=${token}`;
-    const template = path.join(__dirname, '../public/signup-email-inlined.ejs');
-
-    this.sendToken(email, subject, url, template);
-  }
-
-  sendChangeEmailToken(email: string, token: string): void {
-    const subject = '이메일 변경';
-    const url = `https://${this.host}/users/verify-change-email-token?changeEmailToken=${token}`;
-    const template = path.join(__dirname, '../public/change-email-inlined.ejs');
-
-    this.sendToken(email, subject, url, template);
-  }
-
-  sendResetPasswordToken(email: string, token: string): void {
-    const subject = '비밀번호 재설정';
-    const url = `https://${this.host}/users/verify-reset-password?resetPasswordToken=${token}`;
-    const template = path.join(
-      __dirname,
-      '../public/reset-password-inlined.ejs'
+  private renderEmail(url: string, template: string): string | void {
+    return renderFile(
+      template,
+      {
+        app_name: 'Pipe Timer',
+        verification_url: url,
+      },
+      (err: Error, rendered: string) => {
+        return err ? console.error(err) : rendered;
+      }
     );
+  }
 
-    console.log(template);
+  async sendSignupEmailToken(email: string, token: string): Promise<void> {
+    await this.sendEmail(
+      email,
+      '회원가입 인증',
+      'signup',
+      token,
+      'signupToken'
+    );
+  }
 
-    this.sendToken(email, subject, url, template);
+  async sendChangeEmailToken(email: string, token: string): Promise<void> {
+    await this.sendEmail(
+      email,
+      '이메일 변경',
+      'changeEmail',
+      token,
+      'changeEmailToken'
+    );
+  }
+
+  async sendResetPasswordToken(email: string, token: string): Promise<void> {
+    await this.sendEmail(
+      email,
+      '비밀번호 재설정',
+      'resetPassword',
+      token,
+      'resetPasswordToken'
+    );
   }
 }
