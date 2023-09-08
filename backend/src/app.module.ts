@@ -11,6 +11,7 @@ import * as session from 'express-session';
 import { RedisClient } from 'ioredis/built/connectors/SentinelConnector/types';
 import * as passport from 'passport';
 import * as path from 'path';
+import { ulid } from 'ulid';
 
 import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/access-token.config';
@@ -27,9 +28,9 @@ import { RedisModule } from '@/redis/redis.module';
 import { RoutineModule } from '@/routines/routine.module';
 import { TimerModule } from '@/timers/timer.module';
 import { UserModule } from '@/users/user.module';
+import { TimerSocketModule } from '@/ws/timer-socket.module';
 
 import jwtConfig from './config/jwt.config';
-import { TimerSocketModule } from '@/ws/timer-socket.module';
 
 const envPath = path.join(
   __dirname,
@@ -104,6 +105,7 @@ export class AppModule implements NestModule {
           resave: false,
           saveUninitialized: false,
           secret: process.env.SESSION_SECRET,
+          genid: () => ulid(),
           store: new (RedisStore(session))({
             client: this.redisClient,
             logErrors: true,
