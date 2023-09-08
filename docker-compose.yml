@@ -26,7 +26,7 @@ services:
     profiles:
       - local
 
-  nestjs:
+  pt-backend:
     image: pt-backend
     build:
       platforms:
@@ -60,9 +60,9 @@ services:
       - ./backend/certs:/etc/nginx/certs:ro
     env_file:
       - ./env/.${NODE_ENV}.env
-    depends_on: [ nestjs ]
+    depends_on: [ pt-backend ]
 
-  frontend:
+  pt-frontend:
     image: pt-frontend
     build:
       platforms:
@@ -89,7 +89,7 @@ services:
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
     restart: always
-    depends_on: [ mysql, redis, nestjs ]
+    depends_on: [ mysql, redis, pt-backend ]
 
   mysql-test:
     image: mysql:8
