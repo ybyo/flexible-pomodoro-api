@@ -7,10 +7,9 @@ import { boot } from 'quasar/wrappers';
 
 let apiURL;
 
-if (
-  process.env.ENV_NAME === 'local-staging' ||
-  process.env.ENV_NAME === 'development'
-) {
+if (process.env.ENV_NAME === 'development') {
+  apiURL = `https://localhost:${process.env.API_PORT_0}`;
+} else if (process.env.ENV_NAME === 'local-staging') {
   apiURL = `https://localhost:${process.env.API_PORT_0}`;
 } else {
   apiURL = `https://${process.env.UPSTREAM_BACKEND}`;
