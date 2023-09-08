@@ -12,7 +12,7 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { UserFactory } from '@/users/domain/user.factory';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
@@ -23,7 +23,7 @@ import {
   REDIS_TOKEN,
 } from './redis.constants';
 
-const externalService = [EmailService];
+const externalService = [EmailAdapter];
 const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
 const commandHandlers = [DeleteUserHandler];
 const factories = [UserFactory];
