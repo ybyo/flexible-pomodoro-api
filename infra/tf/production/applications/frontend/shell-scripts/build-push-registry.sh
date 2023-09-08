@@ -2,6 +2,6 @@
 
 cd ../../../../
 
-PLATFORM=linux/$1 pnpm run production:compose:build nginx-pt
+PLATFORM=linux/$1 TAG=$2 pnpm run "$4:compose:build" pt-frontend
 
-docker push "$2/pipe-timer-frontend:$3"
+docker push "$3/pt-frontend-$4:$2"

@@ -4,19 +4,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import Redis from 'ioredis';
 
 import { EmailModule } from '@/email/email.module';
+import { RedisAuthService } from '@/redis/redis-auth.service';
+import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { RedisTokenPubSubService } from '@/redis/redis-token-pub-sub.service';
 import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { DeleteUserHandler } from '@/users/application/command/handlers/delete-user.handler';
 import { UserFactory } from '@/users/domain/user.factory';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 
-import { REDIS_AUTH, REDIS_SUB, REDIS_TOKEN } from './redis.constants';
+import {
+  REDIS_AUTH,
+  REDIS_SUB,
+  REDIS_TIMER_SOCKET,
+  REDIS_TOKEN,
+} from './redis.constants';
 
-const externalService = [EmailService];
+const externalService = [EmailAdapter];
 const repositories = [{ provide: 'UserRepository', useClass: UserRepository }];
 const commandHandlers = [DeleteUserHandler];
 const factories = [UserFactory];
@@ -52,6 +59,10 @@ async function createRedisClient(): Promise<Redis> {
       provide: REDIS_SUB,
       useFactory: createRedisClient,
     },
+    {
+      provide: REDIS_TIMER_SOCKET,
+      useFactory: createRedisClient,
+    },
     ...commandHandlers,
     ...externalService,
     ...factories,
@@ -59,13 +70,18 @@ async function createRedisClient(): Promise<Redis> {
     Logger,
     RedisTokenService,
     RedisTokenPubSubService,
+    RedisTimerSocketService,
+    RedisAuthService,
   ],
   exports: [
     REDIS_AUTH,
     REDIS_TOKEN,
     REDIS_SUB,
+    REDIS_TIMER_SOCKET,
     RedisTokenService,
     RedisTokenPubSubService,
+    RedisTimerSocketService,
+    RedisAuthService,
   ],
 })
 export class RedisModule {}

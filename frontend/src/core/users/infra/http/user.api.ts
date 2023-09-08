@@ -1,3 +1,4 @@
+import { api } from 'boot/axios';
 import { Notify } from 'quasar';
 import { usePanelStore } from 'src/core/panel/infra/store/panel.store';
 import { ITimer } from 'src/core/timers/domain/timer.model';
@@ -15,31 +16,24 @@ import {
   IValidationInput,
 } from 'src/type-defs/userTypes';
 
-import { api } from '../../../../boot/axios';
 import { useRoutineStore } from '../../../routines/infra/store/routine.store';
 
-export const refreshAccessTokenFn = () => {
-  return api.get<IRes<IUser>>('auth/refresh');
-};
-
-// TODO: retry, retryDelay, maxRetries 설정
 api.interceptors.response.use(
-  (res) => {
-    return res;
+  (response) => {
+    return response;
   },
   // TODO: 서버 자체가 열려있지 않을 때 로그인 비활성화
-  async (err) => {
-    const userStore = useUserStore();
-    const timerStore = useTimerStore();
-    const routineStore = useRoutineStore();
-    const panelStore = usePanelStore();
-
-    const errMsg = err.response.data?.message as string;
-
-    if (errMsg === 'Unauthorized' || errMsg === 'User not found') {
+  async (error) => {
+    const errorMessage = error.response.data?.message as string;
+    if (errorMessage === 'Unauthorized' || errorMessage === 'User not found') {
       try {
-        await refreshAccessTokenFn();
-      } catch {
+        await api.get<IRes<IUser>>('auth/refresh');
+      } catch (error) {
+        const userStore = useUserStore();
+        const timerStore = useTimerStore();
+        const routineStore = useRoutineStore();
+        const panelStore = usePanelStore();
+
         userStore.$reset();
         timerStore.$reset();
         routineStore.$reset();
@@ -54,7 +48,7 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 
@@ -66,11 +60,13 @@ export const checkEmailFn = async (email: IEmailInput) => {
 
 export const signUpUserFn = async (user: ISignupInput) => {
   const response = await api.post('auth/register', user);
+
   return response.data;
 };
 
 export const loginUserFn = async (user: ILoginInput) => {
   const response = await api.post('auth/login', user);
+
   return response.data;
 };
 
@@ -78,6 +74,7 @@ export const verifyEmailFn = async (signupToken: string): Promise<IRes> => {
   const response = await api.get(
     `users/verify-signup-token?signupToken=${signupToken}`
   );
+
   return response.data ? response.data : response;
 };
 
@@ -89,6 +86,7 @@ export const logoutUserFn = async () => {
 
 export const getMeFn = async () => {
   const response = await api.get('auth/me');
+
   return response.data;
 };
 
@@ -106,6 +104,7 @@ export const verifyResetPasswordTokenFn = async (
   const response = await api.get(
     `users/verify-reset-password-token?resetPasswordToken=${resetPasswordToken}`
   );
+
   return response.data ? response.data : response;
 };
 

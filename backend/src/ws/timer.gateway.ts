@@ -42,13 +42,16 @@ export class TimerGateway
     if (process.env.NODE_ENV === 'development') {
       console.log(`Client connected: ${client.id}`);
     }
-
-    const accessToken = parse(client.handshake.headers.cookie)['accessToken'];
     const jwtConfig = this.configService.get('jwt');
-    try {
-      const decoded = this.jwtService.verify(accessToken, jwtConfig);
-    } catch (err) {
-      throw new BadRequestException(err);
+
+    const parsedCookie = parse(client.handshake.headers.cookie);
+    if (parsedCookie.accessToken !== undefined) {
+      const accessToken = parsedCookie.accessToken;
+      try {
+        const decoded = this.jwtService.verify(accessToken, jwtConfig);
+      } catch (err) {
+        throw new BadRequestException(err);
+      }
     }
   }
 

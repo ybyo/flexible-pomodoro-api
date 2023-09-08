@@ -14,6 +14,7 @@ import * as path from 'path';
 
 import { AuthModule } from '@/auth/auth.module';
 import accessTokenConfig from '@/config/access-token.config';
+import corsConfig from '@/config/cors.config';
 import emailConfig from '@/config/email.config';
 import refreshTokenConfig from '@/config/refresh-token.config';
 import { validationSchema } from '@/config/validation.schema';
@@ -26,9 +27,9 @@ import { RedisModule } from '@/redis/redis.module';
 import { RoutineModule } from '@/routines/routine.module';
 import { TimerModule } from '@/timers/timer.module';
 import { UserModule } from '@/users/user.module';
-import { TimerGateway } from '@/ws/timer.gateway';
 
 import jwtConfig from './config/jwt.config';
+import { TimerSocketModule } from '@/ws/timer-socket.module';
 
 const envPath = path.join(
   __dirname,
@@ -47,7 +48,13 @@ const envPath = path.join(
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       envFilePath: [envPath],
-      load: [jwtConfig, refreshTokenConfig, accessTokenConfig, emailConfig],
+      load: [
+        jwtConfig,
+        refreshTokenConfig,
+        accessTokenConfig,
+        emailConfig,
+        corsConfig,
+      ],
       isGlobal: true,
       validationSchema,
     }),
@@ -71,6 +78,7 @@ const envPath = path.join(
     ExceptionModule,
     TimerModule,
     RoutineModule,
+    TimerSocketModule,
   ],
   controllers: [HealthCheckController],
   providers: [
@@ -78,7 +86,6 @@ const envPath = path.join(
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    TimerGateway,
   ],
 })
 export class AppModule implements NestModule {
@@ -92,15 +99,15 @@ export class AppModule implements NestModule {
     consumer
       .apply(
         session({
+          cookie: this.refreshTokenConf,
+          name: 'refreshToken',
+          resave: false,
+          saveUninitialized: false,
+          secret: process.env.SESSION_SECRET,
           store: new (RedisStore(session))({
             client: this.redisClient,
             logErrors: true,
           }),
-          name: 'refreshToken',
-          saveUninitialized: false,
-          resave: false,
-          secret: process.env.SESSION_SECRET,
-          cookie: this.refreshTokenConf,
         }),
         passport.initialize(),
         passport.session()

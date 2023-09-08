@@ -12,6 +12,7 @@ import { GetUserByIdHandler } from '@/auth/application/query/handlers/get-user-b
 import { AuthController } from '@/auth/interface/auth.controller';
 import { JwtStrategy } from '@/auth/interface/strategy/jwt.strategy';
 import { LocalStrategy } from '@/auth/interface/strategy/local.strategy';
+import { RefreshTokenStrategy } from '@/auth/interface/strategy/refresh-token.strategy';
 import { AuthSerializer } from '@/auth/serialization.provider';
 import { EmailModule } from '@/email/email.module';
 import { RedisModule } from '@/redis/redis.module';
@@ -20,7 +21,7 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 import { UserFactory } from '@/users/domain/user.factory';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { RedisTokenStrategy } from '@/users/interface/strategy/redis-token.strategy';
@@ -34,11 +35,16 @@ const QueryHandlers = [
 const EventHandlers = [];
 
 const externalService = [
-  EmailService,
+  EmailAdapter,
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
-const strategies = [LocalStrategy, JwtStrategy, RedisTokenStrategy];
+const strategies = [
+  LocalStrategy,
+  JwtStrategy,
+  RefreshTokenStrategy,
+  RedisTokenStrategy,
+];
 
 const repositories = [
   { provide: 'RoutineRepository', useClass: RoutineRepository },

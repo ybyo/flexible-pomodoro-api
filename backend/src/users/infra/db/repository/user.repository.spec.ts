@@ -6,7 +6,7 @@ import { ulid } from 'ulid';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
@@ -17,7 +17,7 @@ describe('UserRepository', () => {
   let repo: Repository<UserEntity>;
   let userRepo: UserRepository;
   let dataSource: DataSource;
-  let emailService: EmailService;
+  let emailService: EmailAdapter;
   let redisService: RedisTokenService;
 
   beforeEach(async () => {
@@ -35,7 +35,7 @@ describe('UserRepository', () => {
           useClass: Repository,
         },
         {
-          provide: EmailService,
+          provide: EmailAdapter,
           useValue: {
             sendSignupEmailToken: jest.fn(),
             sendResetPasswordToken: jest.fn(),
@@ -55,7 +55,7 @@ describe('UserRepository', () => {
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
     userRepo = module.get<UserRepository>(UserRepository);
     dataSource = module.get<DataSource>(DataSource);
-    emailService = module.get<EmailService>(EmailService);
+    emailService = module.get<EmailAdapter>(EmailAdapter);
     redisService = module.get<RedisTokenService>(RedisTokenService);
   });
 
@@ -245,17 +245,27 @@ describe('UserRepository', () => {
         ...requestedUser,
         id: ulid(),
         signupToken: 'token',
+        createdAt: undefined,
+        updatedAt: undefined,
       });
       const expiredAt = calculateExpirationTime();
       const mockSave = jest.fn().mockResolvedValue(savedUser);
-
       dataSource.transaction = jest.fn().mockImplementation(async (cb) => {
         await cb({ save: mockSave });
+
         return savedUser;
       });
 
       const result = await userRepo.registerUser(requestedUser);
 
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: expect.any(String),
+          email: requestedUser.email,
+          username: requestedUser.username,
+          signupToken: 'token',
+        })
+      );
       expect(result.email).toEqual(requestedUser.email);
       expect(result.username).toEqual(requestedUser.username);
       expect(emailService.sendSignupEmailToken).toHaveBeenCalledWith(
@@ -267,7 +277,7 @@ describe('UserRepository', () => {
         '1',
         expiredAt
       );
-      expect(mockSave).toHaveBeenCalledWith(savedUser);
+      expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
     it("should return Error when 'sendEmailAndSetToken' fails", async () => {

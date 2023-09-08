@@ -14,6 +14,12 @@ export class User extends AUserJwt {
   todayTotal: number;
 }
 
+export class UserSocket {
+  id: string;
+  loggedIn: boolean;
+  timerStartedAt: Date | null;
+}
+
 export class UserWithoutPassword extends OmitType(User, ['password']) {}
 
 export class UserJwt extends AUserJwt {

@@ -31,7 +31,7 @@ docker run -itd \
   --name=frontend \
   --restart=always \
   --add-host=host.docker.internal:host-gateway \
-  "${registry_url}"/pipe-timer-frontend:"${env}"
+  "${registry_url}"/pt-frontend-${env}:"${revision_number}"
 
 sleep 5
 
