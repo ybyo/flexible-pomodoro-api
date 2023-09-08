@@ -6,6 +6,18 @@ docker network create pipe-timer || { echo 'Failed to create network'; }
 
 docker run -d \
   --restart=always \
+  -p "${api_port}":"${api_port}" \
+  -v "${cicd_path}"/certs:/app/certs:ro \
+  -v "${cicd_path}"/env:/env:ro \
+  --name=nestjs \
+  --env-file="${cicd_path}"/env/."${env}".env \
+  --network=pipe-timer \
+  --network-alias=nestjs \
+  --restart=on-failure \
+  "${registry_url}"/pt-backend-"${env}":"${revision_number}" || { echo 'Failed to run nestjs'; }
+
+docker run -d \
+  --restart=always \
   -v "${cicd_path}"/promtail-config.yml:/mnt/config/promtail-config.yml \
   -v /var/log:/var/log \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -25,18 +37,6 @@ docker run -d \
   quay.io/prometheus/node-exporter:latest \
   --web.config.file=web-config-exporter.yml \
   --path.rootfs=/host || { echo 'Failed to run node-exporter'; }
-
-docker run -d \
-  --restart=always \
-  -p "${api_port}":"${api_port}" \
-  -v "${cicd_path}"/certs:/app/certs:ro \
-  -v "${cicd_path}"/env:/env:ro \
-  --name=nestjs \
-  --env-file="${cicd_path}"/env/."${env}".env \
-  --network=pipe-timer \
-  --network-alias=nestjs \
-  --restart=on-failure \
-  "${registry_url}"/pt-backend-"${env}":"${revision_number}" || { echo 'Failed to run nestjs'; }
 
 docker run -d \
   --restart=always \
