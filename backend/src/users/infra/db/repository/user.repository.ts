@@ -118,7 +118,7 @@ export class UserRepository implements IUserRepository {
       async (manager): Promise<UserEntity> => {
         await this.sendEmailAndSetToken(
           userEntity.email,
-          this.emailService.sendSignupEmailToken,
+          this.emailService.sendSignupEmailToken.bind(this.emailService),
           'signupToken',
           token
         );
@@ -140,7 +140,7 @@ export class UserRepository implements IUserRepository {
       return await this.dataSource.transaction(async (manager) => {
         await this.sendEmailAndSetToken(
           newEmail,
-          this.emailService.sendChangeEmailToken,
+          this.emailService.sendChangeEmailToken.bind(this.emailService),
           'changeEmailToken',
           token
         );
@@ -162,7 +162,7 @@ export class UserRepository implements IUserRepository {
     return await this.dataSource.transaction(async (manager) => {
       await this.sendEmailAndSetToken(
         email,
-        this.emailService.sendResetPasswordToken,
+        this.emailService.sendResetPasswordToken.bind(this.emailService),
         'resetPasswordToken',
         token
       );
