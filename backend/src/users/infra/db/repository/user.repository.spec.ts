@@ -6,7 +6,7 @@ import { ulid } from 'ulid';
 
 import { RedisTokenService } from '@/redis/redis-token.service';
 import { User, UserJwt, UserWithoutPassword } from '@/users/domain/user.model';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { calculateExpirationTime } from '@/users/infra/db/repository/user.repository.private';
@@ -17,7 +17,7 @@ describe('UserRepository', () => {
   let repo: Repository<UserEntity>;
   let userRepo: UserRepository;
   let dataSource: DataSource;
-  let emailService: EmailService;
+  let emailService: EmailAdapter;
   let redisService: RedisTokenService;
 
   beforeEach(async () => {
@@ -35,7 +35,7 @@ describe('UserRepository', () => {
           useClass: Repository,
         },
         {
-          provide: EmailService,
+          provide: EmailAdapter,
           useValue: {
             sendSignupEmailToken: jest.fn(),
             sendResetPasswordToken: jest.fn(),
@@ -55,7 +55,7 @@ describe('UserRepository', () => {
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
     userRepo = module.get<UserRepository>(UserRepository);
     dataSource = module.get<DataSource>(DataSource);
-    emailService = module.get<EmailService>(EmailService);
+    emailService = module.get<EmailAdapter>(EmailAdapter);
     redisService = module.get<RedisTokenService>(RedisTokenService);
   });
 

@@ -6,6 +6,7 @@ import { AuthService } from '@/auth/application/auth.service';
 import { ResendEmailHandler } from '@/auth/application/command/handlers/resend-email.handler';
 import { CheckDuplicateEmailHandler } from '@/auth/application/query/handlers/check-duplicate-email.handler';
 import { AuthModule } from '@/auth/auth.module';
+import { EmailFactory } from '@/email/domain/email.factory';
 import { EmailModule } from '@/email/email.module';
 import { RedisModule } from '@/redis/redis.module';
 import { RedisTokenService } from '@/redis/redis-token.service';
@@ -26,7 +27,7 @@ import { PasswordResetStrategy } from '@/users/interface/strategy/password-reset
 import { RedisTokenStrategy } from '@/users/interface/strategy/redis-token.strategy';
 import { UserController } from '@/users/interface/user.controller';
 
-import { EmailService } from './infra/adapter/email.service';
+import { EmailAdapter } from './infra/adapter/email.adapter';
 
 const commandHandlers = [
   ChangeNameHandler,
@@ -43,7 +44,7 @@ const queryHandlers = [CheckSignupTokenValidityHandler];
 const strategies = [PasswordResetStrategy, RedisTokenStrategy];
 
 const externalService = [
-  EmailService,
+  EmailAdapter,
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
@@ -52,7 +53,7 @@ const repositories = [
   { provide: 'UserRepository', useClass: UserRepository },
 ];
 
-const factories = [UserFactory];
+const factories = [UserFactory, EmailFactory];
 
 @Module({
   imports: [

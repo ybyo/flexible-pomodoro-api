@@ -43,10 +43,16 @@ export const useSocketStore = defineStore('SocketStore', () => {
     }
   );
 
+  const disconnect = () => {
+    socket.disconnect();
+    initSocket();
+  };
+
   return {
     initSocket,
     startTimer,
     pauseTimer,
+    disconnect,
     timerData,
   };
 });

@@ -21,7 +21,7 @@ import { RoutineEntity } from '@/routines/infra/db/entity/routine.entity';
 import { RoutineToTimerEntity } from '@/routines/infra/db/entity/routine-to-timer.entity';
 import { RoutineRepository } from '@/routines/infra/db/repository/routine.repository';
 import { UserFactory } from '@/users/domain/user.factory';
-import { EmailService } from '@/users/infra/adapter/email.service';
+import { EmailAdapter } from '@/users/infra/adapter/email.adapter';
 import { UserEntity } from '@/users/infra/db/entity/user.entity';
 import { UserRepository } from '@/users/infra/db/repository/user.repository';
 import { RedisTokenStrategy } from '@/users/interface/strategy/redis-token.strategy';
@@ -35,7 +35,7 @@ const QueryHandlers = [
 const EventHandlers = [];
 
 const externalService = [
-  EmailService,
+  EmailAdapter,
   { provide: 'RedisTokenService', useClass: RedisTokenService },
 ];
 
