@@ -29,8 +29,9 @@ export class EmailService {
     private emailFactory: EmailFactory
   ) {
     this.host =
-      process.env.NODE_ENV === 'development' ||
-      process.env.NODE_ENV === 'local-staging'
+      process.env.NODE_ENV === 'development'
+        ? `${this.config.host}:${process.env.FRONT_PORT_0}`
+        : process.env.NODE_ENV === 'local-staging'
         ? `${this.config.host}:${process.env.FRONT_PORT_0}`
         : `${this.config.host}`;
 

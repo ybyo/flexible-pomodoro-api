@@ -14,7 +14,7 @@
     "local-staging:compose:up": "docker compose --profile=local --env-file=./env/.local-staging.env up",
     "staging:compose:build": "cross-env PLATFORM=linux/amd64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache",
     "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up",
-    "staging:db": "docker compose --env-file=./env/.staging.env up mysql-pt redis-pt",
+    "staging:db": "docker compose --env-file=./env/.staging.env up mysql redis",
     "infra:up": "docker compose -f ./infra/docker-compose.yml --env-file=./env/.staging.env up -d",
     "infra:down": "docker compose -f ./infra/docker-compose.yml --env-file=./env/.staging.env down",
     "production:compose:build": "cross-env PLATFORM=linux/arm64 docker compose --profile=local --env-file=./env/.production.env build --no-cache",

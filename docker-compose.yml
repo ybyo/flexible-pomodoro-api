@@ -1,9 +1,8 @@
 services:
-  mysql-pt:
+  mysql:
     image: mysql:8
     env_file:
       - env/.${NODE_ENV}.env
-    container_name: mysql
     environment:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -15,13 +14,12 @@ services:
     profiles:
       - local
 
-  redis-pt:
-    image: bitnami/redis:latest
+  redis:
+    image: bitnami/redis:7.2.1
     env_file:
       - env/.${NODE_ENV}.env
     environment:
       - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD}
-    container_name: redis
     restart: always
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
@@ -29,7 +27,7 @@ services:
       - local
 
   pt-backend:
-    image: pt-backend 
+    image: pt-backend
     build:
       platforms:
         - ${PLATFORM}
@@ -41,15 +39,28 @@ services:
       tags:
         - ${REGISTRY_URL}/pt-backend-${NODE_ENV}:${TAG}
     env_file:
-      - env/.${NODE_ENV}.env
-    container_name: backend
+      - ./env/.${NODE_ENV}.env
     ports:
       - ${API_PORT_0}:${API_PORT_0}
     volumes:
       - ./env:/env
-      - ./backend/certs:/certs
+      - ./backend/certs:/app/certs
     restart: always
-    depends_on: [mysql-pt, redis-pt]
+    depends_on: [ mysql, redis ]
+
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "4433:4433"
+    environment:
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+    volumes:
+      - ./backend/templates/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      - ./backend/certs:/etc/nginx/certs:ro
+    env_file:
+      - ./env/.${NODE_ENV}.env
+    depends_on: [ pt-backend ]
 
   pt-frontend:
     image: pt-frontend
@@ -70,7 +81,6 @@ services:
       - env/.${NODE_ENV}.env
     environment:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
-    container_name: frontend
     ports:
       - ${FRONT_PORT_0}:${FRONT_PORT_2}
     volumes:
@@ -79,7 +89,7 @@ services:
       - ./frontend/certs:/etc/nginx/certs
       - ./frontend/public:/public
     restart: always
-    depends_on: [mysql-pt, redis-pt, pt-backend]
+    depends_on: [ mysql, redis, pt-backend ]
 
   mysql-test:
     image: mysql:8
@@ -109,5 +119,4 @@ services:
 networks:
   default:
     driver: bridge
-    external: true
-    name: pipe-timer-network
+    name: pipe-timer
