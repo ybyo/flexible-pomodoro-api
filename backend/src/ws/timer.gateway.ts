@@ -24,19 +24,13 @@ import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
     credentials: true,
   },
 })
-export class TimerGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class TimerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   constructor(
     private redisAuthService: RedisAuthService,
     private redisTimerSocketService: RedisTimerSocketService
   ) {}
-
-  afterInit(server: Server) {
-    console.log(server);
-  }
 
   async handleConnection(client: Socket, ...args: any[]) {
     if (process.env.NODE_ENV === 'development') {
@@ -124,10 +118,6 @@ export class TimerGateway
       );
       console.log(now);
       console.log(past.timerStartedAt);
-    }
-
-    if (process.env.NODE_ENV) {
-      // console.log(`Set user:${payload.id}'s status: ${payload.startTimer}`);
     }
   }
 }

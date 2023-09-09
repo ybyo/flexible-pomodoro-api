@@ -6,7 +6,7 @@ import { AuthService } from '@/auth/application/auth.service';
 import { ResendEmailHandler } from '@/auth/application/command/handlers/resend-email.handler';
 import { CheckDuplicateEmailHandler } from '@/auth/application/query/handlers/check-duplicate-email.handler';
 import { AuthModule } from '@/auth/auth.module';
-import { EmailFactory } from '@/email/domain/email.factory';
+import { EmailFactory } from '@/email/application/factories/email.factory';
 import { EmailModule } from '@/email/email.module';
 import { RedisModule } from '@/redis/redis.module';
 import { RedisTokenService } from '@/redis/redis-token.service';

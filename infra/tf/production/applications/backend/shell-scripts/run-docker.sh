@@ -9,10 +9,10 @@ docker run -d \
   -p "${api_port}":"${api_port}" \
   -v "${cicd_path}"/certs:/app/certs:ro \
   -v "${cicd_path}"/env:/env:ro \
-  --name=nestjs \
+  --name=pt-backend \
   --env-file="${cicd_path}"/env/."${env}".env \
   --network=pipe-timer \
-  --network-alias=nestjs \
+  --network-alias=pt-backend \
   --restart=on-failure \
   "${registry_url}"/pt-backend-"${env}":"${revision_number}" || { echo 'Failed to run nestjs'; }
 
