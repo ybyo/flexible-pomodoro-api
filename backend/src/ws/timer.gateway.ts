@@ -1,6 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { UnauthorizedException } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -9,8 +7,12 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { parse } from 'cookie';
+import { parse, serialize } from 'cookie';
 import { Server, Socket } from 'socket.io';
+import { ulid } from 'ulid';
+
+import { RedisAuthService } from '@/redis/redis-auth.service';
+import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
 
 @WebSocketGateway({
   cors: {
@@ -26,33 +28,69 @@ export class TimerGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
+
   constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService
+    private redisAuthService: RedisAuthService,
+    private redisTimerSocketService: RedisTimerSocketService
   ) {}
 
   afterInit(server: Server) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('WebSocket Initialized');
-      console.log(server._opts);
-    }
+    console.log(server);
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+  async handleConnection(client: Socket, ...args: any[]) {
     if (process.env.NODE_ENV === 'development') {
       console.log(`Client connected: ${client.id}`);
     }
-    const jwtConfig = this.configService.get('jwt');
 
-    const parsedCookie = parse(client.handshake.headers.cookie);
-    if (parsedCookie.accessToken !== undefined) {
-      const accessToken = parsedCookie.accessToken;
-      try {
-        const decoded = this.jwtService.verify(accessToken, jwtConfig);
-      } catch (err) {
-        throw new BadRequestException(err);
+    this.server.engine.on('initial_headers', (headers, request) => {
+      const refreshToken =
+        parse(request.headers.cookie || '').refreshToken === undefined;
+      const guestId = parse(request.headers.cookie || '').guest === undefined;
+
+      if (refreshToken && guestId) {
+        headers['set-cookie'] = serialize('guest', `s:${ulid()}.`, {
+          maxAge: +process.env.ACCESS_LIFETIME * 24 * 60 * 60 * 1000,
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          domain: process.env.HOST_URL,
+          path: '/',
+        });
+      }
+    });
+
+    if (client.handshake.headers.hasOwnProperty('cookie')) {
+      await this.parseAndValidateCookie(client.handshake.headers.cookie);
+    }
+  }
+
+  async parseAndValidateCookie(cookie: string) {
+    const parsedCookie = parse(cookie);
+    if (parsedCookie.refreshToken === undefined) {
+      const guestToken = await this.redisAuthService.formatToken(
+        parsedCookie.guest
+      );
+      await this.redisTimerSocketService.setLoggedIn(guestToken, 'guest');
+    } else {
+      const data = await this.getDataWithRefreshToken(
+        parsedCookie.refreshToken
+      );
+      if (data === null) {
+        throw new UnauthorizedException('Invalid refreshToken');
+      } else {
+        await this.redisTimerSocketService.setLoggedIn(
+          data.passport.user.id,
+          'user'
+        );
       }
     }
+  }
+
+  async getDataWithRefreshToken(rawToken: string) {
+    const refreshToken = await this.redisAuthService.formatToken(rawToken);
+
+    return await this.redisAuthService.getDataWithToken(refreshToken);
   }
 
   handleDisconnect(client: Socket) {
@@ -61,13 +99,35 @@ export class TimerGateway
     }
   }
 
-  @SubscribeMessage('startTimer')
-  handleStartTimer(client: Socket, payload: { startTimer: string }): void {
-    console.log(`Start Timer... ${payload.startTimer}`);
-  }
+  @SubscribeMessage('timerStatus')
+  async handleStartTimer(
+    client: Socket,
+    payload: { id: string; role: string; startTimer: boolean }
+  ): Promise<void> {
+    if (payload.startTimer === true) {
+      console.log('timer started');
+      await this.redisTimerSocketService.setTimerStatus(
+        payload.id,
+        payload.role,
+        new Date()
+      );
+    } else {
+      const now = new Date();
+      const past = await this.redisTimerSocketService.getUserStatus(
+        payload.id,
+        payload.role
+      );
+      await this.redisTimerSocketService.setTimerStatus(
+        payload.id,
+        payload.role,
+        null
+      );
+      console.log(now);
+      console.log(past.timerStartedAt);
+    }
 
-  @SubscribeMessage('stopTimer')
-  handleStopTimer(client: Socket, payload: { stopTimer: string }): void {
-    console.log(`Stop Timer... ${payload.stopTimer}`);
+    if (process.env.NODE_ENV) {
+      // console.log(`Set user:${payload.id}'s status: ${payload.startTimer}`);
+    }
   }
 }

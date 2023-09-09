@@ -64,6 +64,7 @@ import { CHECK_EMPTY, userMsg } from 'src/core/users/domain/user.const';
 import { getMeFn, loginUserFn } from 'src/core/users/infra/http/user.api';
 import { useUserStore } from 'src/core/users/infra/store/user.store';
 import { ILoginInput } from 'src/type-defs/userTypes';
+import { useSocketStore } from 'stores/socket.store';
 import { useField, useForm } from 'vee-validate';
 import { onBeforeMount, onBeforeUpdate, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -77,6 +78,7 @@ const userStore = useUserStore();
 const routineStore = useRoutineStore();
 const panelStore = usePanelStore();
 const timerStore = useTimerStore();
+const socketStore = useSocketStore();
 
 onBeforeMount(() => {
   routineStore.bottomDrawerHeight = 36;
@@ -117,6 +119,9 @@ const { mutate } = useMutation(
       panelStore.$reset();
       timerStore.$reset();
       routineStore.$reset();
+
+      socketStore.disconnect();
+      socketStore.initSocket();
 
       const response = await getMeFn();
       userStore.setUser({ ...response });
