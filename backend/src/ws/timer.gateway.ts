@@ -1,8 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Inject, UnauthorizedException } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -11,6 +11,7 @@ import { parse, serialize } from 'cookie';
 import { Server, Socket } from 'socket.io';
 import { ulid } from 'ulid';
 
+import accessTokenConfig from '@/config/access-token.config';
 import { RedisAuthService } from '@/redis/redis-auth.service';
 import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
 
@@ -28,6 +29,8 @@ export class TimerGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   constructor(
+    @Inject(accessTokenConfig.KEY)
+    private accessConf: ConfigType<typeof accessTokenConfig>,
     private redisAuthService: RedisAuthService,
     private redisTimerSocketService: RedisTimerSocketService
   ) {}
@@ -43,14 +46,11 @@ export class TimerGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const guestId = parse(request.headers.cookie || '').guest === undefined;
 
       if (refreshToken && guestId) {
-        headers['set-cookie'] = serialize('guest', `s:${ulid()}.`, {
-          maxAge: +process.env.ACCESS_LIFETIME * 24 * 60 * 60 * 1000,
-          httpOnly: true,
-          secure: true,
-          sameSite: 'lax',
-          domain: process.env.HOST_URL,
-          path: '/',
-        });
+        headers['set-cookie'] = serialize(
+          'guest',
+          `s:${ulid()}.`,
+          this.accessConf
+        );
       }
     });
 
