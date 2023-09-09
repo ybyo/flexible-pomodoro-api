@@ -2,7 +2,7 @@ name: destroy-staging
 
 on:
   schedule:
-    - cron: '*/60 * * * *'
+    - cron: '0 */2 * * *'
 
 jobs:
   check-uptime:
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        workdir: ['backend', 'frontend']
+        workdir: [ 'backend', 'frontend' ]
     env:
       SHOULD_DESTROY: ${{ needs.check-uptime.outputs.should_destroy }}
     steps:
