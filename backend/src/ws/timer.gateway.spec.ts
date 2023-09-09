@@ -1,26 +1,22 @@
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 
+import { RedisAuthService } from '@/redis/redis-auth.service';
+import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
 import { TimerGateway } from '@/ws/timer.gateway';
 
 describe('TimerGateway', () => {
   let timerGateway: TimerGateway;
-  let jwtService: JwtService;
-  let configService: ConfigService;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
         TimerGateway,
-        { provide: JwtService, useValue: { verify: jest.fn() } },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: RedisAuthService, useValue: { verify: jest.fn() } },
+        { provide: RedisTimerSocketService, useValue: { get: jest.fn() } },
       ],
     }).compile();
 
     timerGateway = moduleRef.get<TimerGateway>(TimerGateway);
-    jwtService = moduleRef.get<JwtService>(JwtService);
-    configService = moduleRef.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {

@@ -4,7 +4,7 @@ import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 import {
   NodemailerEmailOptions,
   SendGridEmailOptions,
-} from '@/email/domain/email.model';
+} from '@/email/domain/models/email.model';
 
 @Injectable()
 export class EmailFactory {

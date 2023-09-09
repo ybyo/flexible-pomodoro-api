@@ -10,8 +10,6 @@ services:
       - ./registry/nginx.conf:/etc/nginx/templates/nginx.conf.template
       - ./certs:/etc/nginx/certs
     restart: always
-    networks:
-      - pipe-timer-network
 
   registry:
     image: registry:2
@@ -31,8 +29,6 @@ services:
       - ./registry/auth:/auth
       - ./certs:/certs
     restart: always
-    networks:
-      - pipe-timer-network
 
   prometheus:
     image: bitnami/prometheus
@@ -48,8 +44,6 @@ services:
     command:
       - --web.config.file=/opt/node_exporter/web-config.prom.yml
     restart: always
-    networks:
-      - pipe-timer-network
 
   grafana:
     image: grafana/grafana
@@ -62,8 +56,6 @@ services:
       - ./certs:/certs
       - ./monitoring/config/grafana.ini:/etc/grafana/grafana.ini
     restart: always
-    networks:
-      - pipe-timer-network
 
   loki:
     image: grafana/loki:latest
@@ -78,10 +70,8 @@ services:
     volumes:
       - ./monitoring/config/local-loki.yml:/etc/loki/local-config.yml
       - ./certs:/certs
-    networks:
-      - pipe-timer-network
 
 networks:
-  pipe-timer-network:
+  default:
     driver: bridge
-    name: pipe-timer-network
+    name: pipe-timer

@@ -11,9 +11,9 @@ docker run -itd \
   --config.file=/mnt/config/promtail-config.yml || { echo 'Failed to run promtail'; }
 
 docker run -d \
-  --name node-exporter \
-  --net host \
-  --pid host \
+  --name=node-exporter \
+  --net=host \
+  --pid=host \
   -v /:/host:ro,rslave \
   -v "${cicd_path}"/web-config-exporter.yml:/web-config-exporter.yml \
   -v "${cicd_path}"/certs:"${cicd_path}"/certs \
@@ -28,7 +28,7 @@ docker run -itd \
   -v "${cicd_path}"/nginx.conf:/etc/nginx/templates/nginx.conf.template \
   -v "${cicd_path}"/public:/public:ro \
   --env-file="${cicd_path}"/env/."${env}".env \
-  --name=frontend \
+  --name=pt-frontend \
   --restart=always \
   --add-host=host.docker.internal:host-gateway \
   "${registry_url}"/pt-frontend-${env}:"${revision_number}"
