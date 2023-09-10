@@ -6,6 +6,8 @@ on:
       - main
       - staging
 
+
+
 permissions:
   pull-requests: write
 
@@ -92,6 +94,9 @@ jobs:
           path: ./frontend/certs
 
   deploy-servers:
+    concurrency:
+      group: example-name
+      cancel-in-progress: false
     timeout-minutes: 20
     needs: [ build-setup, set-base-ref ]
     runs-on: ubuntu-20.04
