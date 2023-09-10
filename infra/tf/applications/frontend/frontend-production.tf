@@ -269,7 +269,7 @@ resource "cloudflare_tunnel_config" "ssh" {
 
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "ssh"
+  name    = "ssh${terraform.workspace == "production" ? "" : "-staging"}"
   value   = cloudflare_tunnel.ssh.cname
   type    = "CNAME"
   proxied = local.envs["PROXIED"]
@@ -284,6 +284,7 @@ resource "cloudflare_record" "frontend_wildcard" {
 }
 
 resource "cloudflare_record" "root_domain" {
+  count   = terraform.workspace == "production" ? 1 : 0
   zone_id = local.envs["CF_ZONE_ID"]
   name    = "www"
   value   = aws_instance.pipe_timer_frontend.public_ip

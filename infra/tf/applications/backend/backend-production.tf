@@ -261,7 +261,7 @@ resource "cloudflare_tunnel_config" "ssh" {
 
 resource "cloudflare_record" "ssh_tunnel" {
   zone_id = local.envs["CF_ZONE_ID"]
-  name    = "ssh-api"
+  name    = "ssh-${terraform.workspace == "production" ? "" : "staging-"}api"
   value   = cloudflare_tunnel.ssh.cname
   type    = "CNAME"
   proxied = local.envs["PROXIED"]
