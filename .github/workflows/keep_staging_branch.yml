@@ -1,0 +1,20 @@
+name: keep-staging-branch
+
+on:
+  delete:
+    branches:
+      - staging
+
+jobs:
+  recreate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Recreate staging branch from main
+        run: |
+          git fetch origin
+          git checkout main
+          git push origin main:staging
