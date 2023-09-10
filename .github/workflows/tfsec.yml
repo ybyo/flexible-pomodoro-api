@@ -8,6 +8,7 @@ on:
 
 jobs:
   tfsec:
+    if: ${{ !github.event.act }}
     name: tfsec
     runs-on: ubuntu-20.04
 
