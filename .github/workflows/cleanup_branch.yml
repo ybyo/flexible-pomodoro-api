@@ -1,0 +1,26 @@
+name: cleanup_branches
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
+
+jobs:
+  cleanup_branches:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Delete merged branches
+        run: |
+          git fetch origin
+          MERGED_BRANCHES=$(git branch -r --merged origin/main | grep -v 'main' | sed 's/origin\///' | tr -d ' ')
+          for branch in $MERGED_BRANCHES; do
+            echo "Deleting branch: $branch"
+            git push origin --delete $branch
+          done
