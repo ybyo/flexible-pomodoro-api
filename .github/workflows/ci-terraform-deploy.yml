@@ -6,7 +6,9 @@ on:
       - main
       - staging
 
-
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 permissions:
   pull-requests: write
@@ -94,15 +96,15 @@ jobs:
           path: ./frontend/certs
 
   deploy-servers:
-    concurrency:
-      group: example-name
-      cancel-in-progress: false
     timeout-minutes: 20
     needs: [ build-setup, set-base-ref ]
     runs-on: ubuntu-20.04
     env:
       base_ref: ${{ needs.set-base-ref.outputs.base_ref }}
       TF_WORKSPACE: ${{ needs.set-base-ref.outputs.base_ref }}
+    defaults:
+      run:
+        working-directory: ./infra/tf/applications/${{ matrix.workdir }}
     strategy:
       fail-fast: false
       matrix:
@@ -157,13 +159,13 @@ jobs:
           path: ./frontend/certs
 
       - name: Terraform Init
-        if: always()
-        run: |
-          cd ./infra/tf/applications/${{ matrix.workdir }}
-          ls -al
-          exec terraform init
-          exec terraform apply -auto-approve
+        run: exec terraform init && exec terraform apply -auto-approve
         continue-on-error: false
+
+      - name: Terraform Apply
+        run: exec terraform apply -auto-approve
+        continue-on-error: true
+
       - name: Destroy Resources if Terraform Apply fails
         if: failure()
-        run: exec terraform -chdir=./infra/tf/applications/${{ matrix.workdir }} destroy -auto-approve
+        run: exec terraform destroy -auto-approve
