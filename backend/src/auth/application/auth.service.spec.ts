@@ -2,7 +2,6 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -25,15 +24,6 @@ import { CreateRandomObject } from '@/utils/test-object-builder.util';
 const jwtConf = {
   secret: 'default_secret',
   expiresIn: '365d',
-};
-
-const accessTokenConf: ConfigType<typeof accessTokenConfig> = {
-  maxAge: +process.env.ACCESS_LIFETIME * 24 * 60 * 60 * 1000,
-  httpOnly: true,
-  secure: true,
-  sameSite: 'lax',
-  domain: process.env.HOST_URL,
-  path: '/',
 };
 
 describe('AuthService', () => {
@@ -75,7 +65,7 @@ describe('AuthService', () => {
         },
         {
           provide: accessTokenConfig.KEY,
-          useValue: accessTokenConf,
+          useValue: accessTokenConfig,
         },
         {
           provide: CommandBus,

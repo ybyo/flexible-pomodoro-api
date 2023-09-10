@@ -12,6 +12,7 @@
     "build:dev": "pnpm build:dev --filter backend && pnpm --filter frontend start:dev",
     "local-staging:compose:build": "docker compose --profile=local --env-file=./env/.local-staging.env build --no-cache",
     "local-staging:compose:up": "docker compose --profile=local --env-file=./env/.local-staging.env up",
+    "local-staging:compose:down": "docker compose --profile=local --env-file=./env/.local-staging.env down --remove-orphans",
     "staging:compose:build": "cross-env PLATFORM=linux/amd64 docker compose --profile=local --env-file=./env/.staging.env build --no-cache",
     "staging:compose:up": "docker compose --profile=local --env-file=./env/.staging.env up",
     "staging:db": "docker compose --env-file=./env/.staging.env up mysql redis",

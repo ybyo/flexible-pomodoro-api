@@ -1,0 +1,21 @@
+#cloud-config
+groups:
+  - ubuntu: [ root,sys ]
+
+users:
+  - default
+  - name: ubuntu
+    shell: /bin/bash
+    primary_group: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+runcmd:
+  # Directory setup
+  - mkdir -p ${workdir}/certs
+  - chown -R ubuntu:ubuntu ${workdir}
+  - chown -R ubuntu:ubuntu ${workdir}/certs
+  - chmod -R 755 ${workdir}/certs
