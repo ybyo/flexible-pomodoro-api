@@ -6,6 +6,7 @@ on:
 
 jobs:
   check-uptime:
+    if: ${{ !github.event.act }}
     runs-on: ubuntu-20.04
     outputs:
       should_destroy: ${{ steps.set-should-destroy.outputs.should_destroy }}

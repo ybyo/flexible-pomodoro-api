@@ -1,4 +1,5 @@
 {
+  "act": true,
   "pull_request": {
     "base": {
       "ref": "main"

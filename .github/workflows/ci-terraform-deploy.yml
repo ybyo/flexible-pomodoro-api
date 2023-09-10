@@ -6,6 +6,8 @@ on:
       - main
       - staging
 
+
+
 permissions:
   pull-requests: write
 
@@ -92,15 +94,19 @@ jobs:
           path: ./frontend/certs
 
   deploy-servers:
+    concurrency:
+      group: example-name
+      cancel-in-progress: false
     timeout-minutes: 20
-    needs: [build-setup, set-base-ref]
+    needs: [ build-setup, set-base-ref ]
     runs-on: ubuntu-20.04
     env:
       base_ref: ${{ needs.set-base-ref.outputs.base_ref }}
+      TF_WORKSPACE: ${{ needs.set-base-ref.outputs.base_ref }}
     strategy:
       fail-fast: false
       matrix:
-        workdir: ['backend', 'frontend']
+        workdir: [ 'backend', 'frontend' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -151,23 +157,13 @@ jobs:
           path: ./frontend/certs
 
       - name: Terraform Init
-        id: init
-        run: terraform -chdir=./infra/tf/${{ env.base_ref }}/applications/${{ matrix.workdir }} init
+        if: always()
+        run: |
+          cd ./infra/tf/applications/${{ matrix.workdir }}
+          ls -al
+          exec terraform init
+          exec terraform apply -auto-approve
         continue-on-error: false
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform -chdir=./infra/tf/${{ env.base_ref }}/applications/${{ matrix.workdir }} validate -no-color
-        continue-on-error: false
-
-      - name: Terraform Plan
-        id: plan
-        run: terraform -chdir=./infra/tf/${{ env.base_ref }}/applications/${{ matrix.workdir }} plan
-        continue-on-error: true
-
-      - name: Terraform Apply
-        run: terraform -chdir=./infra/tf/${{ env.base_ref }}/applications/${{ matrix.workdir }} apply -auto-approve
-
       - name: Destroy Resources if Terraform Apply fails
         if: failure()
-        run: terraform -chdir=./infra/tf/${{ env.base_ref }}/applications/${{ matrix.workdir }} destroy -auto-approve
+        run: exec terraform -chdir=./infra/tf/applications/${{ matrix.workdir }} destroy -auto-approve
