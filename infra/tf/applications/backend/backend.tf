@@ -1,53 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.9.0"
-    }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.10.0"
-    }
-    vault = {
-      source  = "hashicorp/vault"
-      version = "~> 3.18"
-    }
-    github = {
-      source  = "integrations/github"
-      version = "~> 5.0"
-    }
-  }
-
-  backend "s3" {
-    bucket         = "terraform-pt-state"
-    key            = "pt/applications/backend/terraform.tfstate"
-    region         = "ap-northeast-2"
-    dynamodb_table = "terraform-pt-state-lock"
-    encrypt        = true
-  }
-
-  required_version = "~> 1.5.3"
-}
-
-locals {
-  envs = {
-    for tuple in regexall("(.*)=(.*)", file("../../../../env/.${terraform.workspace}.env")) :
-    tuple[0] => trim(tuple[1], "\r")
-  }
-}
-
-###################################
-# GitHub Branch Revision Number
-###################################
-provider "github" {
-  token = local.envs["GITHUB_TOKEN"]
-}
-
-data "github_branch" "revision_number" {
-  repository = "pipe-timer"
-  branch     = "main"
-}
-
 ###################################
 # Remote Docker Container Setup
 ###################################
@@ -73,167 +23,10 @@ resource "null_resource" "build_docker" {
   }
 }
 
-###################################
-# Security Groups
-###################################
-data "http" "ip" {
-  url = "https://ifconfig.me/ip"
-}
-
-data "cloudflare_ip_ranges" "cloudflare" {}
-
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-
-  config = {
-    bucket         = "terraform-pt-state"
-    key            = "pt/${local.envs["NODE_ENV"]}/modules/vpc/terraform.tfstate"
-    region         = "ap-northeast-2"
-    dynamodb_table = "terraform-pt-state-lock"
-    encrypt        = true
-  }
-}
-
-resource "aws_security_group" "pt_backend_production_ssh" {
-  name   = "pt_backend_${local.envs["NODE_ENV"]}_ssh"
-  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
-
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32"
-    ]
-  }
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "pt_backend_node_exporter" {
-  name   = "pt_backend_production_node_exporter"
-  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = local.envs["NODE_EXPORTER_PORT"]
-      to_port     = local.envs["NODE_EXPORTER_PORT"]
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  ingress {
-    from_port   = local.envs["NODE_EXPORTER_PORT"]
-    to_port     = local.envs["NODE_EXPORTER_PORT"]
-    protocol    = "tcp"
-    cidr_blocks = ["${data.http.ip.response_body}/32"]
-  }
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = 53
-      to_port     = 53
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = 53
-      to_port     = 53
-      protocol    = "udp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "pt_https_port" {
-  name   = "pt_https_port"
-  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
-
-  dynamic "ingress" {
-    for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
-    content {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
-
-  ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    cidr_blocks = [
-      "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32",
-      data.terraform_remote_state.vpc.outputs.public_subnet_1_cidr_block
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-
-###################################
-# Vault
-###################################
-provider "vault" {
-  address = "https://${local.envs["VAULT_URL"]}"
-  token   = local.envs["VAULT_TOKEN"]
-}
-
-data "vault_generic_secret" "ssh" {
-  path = "/pt/ssh"
-}
-
-data "vault_generic_secret" "ssl" {
-  path = "/pt/ssl"
-}
-
-data "vault_generic_secret" "env" {
-  path = "/pt/env/${local.envs["NODE_ENV"]}"
-}
 
 ###################################
 # CloudFlare DNS
 ###################################
-provider "cloudflare" {
-  api_token = local.envs["CF_TOKEN"]
-}
-
 resource "random_password" "ssh_tunnel" {
   length  = 32
   special = false
@@ -270,7 +63,7 @@ resource "cloudflare_record" "ssh_tunnel" {
 resource "cloudflare_record" "backend" {
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
-  value   = aws_instance.pipe_timer_backend.public_ip
+  value   = aws_instance.pt_backend.public_ip
   type    = "A"
   proxied = local.envs["PROXIED"]
 }
@@ -367,25 +160,14 @@ data "template_cloudinit_config" "setup" {
 ###################################
 # AWS EC2
 ###################################
-provider "aws" {
-  region = local.envs["REGION"]
-}
-
-data "aws_ami" "ubuntu" {
-  filter {
-    name   = "image-id"
-    values = [local.envs["EC2_AMI"]]
-  }
-}
-
-resource "aws_instance" "pipe_timer_backend" {
+resource "aws_instance" "pt_backend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = local.envs["EC2_FLAVOR"]
-  subnet_id     = data.terraform_remote_state.vpc.outputs.public_subnet_1_id
+  subnet_id     = data.terraform_remote_state.vpc.outputs.subnet1_id
   vpc_security_group_ids = [
-    aws_security_group.pt_https_port.id,
-    aws_security_group.pt_backend_node_exporter.id,
-    aws_security_group.pt_backend_production_ssh.id
+    data.terraform_remote_state.vpc.outputs.sg_https_common_id,
+    data.terraform_remote_state.vpc.outputs.sg_node_exporter_common_id,
+    data.terraform_remote_state.vpc.outputs.sg_ssh_common_id,
   ]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
@@ -403,7 +185,7 @@ resource "aws_instance" "pipe_timer_backend" {
     type        = "ssh"
     user        = local.envs["SSH_USER"]
     private_key = base64decode(data.vault_generic_secret.ssh.data["SSH_PRIVATE_KEY"])
-    host        = aws_instance.pipe_timer_backend.public_ip
+    host        = aws_instance.pt_backend.public_ip
     agent       = false
   }
 

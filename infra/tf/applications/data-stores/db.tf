@@ -1,69 +1,17 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.9.0"
-    }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.10.0"
-    }
-  }
-
-
-  backend "s3" {
-    bucket         = "terraform-pt-state"
-    key            = "pt/production/applications/data-stores/terraform.tfstate"
-    region         = "ap-northeast-2"
-    dynamodb_table = "terraform-pt-state-lock"
-    encrypt        = true
-  }
-}
-
-locals {
-  envs = {
-    for tuple in regexall("(.*)=(.*)", file("../../../../../env/.${terraform.workspace}.env")) :
-    tuple[0] =>
-    trim(tuple[1], "\r")
-  }
-  flavor_mysql = "db.t2.micro"
-  flavor_redis = "cache.t2.micro"
-}
-
-provider "aws" {
-  region = local.envs["REGION"]
-}
-
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-
-  config = {
-    bucket         = "terraform-pt-state"
-    key            = "pt/${local.envs["NODE_ENV"]}/modules/vpc/terraform.tfstate"
-    region         = "ap-northeast-2"
-    dynamodb_table = "terraform-pt-state-lock"
-    encrypt        = true
-  }
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 ###################################
 # MySQL
 ###################################
-resource "aws_db_subnet_group" "pipe_timer" {
-  name = "pipe-timer-${local.envs["NODE_ENV"]}"
+resource "aws_db_subnet_group" "mysql" {
+  name = "pt-${local.envs["NODE_ENV"]}"
 
   subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.public_subnet_1_id,
-    data.terraform_remote_state.vpc.outputs.public_subnet_2_id
+    data.terraform_remote_state.vpc.outputs.subnet1_id,
+    data.terraform_remote_state.vpc.outputs.subnet2_id,
   ]
 }
 
 resource "aws_security_group" "mysql" {
-  name_prefix = "pipe-timer-${local.envs["NODE_ENV"]}"
+  name_prefix = "pt-${local.envs["NODE_ENV"]}"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -81,6 +29,18 @@ resource "aws_security_group" "mysql" {
   }
 }
 
+#data "terraform_remote_state" "data_store" {
+#  backend = "s3"
+#
+#  config = {
+#    bucket         = "terraform-pt-state"
+#    key            = "env:/${terraform.workspace}/pt/applications/data-stores/terraform.tfstate"
+#    region         = "ap-northeast-2"
+#    dynamodb_table = "terraform-pt-state-lock"
+#    encrypt        = true
+#  }
+#}
+
 resource "aws_db_instance" "mysql" {
   db_name                = local.envs["DB_NAME"]
   engine                 = "mysql"
@@ -90,13 +50,19 @@ resource "aws_db_instance" "mysql" {
   password               = local.envs["DB_PASSWORD"]
   allocated_storage      = 20
   parameter_group_name   = "default.mysql8.0"
-  skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.mysql.id]
   availability_zone      = data.aws_availability_zones.available.names[0]
-  db_subnet_group_name   = aws_db_subnet_group.pipe_timer.name
+  db_subnet_group_name   = aws_db_subnet_group.mysql.name
+  skip_final_snapshot    = true
+  #  final_snapshot_identifier = "mysql-${timestamp()}"
+  #  snapshot_identifier       = data.terraform_remote_state.data_store.outputs.snapshot_identifier
 
   tags = {
     Name = "pipe-timer-db"
+  }
+
+  lifecycle {
+    ignore_changes = [snapshot_identifier]
   }
 }
 
@@ -104,7 +70,7 @@ resource "aws_db_instance" "mysql" {
 # Redis
 ###################################
 resource "aws_security_group" "redis" {
-  name_prefix = "pipe-timer-production"
+  name_prefix = "pt-redis"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -122,13 +88,12 @@ resource "aws_security_group" "redis" {
   }
 }
 
-
 resource "aws_elasticache_subnet_group" "pipe_timer" {
-  name = "redis-${local.envs["NODE_ENV"]}"
+  name = "pt-redis"
 
   subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.public_subnet_1_id,
-    data.terraform_remote_state.vpc.outputs.public_subnet_2_id
+    data.terraform_remote_state.vpc.outputs.subnet1_id,
+    data.terraform_remote_state.vpc.outputs.subnet2_id,
   ]
 }
 
@@ -142,8 +107,9 @@ resource "aws_elasticache_parameter_group" "notify" {
   }
 }
 
+
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = "pipe-timer-redis-${local.envs["NODE_ENV"]}"
+  cluster_id           = "pt-redis"
   engine               = "redis"
   engine_version       = "7.0"
   node_type            = local.flavor_redis
@@ -154,6 +120,8 @@ resource "aws_elasticache_cluster" "redis" {
   subnet_group_name    = aws_elasticache_subnet_group.pipe_timer.name
   parameter_group_name = aws_elasticache_parameter_group.notify.name
   apply_immediately    = true
+  #  final_snapshot_identifier = "mysql-${timestamp()}"
+  #  snapshot_name             = data.terraform_remote_state.data_store.outputs.snapshot_name
 
   tags = {
     Name = "pipe-redis"
