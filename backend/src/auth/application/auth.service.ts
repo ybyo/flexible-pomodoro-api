@@ -208,9 +208,7 @@ export class AuthService {
   }
 
   async issueJWT(user: UserJwt): Promise<string> {
-    const token = this.jwtService.sign(user, this.jwtConf);
-
-    return token;
+    return this.jwtService.sign(user, this.jwtConf);
   }
 
   async splitEventToken(query: Request['query']) {
