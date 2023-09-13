@@ -6,16 +6,16 @@ output "cidr_block" {
   value = aws_vpc.app.cidr_block
 }
 
-output "subnet1_cidr" {
-  value = aws_subnet.public1.cidr_block
+output "subnet_blue_cidr" {
+  value = aws_subnet.blue.cidr_block
 }
 
-output "subnet1_id" {
-  value = aws_subnet.public1.id
+output "subnet_blue_id" {
+  value = aws_subnet.blue.id
 }
 
-output "subnet2_id" {
-  value = aws_subnet.public2.id
+output "subnet_green_id" {
+  value = aws_subnet.green.id
 }
 
 output "route_table_id" {
