@@ -1,16 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
 import Redis from 'ioredis';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-import { REDIS_SUB } from '@/redis/redis.constants';
 import { IUserRepository } from '@/users/domain/iuser.repository';
 
 @Injectable()
 export class RedisTokenPubSubService {
   constructor(
-    private commandBus: CommandBus,
-    @Inject(REDIS_SUB) private redisClient: Redis,
     @Inject('UserRepository') private userRepository: IUserRepository,
     private logger: Logger
   ) {
@@ -47,7 +43,6 @@ export class RedisTokenPubSubService {
 
         if (eventList.includes(event)) {
           const result = await this.expireToken(event, token);
-
           if (result === null) {
             this.logger.error(`Cannot expire token. ${event}:${token}`);
           }
@@ -69,7 +64,7 @@ export class RedisTokenPubSubService {
     }
 
     if (event === 'signupToken') {
-      return await this.userRepository.deleteUser(user.email);
+      return await this.userRepository.deleteUser(user.id);
     } else {
       return await this.userRepository.updateUser(
         { id: user.id },
