@@ -65,6 +65,7 @@ jobs:
         workdir: [ 'backend', 'frontend' ]
     env:
       SHOULD_DESTROY: ${{ needs.check-uptime.outputs.should_destroy }}
+      TF_WORKSPACE: ${{ needs.set-base-ref.outputs.base_ref }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
