@@ -8,7 +8,9 @@
     "shellscript",
     "cloudinit",
     "mkcert",
-    "pipetimer"
+    "pipetimer",
+    "tfstate",
+    "elasticache"
   ],
   "flagWords": [],
   "ignorePaths": [
