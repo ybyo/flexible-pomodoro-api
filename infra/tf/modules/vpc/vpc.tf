@@ -8,15 +8,15 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.app.id
 }
 
-resource "aws_subnet" "blue" {
+resource "aws_subnet" "production" {
   vpc_id            = aws_vpc.app.id
-  cidr_block        = local.blue_cidr
+  cidr_block        = local.production_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
 }
 
-resource "aws_subnet" "green" {
+resource "aws_subnet" "staging" {
   vpc_id            = aws_vpc.app.id
-  cidr_block        = local.green_cidr
+  cidr_block        = local.staging_cidr
   availability_zone = data.aws_availability_zones.available.names[2]
 }
 
@@ -29,12 +29,12 @@ resource "aws_route_table" "rtb_public" {
   }
 }
 
-resource "aws_route_table_association" "blue" {
-  subnet_id      = aws_subnet.blue.id
+resource "aws_route_table_association" "production" {
+  subnet_id      = aws_subnet.production.id
   route_table_id = aws_route_table.rtb_public.id
 }
 
-resource "aws_route_table_association" "green" {
-  subnet_id      = aws_subnet.green.id
+resource "aws_route_table_association" "staging" {
+  subnet_id      = aws_subnet.staging.id
   route_table_id = aws_route_table.rtb_public.id
 }
