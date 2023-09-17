@@ -14,7 +14,7 @@ locals {
     tuple[0] => trim(tuple[1], "\r")
   }
 
-  vpc_cidr   = terraform.workspace == "production" ? "172.31.0.0/16" : "172.16.0.0/16"
-  blue_cidr  = terraform.workspace == "production" ? "172.31.0.0/18" : "172.16.0.0/18"
-  green_cidr = terraform.workspace == "production" ? "172.31.64.0/18" : "172.16.64.0/18"
+  vpc_cidr        = terraform.workspace == "production" ? "172.31.0.0/16" : "172.16.0.0/16"
+  production_cidr = terraform.workspace == "production" ? "172.31.0.0/18" : "172.16.0.0/18"
+  staging_cidr    = terraform.workspace == "production" ? "172.31.64.0/18" : "172.16.64.0/18"
 }
