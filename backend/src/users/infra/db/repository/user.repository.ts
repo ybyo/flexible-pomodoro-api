@@ -194,19 +194,21 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async deleteRoutine(id: string): Promise<void> {
-    await this.dataSource.transaction(async (manager): Promise<void> => {
-      const routines = await manager.find(RoutineEntity, {
-        where: { userId: id },
-      });
-
-      if (routines.length !== 0) {
-        const routineIds = routines.map((routine) => routine.id);
-        await manager.delete(RoutineToTimerEntity, {
-          routineId: In(routineIds),
+  async deleteRoutine(id: string) {
+    return await this.dataSource.transaction(
+      async (manager): Promise<DeleteResult> => {
+        const routines = await manager.find(RoutineEntity, {
+          where: { userId: id },
         });
+
+        if (routines.length !== 0) {
+          const routineIds = routines.map((routine) => routine.id);
+          return await manager.delete(RoutineToTimerEntity, {
+            routineId: In(routineIds),
+          });
+        }
       }
-    });
+    );
   }
 
   getDataSource(): DataSource {

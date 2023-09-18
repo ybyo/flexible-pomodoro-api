@@ -1,5 +1,5 @@
 import { Inject, UnauthorizedException } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -15,13 +15,12 @@ import accessTokenConfig from '@/config/access-token.config';
 import { RedisAuthService } from '@/redis/redis-auth.service';
 import { RedisTimerSocketService } from '@/redis/redis-timer-socket.service';
 
+const configService = new ConfigService(); // ConfigService 인스턴스 생성
+const corsOptions = configService.get('cors');
+
 @WebSocketGateway({
   cors: {
-    origin: [
-      `https://${process.env.HOST_URL}`,
-      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_0}`,
-      `https://${process.env.HOST_URL}:${process.env.FRONT_PORT_2}`,
-    ],
+    origin: [{ ...corsOptions }],
     credentials: true,
   },
 })

@@ -22,8 +22,12 @@ export class SendResetPasswordTokenHandler
     const result = await this.userRepository.sendResetPasswordToken(
       command.email
     );
-    if (result.affected) return { success: true };
-
-    throw new InternalServerErrorException('Cannot send reset password email');
+    if (result.affected) {
+      return { success: true };
+    } else {
+      throw new InternalServerErrorException(
+        'Cannot send reset password email'
+      );
+    }
   }
 }
