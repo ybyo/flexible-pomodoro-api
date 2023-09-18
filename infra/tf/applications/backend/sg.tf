@@ -1,6 +1,6 @@
 resource "aws_security_group" "ssh_common" {
   name   = "sg_ssh_common"
-  vpc_id = aws_vpc.app.id
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port = 22
@@ -31,7 +31,7 @@ resource "aws_security_group" "ssh_common" {
 
 resource "aws_security_group" "node_exporter_common" {
   name   = "sg_node_exporter_common"
-  vpc_id = aws_vpc.app.id
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
@@ -60,7 +60,7 @@ resource "aws_security_group" "node_exporter_common" {
 
 resource "aws_security_group" "https_common" {
   name   = "sg_https_common"
-  vpc_id = aws_vpc.app.id
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks
@@ -78,7 +78,8 @@ resource "aws_security_group" "https_common" {
     protocol  = "tcp"
     cidr_blocks = [
       "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32",
-      aws_vpc.app.cidr_block
+      data.terraform_remote_state.vpc.outputs.subnet_production_cidr,
+      data.terraform_remote_state.vpc.outputs.subnet_staging_cidr
     ]
   }
 
@@ -92,7 +93,7 @@ resource "aws_security_group" "https_common" {
 
 resource "aws_security_group" "frontend_dns" {
   name   = "sg_frontend_dns"
-  vpc_id = aws_vpc.app.id
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
     for_each = data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks

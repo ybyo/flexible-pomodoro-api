@@ -161,13 +161,6 @@ jobs:
           name: frontend-certs
           path: ./frontend/certs
 
-      - name: Terraform Set VPC
-        run: |
-          terraform init
-          exec terraform apply -auto-approve
-        working-directory: ./infra/tf/modules/vpc
-        continue-on-error: false
-
       - name: Terraform Init
         run: terraform init
         continue-on-error: false

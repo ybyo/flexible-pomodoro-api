@@ -8,9 +8,9 @@ resource "aws_instance" "backend_staging" {
   instance_type = local.envs["EC2_FLAVOR"]
   subnet_id     = local.subnet_id
   vpc_security_group_ids = [
-    data.terraform_remote_state.vpc.outputs.sg_https_common_id,
-    data.terraform_remote_state.vpc.outputs.sg_node_exporter_common_id,
-    data.terraform_remote_state.vpc.outputs.sg_ssh_common_id,
+    aws_security_group.ssh_common.id,
+    aws_security_group.https_common.id,
+    aws_security_group.node_exporter_common.id,
   ]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered
