@@ -7,6 +7,8 @@ locals {
   cidr_vpc     = terraform.workspace == "production" ? "172.31.0.0/16" : "172.16.0.0/16"
   cidr_subnet1 = terraform.workspace == "production" ? "172.31.0.0/18" : "172.16.0.0/18"
   cidr_subnet2 = terraform.workspace == "production" ? "172.31.64.0/18" : "172.16.64.0/18"
+  subnet_id    = terraform.workspace == "production" ? data.terraform_remote_state.vpc.outputs.subnet_production_id : data.terraform_remote_state.vpc.outputs.subnet_staging_id
+
 }
 
 data "http" "ip" {
@@ -20,14 +22,15 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-data "cloudflare_ip_ranges" "cloudflare" {}
-
+###################################
+# Remote Data - VPC
+###################################
 data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
     bucket         = "terraform-pt-state"
-    key            = "env:/${terraform.workspace}/pt/modules/vpc/terraform.tfstate"
+    key            = "env:/production/pt/modules/vpc/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
@@ -37,11 +40,6 @@ data "terraform_remote_state" "vpc" {
 ###################################
 # Vault
 ###################################
-provider "vault" {
-  address = "https://${local.envs["VAULT_URL"]}"
-  token   = local.envs["VAULT_TOKEN"]
-}
-
 data "vault_generic_secret" "ssh" {
   path = "/pt/ssh"
 }
