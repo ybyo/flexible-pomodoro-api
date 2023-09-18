@@ -12,7 +12,7 @@ terraform {
 
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/applications/data-stores/terraform.tfstate"
+    key            = "pt/applications/database/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
