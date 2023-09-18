@@ -1,14 +1,20 @@
+locals {
+  production_cidr = try(data.terraform_remote_state.vpc.outputs.subnet_production_cidr, null)
+  staging_cidr    = try(data.terraform_remote_state.vpc.outputs.subnet_staging_cidr, null)
+}
+
 resource "aws_security_group" "ssh_common" {
-  name   = "sg_ssh_common"
+  name   = "sg_ssh_backend"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
     from_port = 22
     to_port   = 22
     protocol  = "tcp"
-    cidr_blocks = [
-      "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32"
-    ]
+    cidr_blocks = compact([
+      "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32",
+      local.production_cidr, local.staging_cidr
+    ])
   }
 
   dynamic "ingress" {
@@ -30,7 +36,7 @@ resource "aws_security_group" "ssh_common" {
 }
 
 resource "aws_security_group" "node_exporter_common" {
-  name   = "sg_node_exporter_common"
+  name   = "sg_node_exporter_backend"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -59,7 +65,7 @@ resource "aws_security_group" "node_exporter_common" {
 }
 
 resource "aws_security_group" "https_common" {
-  name   = "sg_https_common"
+  name   = "sg_https_backend"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -76,11 +82,10 @@ resource "aws_security_group" "https_common" {
     from_port = 443
     to_port   = 443
     protocol  = "tcp"
-    cidr_blocks = [
+    cidr_blocks = compact([
       "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32",
-      try(data.terraform_remote_state.vpc.outputs.subnet_production_cidr, null),
-      try(data.terraform_remote_state.vpc.outputs.subnet_staging_cidr, null)
-    ]
+      local.production_cidr, local.staging_cidr
+    ])
   }
 
   egress {
@@ -92,7 +97,7 @@ resource "aws_security_group" "https_common" {
 }
 
 resource "aws_security_group" "frontend_dns" {
-  name   = "sg_frontend_dns"
+  name   = "sg_dns_backend"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
