@@ -95,64 +95,9 @@ jobs:
           name: frontend-certs
           path: ./frontend/certs
 
-  set-vpc:
-    timeout-minutes: 20
-    needs: [ build-setup, set-base-ref ]
-    runs-on: ubuntu-20.04
-    env:
-      base_ref: ${{ needs.set-base-ref.outputs.base_ref }}
-      TF_WORKSPACE: ${{ needs.set-base-ref.outputs.base_ref }}
-    defaults:
-      run:
-        working-directory: ./infra/tf/modules/vpc
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - uses: hashicorp/setup-terraform@v1.4.0
-
-      - name: Import Secrets
-        id: import-secrets
-        uses: hashicorp/vault-action@v2.7.1
-        with:
-          url: https://${{ secrets.VAULT_URL }}
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            pt/env/${{ env.base_ref }} AWS_REGION | AWS_REGION;
-            pt/env/${{ env.base_ref }} AWS_ACCESS_KEY_ID | AWS_ACCESS_KEY_ID;
-            pt/env/${{ env.base_ref }} AWS_SECRET_ACCESS_KEY | AWS_SECRET_ACCESS_KEY;
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.9.1
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: dotenv
-          path: ./env
-
-      - name: Terraform Init
-        run: exec terraform init && exec terraform apply -auto-approve
-        continue-on-error: false
-
-      - name: Terraform Apply
-        run: exec terraform apply -auto-approve
-        continue-on-error: false
-
-      - name: Destroy Resources if Terraform Apply fails
-        if: failure()
-        run: exec terraform destroy -auto-approve
-
   deploy-servers:
     timeout-minutes: 20
-    needs: [ build-setup, set-base-ref, set-vpc ]
+    needs: [ build-setup, set-base-ref ]
     runs-on: ubuntu-20.04
     env:
       base_ref: ${{ needs.set-base-ref.outputs.base_ref }}
@@ -216,8 +161,15 @@ jobs:
           name: frontend-certs
           path: ./frontend/certs
 
+      - name: Terraform Set VPC
+        run: |
+          terraform init
+          exec terraform apply -auto-approve
+        working-directory: ./infra/tf/modules/vpc
+        continue-on-error: false
+
       - name: Terraform Init
-        run: exec terraform init && exec terraform apply -auto-approve
+        run: terraform init
         continue-on-error: false
 
       - name: Terraform Apply
