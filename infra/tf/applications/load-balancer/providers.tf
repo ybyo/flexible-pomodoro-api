@@ -12,13 +12,22 @@ terraform {
 
   backend "s3" {
     bucket         = "terraform-pt-state"
-    key            = "pt/applications/data-stores/terraform.tfstate"
+    key            = "pt/applications/load-balancer/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "terraform-pt-state-lock"
     encrypt        = true
   }
+
+  required_version = "~> 1.5.3"
 }
 
 provider "aws" {
   region = local.envs["REGION"]
+}
+
+###################################
+# CloudFlare DNS
+###################################
+provider "cloudflare" {
+  api_token = local.envs["CF_TOKEN"]
 }

@@ -1,5 +1,5 @@
 resource "aws_vpc" "app" {
-  cidr_block           = local.cidr_vpc
+  cidr_block           = local.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 }
@@ -8,16 +8,16 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.app.id
 }
 
-resource "aws_subnet" "public1" {
+resource "aws_subnet" "production" {
   vpc_id            = aws_vpc.app.id
-  cidr_block        = local.cidr_subnet1
+  cidr_block        = local.production_cidr
   availability_zone = data.aws_availability_zones.available.names[0]
 }
 
-resource "aws_subnet" "public2" {
+resource "aws_subnet" "staging" {
   vpc_id            = aws_vpc.app.id
-  cidr_block        = local.cidr_subnet2
-  availability_zone = data.aws_availability_zones.available.names[1]
+  cidr_block        = local.staging_cidr
+  availability_zone = data.aws_availability_zones.available.names[2]
 }
 
 resource "aws_route_table" "rtb_public" {
@@ -29,12 +29,12 @@ resource "aws_route_table" "rtb_public" {
   }
 }
 
-resource "aws_route_table_association" "rta_subnet_public1" {
-  subnet_id      = aws_subnet.public1.id
+resource "aws_route_table_association" "production" {
+  subnet_id      = aws_subnet.production.id
   route_table_id = aws_route_table.rtb_public.id
 }
 
-resource "aws_route_table_association" "rta_subnet_public2" {
-  subnet_id      = aws_subnet.public2.id
+resource "aws_route_table_association" "staging" {
+  subnet_id      = aws_subnet.staging.id
   route_table_id = aws_route_table.rtb_public.id
 }

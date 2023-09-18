@@ -111,13 +111,16 @@ jobs:
         workdir: [ 'backend', 'frontend' ]
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2.4.0
         with:
           version: 8
+
       - uses: hashicorp/setup-terraform@v1.4.0
       - name: Install Dependencies
         run: pnpm i -g cross-env
@@ -159,12 +162,12 @@ jobs:
           path: ./frontend/certs
 
       - name: Terraform Init
-        run: exec terraform init && exec terraform apply -auto-approve
+        run: terraform init
         continue-on-error: false
 
       - name: Terraform Apply
         run: exec terraform apply -auto-approve
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Destroy Resources if Terraform Apply fails
         if: failure()

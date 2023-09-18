@@ -33,13 +33,15 @@ provider "aws" {
   region = local.envs["REGION"]
 }
 
+provider "cloudflare" {
+  api_token = local.envs["CF_TOKEN"]
+}
+
 provider "github" {
   token = local.envs["GITHUB_TOKEN"]
 }
 
-###################################
-# CloudFlare DNS
-###################################
-provider "cloudflare" {
-  api_token = local.envs["CF_TOKEN"]
+provider "vault" {
+  address = "https://${local.envs["VAULT_URL"]}"
+  token   = local.envs["VAULT_TOKEN"]
 }

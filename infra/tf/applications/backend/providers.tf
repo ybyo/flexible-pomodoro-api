@@ -33,12 +33,12 @@ provider "aws" {
   region = local.envs["REGION"]
 }
 
-provider "github" {
-  token = local.envs["GITHUB_TOKEN"]
-}
-
 provider "cloudflare" {
   api_token = local.envs["CF_TOKEN"]
+}
+
+provider "github" {
+  token = local.envs["GITHUB_TOKEN"]
 }
 
 provider "vault" {

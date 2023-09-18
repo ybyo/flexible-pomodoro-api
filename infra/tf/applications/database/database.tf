@@ -5,8 +5,8 @@ resource "aws_db_subnet_group" "mysql" {
   name = "pt-${local.envs["NODE_ENV"]}"
 
   subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.subnet1_id,
-    data.terraform_remote_state.vpc.outputs.subnet2_id,
+    data.terraform_remote_state.vpc.outputs.subnet_production_id,
+    data.terraform_remote_state.vpc.outputs.subnet_staging_id,
   ]
 }
 
@@ -29,18 +29,6 @@ resource "aws_security_group" "mysql" {
   }
 }
 
-#data "terraform_remote_state" "data_store" {
-#  backend = "s3"
-#
-#  config = {
-#    bucket         = "terraform-pt-state"
-#    key            = "env:/${terraform.workspace}/pt/applications/data-stores/terraform.tfstate"
-#    region         = "ap-northeast-2"
-#    dynamodb_table = "terraform-pt-state-lock"
-#    encrypt        = true
-#  }
-#}
-
 resource "aws_db_instance" "mysql" {
   db_name                = local.envs["DB_NAME"]
   engine                 = "mysql"
@@ -54,8 +42,6 @@ resource "aws_db_instance" "mysql" {
   availability_zone      = data.aws_availability_zones.available.names[0]
   db_subnet_group_name   = aws_db_subnet_group.mysql.name
   skip_final_snapshot    = true
-  #  final_snapshot_identifier = "mysql-${timestamp()}"
-  #  snapshot_identifier       = data.terraform_remote_state.data_store.outputs.snapshot_identifier
 
   tags = {
     Name = "pipe-timer-db"
@@ -92,8 +78,8 @@ resource "aws_elasticache_subnet_group" "pipe_timer" {
   name = "pt-redis"
 
   subnet_ids = [
-    data.terraform_remote_state.vpc.outputs.subnet1_id,
-    data.terraform_remote_state.vpc.outputs.subnet2_id,
+    data.terraform_remote_state.vpc.outputs.subnet_production_id,
+    data.terraform_remote_state.vpc.outputs.subnet_staging_id,
   ]
 }
 
@@ -107,7 +93,6 @@ resource "aws_elasticache_parameter_group" "notify" {
   }
 }
 
-
 resource "aws_elasticache_cluster" "redis" {
   cluster_id           = "pt-redis"
   engine               = "redis"
@@ -120,8 +105,6 @@ resource "aws_elasticache_cluster" "redis" {
   subnet_group_name    = aws_elasticache_subnet_group.pipe_timer.name
   parameter_group_name = aws_elasticache_parameter_group.notify.name
   apply_immediately    = true
-  #  final_snapshot_identifier = "mysql-${timestamp()}"
-  #  snapshot_name             = data.terraform_remote_state.data_store.outputs.snapshot_name
 
   tags = {
     Name = "pipe-redis"
