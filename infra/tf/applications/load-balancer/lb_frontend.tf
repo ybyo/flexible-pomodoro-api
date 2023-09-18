@@ -94,7 +94,7 @@ resource "aws_lb_listener" "frontend" {
         ] : []
         content {
           arn    = aws_lb_target_group.frontend_production.arn
-          weight = lookup(local.traffic_dist_map[var.traffic_distribution], "production", 100)
+          weight = lookup(local.traffic_dist_map[var.traffic], "production", 100)
         }
       }
 
@@ -102,7 +102,7 @@ resource "aws_lb_listener" "frontend" {
         for_each = length(aws_lb_target_group.frontend_staging) > 0 ? [1] : []
         content {
           arn    = aws_lb_target_group.frontend_staging.arn
-          weight = lookup(local.traffic_dist_map[var.traffic_distribution], "staging", 0)
+          weight = lookup(local.traffic_dist_map[var.traffic], "staging", 0)
         }
       }
 
