@@ -78,8 +78,8 @@ resource "aws_security_group" "https_common" {
     protocol  = "tcp"
     cidr_blocks = [
       "${data.http.ip.response_body}/32", "${local.envs["DEV_SERVER"]}/32",
-      data.terraform_remote_state.vpc.outputs.subnet_production_cidr,
-      data.terraform_remote_state.vpc.outputs.subnet_staging_cidr
+      try(data.terraform_remote_state.vpc.outputs.subnet_production_cidr, null),
+      try(data.terraform_remote_state.vpc.outputs.subnet_staging_cidr, null)
     ]
   }
 
