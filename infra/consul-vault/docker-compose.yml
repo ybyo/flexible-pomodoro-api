@@ -82,7 +82,6 @@ services:
       - ./.vault-data:/vault/file
       - ./config.json:/vault/config/config.json
       - ./scripts:/data
-      - ../tf/production/applications/backend/certs:/ssl
       - ~/.ssh:/etc/.ssh:ro
       - ../certs:/vault/certs:ro
       - ../../env/:/env/:ro
@@ -112,7 +111,6 @@ services:
       - ./.vault-data:/vault/file
       - ./config.json:/vault/config/config.json
       - ./scripts:/data
-      - ../tf/production/applications/backend/certs:/ssl
       - ~/.ssh:/etc/.ssh:ro
       - ../certs:/vault/certs:ro
       - ../../env/:/env/:ro
