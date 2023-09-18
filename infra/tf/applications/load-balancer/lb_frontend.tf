@@ -115,7 +115,7 @@ resource "aws_lb_listener" "frontend" {
 }
 
 ###################################
-# CloudFlare DNS
+# CloudFlare DNS - Public
 ###################################
 resource "cloudflare_record" "front_lb_wildcard" {
   zone_id = local.envs["CF_ZONE_ID"]

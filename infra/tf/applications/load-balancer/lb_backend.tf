@@ -99,9 +99,11 @@ resource "aws_lb_listener" "backend" {
 }
 
 ###################################
-# CloudFlare DNS
+# CloudFlare DNS - Public
 ###################################
 resource "cloudflare_record" "backend" {
+  count = terraform.workspace == "production" ? 1 : 0
+
   zone_id = local.envs["CF_ZONE_ID"]
   name    = local.envs["UPSTREAM_BACKEND"]
   value   = aws_lb.backend.dns_name
