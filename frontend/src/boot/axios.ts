@@ -3,6 +3,7 @@ import axiosRetry from 'axios-retry';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { LoadingBar } from 'quasar';
 import { boot } from 'quasar/wrappers';
 
 let apiURL;
@@ -33,6 +34,12 @@ const api = axios.create({
 export default boot(() => {
   dayjs.extend(duration);
   dayjs.extend(relativeTime);
+
+  LoadingBar.setDefaults({
+    color: 'blue',
+    size: '6',
+    position: 'top',
+  });
 
   axiosRetry(axios, {
     retries: 1,
