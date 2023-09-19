@@ -22,3 +22,15 @@ output "backend_instance_count_production" {
 output "backend_instance_count_staging" {
   value = length(aws_instance.backend_staging) > 0 ? length(aws_instance.backend_staging) : null
 }
+
+output "ssh_id" {
+  value = aws_security_group.ssh.id
+}
+
+output "https_id" {
+  value = aws_security_group.https.id
+}
+
+output "node_exporter_id" {
+  value = aws_security_group.node_exporter.id
+}
