@@ -4,7 +4,7 @@ locals {
 }
 
 resource "aws_security_group" "ssh" {
-  name   = "sg_ssh_backend"
+  name   = "sg_ssh_backend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -36,7 +36,7 @@ resource "aws_security_group" "ssh" {
 }
 
 resource "aws_security_group" "node_exporter" {
-  name   = "sg_node_exporter_backend"
+  name   = "sg_node_exporter_backend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -65,7 +65,7 @@ resource "aws_security_group" "node_exporter" {
 }
 
 resource "aws_security_group" "https" {
-  name   = "sg_https_backend"
+  name   = "sg_https_backend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -97,7 +97,7 @@ resource "aws_security_group" "https" {
 }
 
 resource "aws_security_group" "public_dns" {
-  name   = "sg_dns_backend"
+  name   = "sg_dns_backend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
