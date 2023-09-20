@@ -3,8 +3,8 @@ locals {
   staging_cidr    = try(data.terraform_remote_state.vpc.outputs.subnet_staging_cidr, null)
 }
 
-resource "aws_security_group" "ssh_common" {
-  name   = "sg_ssh_frontend"
+resource "aws_security_group" "ssh" {
+  name   = "sg_ssh_frontend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -35,8 +35,8 @@ resource "aws_security_group" "ssh_common" {
   }
 }
 
-resource "aws_security_group" "node_exporter_common" {
-  name   = "sg_node_exporter_frontend"
+resource "aws_security_group" "node_exporter" {
+  name   = "sg_node_exporter_frontend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -64,8 +64,8 @@ resource "aws_security_group" "node_exporter_common" {
   }
 }
 
-resource "aws_security_group" "https_common" {
-  name   = "sg_https_frontend"
+resource "aws_security_group" "https" {
+  name   = "sg_https_frontend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
@@ -96,8 +96,8 @@ resource "aws_security_group" "https_common" {
   }
 }
 
-resource "aws_security_group" "frontend_dns" {
-  name   = "sg_dns_frontend"
+resource "aws_security_group" "public_dns" {
+  name   = "sg_dns_frontend_${terraform.workspace}"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   dynamic "ingress" {
