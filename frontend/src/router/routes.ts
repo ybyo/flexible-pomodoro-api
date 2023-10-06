@@ -66,10 +66,10 @@ const routes: RouteRecordRaw[] = [
     path: '/users',
     children: [
       {
-        path: 'verify-email',
+        path: 'verify-signup',
         component: () =>
           import('../core/users/presentation/components/VerifySignupToken.vue'),
-        name: 'verify-email',
+        name: 'verify-signup',
       },
       {
         path: 'verify-reset-password',

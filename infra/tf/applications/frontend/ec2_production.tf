@@ -8,10 +8,10 @@ resource "aws_instance" "frontend_production" {
   instance_type = local.envs["EC2_FLAVOR"]
   subnet_id     = local.subnet_id
   vpc_security_group_ids = [
-    aws_security_group.ssh_common.id,
-    aws_security_group.https_common.id,
-    aws_security_group.node_exporter_common.id,
-    aws_security_group.frontend_dns.id,
+    aws_security_group.ssh.id,
+    aws_security_group.https.id,
+    aws_security_group.node_exporter.id,
+    aws_security_group.public_dns.id,
   ]
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.setup.rendered

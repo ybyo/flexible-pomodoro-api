@@ -2,15 +2,12 @@ resource "aws_lb" "frontend" {
   name               = "lb-frontend"
   internal           = false
   load_balancer_type = "application"
-  subnets = [
-    for subnet in data.aws_subnet.public : subnet.id
-  ]
-  enable_cross_zone_load_balancing = true
+  subnets            = [for subnet in data.aws_subnet.public : subnet.id]
   security_groups = [
-    data.terraform_remote_state.vpc.outputs.sg_frontend_dns_id,
-    data.terraform_remote_state.vpc.outputs.sg_https_common_id,
-    data.terraform_remote_state.vpc.outputs.sg_node_exporter_common_id,
-    data.terraform_remote_state.vpc.outputs.sg_ssh_common_id
+    data.terraform_remote_state.frontend_production.outputs.ssh_id,
+    data.terraform_remote_state.frontend_production.outputs.https_id,
+    data.terraform_remote_state.frontend_production.outputs.node_exporter_id,
+    data.terraform_remote_state.frontend_production.outputs.public_dns_id,
   ]
 }
 

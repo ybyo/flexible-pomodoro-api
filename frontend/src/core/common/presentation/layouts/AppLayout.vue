@@ -51,12 +51,6 @@ const toggleRightDrawer = () => {
   rightDrawerOpen.value = !rightDrawerOpen.value;
 };
 
-LoadingBar.setDefaults({
-  color: 'blue',
-  size: '5px',
-  position: 'top',
-});
-
 // SEO
 const metaData = {
   title: 'Pipe Timer',

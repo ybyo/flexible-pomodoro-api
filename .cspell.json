@@ -10,7 +10,11 @@
     "mkcert",
     "pipetimer",
     "tfstate",
-    "elasticache"
+    "autoremove",
+    "autoclean",
+    "Buildx",
+    "cspell",
+    "doyoon"
   ],
   "flagWords": [],
   "ignorePaths": [
