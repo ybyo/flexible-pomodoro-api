@@ -18,6 +18,12 @@
   </p>
 </div>
 
+## 🔥The project is alive!!🔥
+
+I've long thought that the difference between a professional and an amateur is 'the ability to consistently perform well,' and as a result, I've become very interested in productivity tools like the Pomodoro Timer. This, combined with my serious intention to study development, has led me to my current project.
+
+I'm taking this project quite seriously, but I'm not in a paid developer and development is purely a hobby that I can only work on in my spare time. Due to this, updates may be slow and even server downtime can occur. However, this project is alive and I intend to continue it as much as I can. Thank you for taking an interest in this project.
+
 ## Description
 
 Pipe Timer is an app designed to enhance productivity by allowing users to freely combine timers with push notifications. Users can create a series of "timers", referred to as "routines", to plan out regular and segmented work and rest periods(or something you want).
