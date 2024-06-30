@@ -13,7 +13,7 @@
     "start:dev": "cross-env NODE_ENV=development nest start --watch",
     "start:debug": "cross-env NODE_ENV=development nest start --debug --watch",
     "start:compose": "docker compose --profile=local --env-file=../env/.development.env up",
-    "start:db": "docker compose --env-file=../env/.development.env up -d mysql redis",
+    "start:db": "docker compose --profile=local --env-file=../env/.development.env up -d mysql redis",
     "start:db:test": "docker compose --env-file=../env/.development.env up -d mysql-test redis-test",
     "start:prod": "cross-env NODE_ENV=production node dist/main",
     "start:prod:pm2": "pm2 start pnpm --name \"pipe-timer\" -- run start:production",
