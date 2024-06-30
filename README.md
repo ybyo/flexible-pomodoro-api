@@ -18,36 +18,42 @@
   </p>
 </div>
 
-## 프로젝트 설명
+## 🔥The project is alive!!🔥
 
-Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수 있는 앱입니다. 사용자는 "루틴"으로 불리는 연속된 타이머를 구성하여 규칙적이고 세분화된 업무 및 휴식 시간을 계획할 수 있습니다.
+I've long thought that the difference between a professional and an amateur is 'the ability to consistently perform well,' and as a result, I've become very interested in productivity tools like the Pomodoro Timer. This, combined with my serious intention to study development, has led me to my current project.
 
-각각의 타이머가 만료되면 데스크톱 알림을 통해 사용자에게 알림을 제공합니다. Pipe Timer는 회원가입 없이도 사용할 수 있지만, 회원으로 가입하면 타이머와 루틴을 서버에 저장하는 기능도 제공합니다. 이를 통해 다른 환경에서도 루틴을 다시 구성하지 않고도 사용할 수 있습니다.
+I'm taking this project quite seriously, but I'm not in a paid developer and development is purely a hobby that I can only work on in my spare time. Due to this, updates may be slow and even server downtime can occur. However, this project is alive and I intend to continue it as much as I can. Thank you for taking an interest in this project.
 
-## 시작하기
+## Description
 
-[Pipe Timer](https://pipetimer.com)에서 바로 사용하거나 도커를 활용하여 로컬에서 직접 호스팅할 수 있습니다.
+Pipe Timer is an app designed to enhance productivity by allowing users to freely combine timers with push notifications. Users can create a series of "timers", referred to as "routines", to plan out regular and segmented work and rest periods(or something you want).
 
-### 필요 사항
+When each timer expires, a desktop notification is sent to alert the user. You can use Pipe Timer either way—for simple, straightforward use without signing up, or by registering as a member to enjoy the additional feature of saving timers and routines on the server. This allows users to utilize their routines in different environments without having to reconfigure them.
 
-앱을 정상적으로 구동하기 위해선 아래와 같은 도구가 기본적으로 필요합니다.
+## Getting Started
+
+You can either use [Pipe Timer](https://pipetimer.com) directly or host it locally using Docker.
+
+### Prerequisites
+
+The following tools are essentially required to run the app properly.
 
 - [pnpm](https://pnpm.io/installation/)
 - [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
-### 설치
+### Installation
 
-1. 레포지토리를 복사합니다.
+1. Clone the repository.
    ```sh
    git clone https://github.com/yidoyoon/pipe-timer.git
    cd pipe-timer
    ```
-2. 서버를 HTTPS로 구동하기 위한 인증서를 mkcert로 생성합니다. 아래 명령어는 mkcert 설치와 실행에 필요한 패키지를 설치하고 인증서를 생성하는 스크립트를 실행합니다. 스크립트는 `./shared/helper/gerate-local-certs.sh`에 위치하고 있으며, 필요하다면 수정해서 사용할 수 있습니다.
+2. Generate two dummy certificates for HTTPS server operation using [mkcert](https://github.com/FiloSottile/mkcert). The following command installs the packages required for mkcert installation and execution, and runs a script to generate a certificate. The script is located at `./shared/helper/generate-local-certs.sh`, and you can modify it if needed.
    ```sh
    pnpm dev:cert:init
    ```
-3. 앱 구동에 필요한 필수 환경변수를 설정합니다. 환경 변수를 제공하는 파일은 `backend/env/.development.env`에 있습니다. `HOST_URL`은 자신의 환경, 도메인에 맞추어 설정합니다.
+3. Set the essential environment variables required for app operation. The file providing these environment variables is located at `backend/env/.development.env`. Set `HOST_URL` according to your environment and domain.
 
    ```dotenv
    # Nodemailer(Required)
@@ -86,32 +92,32 @@ Pipe Timer는 생산성 향상을 위해 자유롭게 타이머를 조합할 수
    DOCKER_REGISTRY=
    ```
 
-4. 앱을 구동합니다.
+4. Run
 
    ```sh
-   pnpm dev:compse:up
+   pnpm dev:compose:up
    ```
 
-5. 브라우저에서 `HOST_URL`에서 설정한 주소의 `4000`포트로 접근합니다. 예시) `https://localhost:4000`
+5. Access the address set in `HOST_URL` on port `4000` through your browser. Example: `https://localhost:4000`
 
-## 아키텍처 다이어그램
+## Architecture Diagram
 
 <img src="assets/structurizr/pipe-timer-architecture.png" alt="pipe_timer_architecture" width="800px">
 
-## 구동 화면
+## Demo Screenshot
 
 <img src="backend/images/demo_screenshot.png" alt="pipe_timer_example" width="800px">
 
-## 로드맵
+## Roadmap
 
-- [x] 모니터링 인프라 추가
-  - [x] 리소스 모니터링
-  - [x] 로그 수집
-- [ ] 사용량 통계 기능
-- [ ] 타이머 데이터 공유
-  - [ ] 웹에서 직접 공유
-  - [ ] 파일로 추출
-- [ ] 스마트폰 플랫폼 최적화
+- [x] Add monitoring infrastructure
+  - [x] Resource monitoring
+  - [x] Log collection
+- [ ] Usage statistics feature
+- [ ] Timer data sharing
+  - [ ] Direct sharing on the web
+  - [ ] Export to file
+- [ ] Smartphone platform optimization
 
 ## License
 

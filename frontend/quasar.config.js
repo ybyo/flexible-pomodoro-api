@@ -121,7 +121,7 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      host: 'localhost',
+      host: '0.0.0.0',
       port: 4000,
       https: {
         cert: fs.readFileSync(path.resolve(__dirname, './certs/localhost.pem')),
@@ -130,7 +130,7 @@ module.exports = configure(function (ctx) {
       pwa: true,
       open: false, // opens browser window automatically
       hmr: {
-        host: 'localhost',
+        host: '0.0.0.0',
         port: 4000,
       },
     },
