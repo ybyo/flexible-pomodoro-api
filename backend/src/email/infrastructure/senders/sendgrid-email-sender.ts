@@ -17,6 +17,7 @@ export class SendGridEmailSender implements EmailSender {
 
   async send(options: SendGridEmailOptions): Promise<void> {
     await sgmail.send(options);
+    
     this.logger.verbose(
       `Email sent successfully...\nTo: ${options.to}\nSubject: ${options.subject}`
     );

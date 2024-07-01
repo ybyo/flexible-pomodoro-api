@@ -8,6 +8,7 @@ import { EmailFactory } from '@/email/application/factories/email.factory';
 import { EmailSender } from '@/email/domain/email-sender.interface';
 import { NodeMailerEmailSender } from '@/email/infrastructure/senders/nodemailer-email-sender';
 import { SendGridEmailSender } from '@/email/infrastructure/senders/sendgrid-email-sender';
+import { MailgunEmailSender } from '@/email/infrastructure/senders/mailgun-email-sender';
 
 @Injectable()
 export class EmailService {
@@ -26,8 +27,10 @@ export class EmailService {
     private emailFactory: EmailFactory
   ) {
     this.host = this.determineHost();
-
-    if (this.config.auth.sgMailKey) {
+    
+    if (this.config.auth.mailgunKey) {
+      this.emailSender = new MailgunEmailSender(config, logger)
+    } else if (this.config.auth.sgMailKey) {
       this.emailSender = new SendGridEmailSender(config, logger);
     } else {
       this.emailSender = new NodeMailerEmailSender(config, logger);
@@ -103,13 +106,25 @@ export class EmailService {
 
     try {
       const rendered = await this.renderEmail(url, templatePath);
-      const emailOptions = this.emailFactory.createOption(
-        email,
-        `Pipe Timer - ${subject}`,
-        rendered,
-        this.config.auth.sgMailKey ? 'no-reply@pipetimer.com' : undefined
-      );
-      await this.emailSender.send(emailOptions);
+      if (this.config.auth.mailgunHost != undefined) {
+        const emailOptions = this.emailFactory.createOption(
+          email,
+          `Pipe Timer - ${subject}`,
+          rendered,
+          this.config.auth.mailgunKey ? 'no-reply@pipetimer.com' : undefined,
+          "Pipe Timer Email"
+        );
+        
+        await this.emailSender.send(emailOptions);
+      } else {
+        const emailOptions = this.emailFactory.createOption(
+          email,
+          `Pipe Timer - ${subject}`,
+          rendered,
+          this.config.auth.sgMailKey ? 'no-reply@pipetimer.com' : undefined
+        );
+        await this.emailSender.send(emailOptions);
+      }
     } catch (error) {
       this.logger.error(`Failed to send email: ${error}`);
     }
