@@ -360,11 +360,20 @@ const saveTimers = async () => {
 const resendSignupEmail = async () => {
   if (userStore.user !== null) {
     const result = await resendSignupEmailFn(userStore.user.email);
-    if (!result) {
+    if (process.env.MAILGUN_KEY != undefined) {
+      if (result.success == true) {
+        $q.notify({
+          message: '인증 메일을 재전송했습니다.',
+          color: 'positive',
+        });
+      }      
+    } else {
+      if (!result) {
       $q.notify({
         message: '인증 메일을 재전송했습니다.',
         color: 'positive',
       });
+    }
     }
   }
 };
